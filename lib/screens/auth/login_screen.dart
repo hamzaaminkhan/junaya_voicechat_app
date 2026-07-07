@@ -69,7 +69,10 @@ class LoginScreen extends StatelessWidget {
                   const Spacer(),
                   TextButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, AppRoutes.login);
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.forgotPassword,
+                      );
                     },
                     child: const Text(
                       "Forgot password",
@@ -96,7 +99,7 @@ class LoginScreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.pushNamed(
                       context,
-                      AppRoutes.forgotPassword,
+                      AppRoutes.home,
                     );
                   },
                   child: const Text(
@@ -142,7 +145,10 @@ class LoginScreen extends StatelessWidget {
                   ),
                   GestureDetector(
                     onTap: () {
-                      Navigator.pushNamed(context, AppRoutes.signup);
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.signup,
+                      );
                     },
                     child: const Text(
                       "Sign up",

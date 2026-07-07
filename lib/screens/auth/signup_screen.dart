@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../routes/app_routes.dart';
 import 'login_screen.dart';
 
 class SignupScreen extends StatelessWidget {
@@ -10,6 +11,7 @@ class SignupScreen extends StatelessWidget {
       backgroundColor: const Color(0xFF050816),
       body: SafeArea(
         child: SingleChildScrollView(
+          child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
@@ -149,7 +151,12 @@ class SignupScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.pushNamed(
+                      context,
+                      AppRoutes.home,
+                    );
+                  },
                   child: const Text(
                     "Sign up",
                     style: TextStyle(
@@ -186,6 +193,7 @@ class SignupScreen extends StatelessWidget {
               const SizedBox(height: 30),
             ],
           ),
+        ),
         ),
       ),
     );
