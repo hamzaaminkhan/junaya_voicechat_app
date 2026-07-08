@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -198,7 +198,7 @@ class HomePage extends StatelessWidget {
 
                   action(Icons.star, "VIP"),
 
-                  action(FontAwesomeIcons.gift, "Gift"),
+                  action(Icons.card_giftcard, "Gift"),
 
                   action(Icons.wallet, "Wallet"),
                 ],

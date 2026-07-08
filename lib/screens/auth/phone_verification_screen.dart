@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../routes/app_routes.dart';
+import '../../routes/app_routes.dart';
 
 class PhoneVerificationScreen extends StatelessWidget {
   const PhoneVerificationScreen({super.key});

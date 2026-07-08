@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../screens/intro_screen.dart';
-import '../screens/login_screen.dart';
-import '../screens/signup_screen.dart';
-import '../screens/forgot_password_screen.dart';
-import '../screens/phone_verification_screen.dart';
-import '../screens/otp_screen.dart';
-import '../screens/home_screen.dart';
+import '../screens/home/home_screen.dart';
+import '../screens/splash/intro_screen.dart';
+import '../screens/auth/login_screen.dart';
+import '../screens/auth/signup_screen.dart';
+import '../screens/auth/forgot_password_screen.dart';
+import '../screens/auth/phone_verification_screen.dart';
+import '../screens/auth/otp_screen.dart';
 
 
 class AppRoutes {
@@ -17,8 +17,6 @@ class AppRoutes {
   static const phoneVerification = "/phoneVerification";
   static const otp = "/otp";
   static const home = "/home";
-
-
 
   static Map<String, WidgetBuilder> routes = {
     intro: (_) => const IntroScreen(),
