@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:junaya_voicechat_app/screens/home/room_screen.dart';
 
 
 class HomeScreen extends StatelessWidget {
@@ -39,17 +40,56 @@ class HomeScreen extends StatelessWidget {
         selectedItemColor: Colors.amber,
         unselectedItemColor: Colors.white54,
         type: BottomNavigationBarType.fixed,
+
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              break;
+
+            case 1:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const RoomScreen(),
+                ),
+              );
+              break;
+
+            case 2:
+            // Gifts
+              break;
+
+            case 3:
+            // Friends
+              break;
+
+            case 4:
+            // Profile
+              break;
+          }
+        },
+
         items: const [
           BottomNavigationBarItem(
-              icon: Icon(Icons.home), label: "Home"),
+            icon: Icon(Icons.home),
+            label: "Home",
+          ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.mic), label: "Rooms"),
+            icon: Icon(Icons.mic),
+            label: "Rooms",
+          ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.card_giftcard), label: "Gifts"),
+            icon: Icon(Icons.card_giftcard),
+            label: "Gifts",
+          ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.people), label: "Friends"),
+            icon: Icon(Icons.people),
+            label: "Friends",
+          ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.person), label: "Profile"),
+            icon: Icon(Icons.person),
+            label: "Profile",
+          ),
         ],
       ),
 
