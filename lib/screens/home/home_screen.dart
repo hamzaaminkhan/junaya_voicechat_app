@@ -8,7 +8,7 @@ import 'package:junaya_voicechat_app/screens/home/profile_screen.dart';
 import 'package:junaya_voicechat_app/screens/home/wallet_screen.dart';
 import 'package:junaya_voicechat_app/screens/notifications/notification_screen.dart';
 import 'package:junaya_voicechat_app/theme/app_colors.dart';
-
+import 'package:junaya_voicechat_app/screens/vip/vip_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -31,6 +31,25 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
         actions: [
+
+          // VIP
+          IconButton(
+            icon: const Icon(
+              Icons.workspace_premium,
+              color: Colors.amber,
+              size: 28,
+            ),
+            tooltip: "VIP",
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const VipScreen(),
+                ),
+              );
+            },
+          ),
+
           IconButton(
             icon: const Icon(Icons.notifications, color: Colors.white,),
 
@@ -226,13 +245,14 @@ class HomeScreen extends StatelessWidget {
                     Icons.workspace_premium,
                     "VIP",
                     Colors.amber,
-                        () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("VIP Screen Coming Soon"),
-                        ),
-                      );
-                    },
+                          () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const VipScreen(),
+                          ),
+                        );
+                      },
                   ),
 
                 ],
