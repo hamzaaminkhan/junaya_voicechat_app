@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:junaya_voicechat_app/theme/app_colors.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -18,11 +19,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xff0B0E21),
+      backgroundColor: AppColors.surface,
 
       appBar: AppBar(
         backgroundColor: const Color(0xff121530),
         elevation: 0,
+
+        iconTheme: const IconThemeData(
+          color: Colors.white, // Bright back arrow
+        ),
+
         title: Text(
           "Settings",
           style: GoogleFonts.poppins(

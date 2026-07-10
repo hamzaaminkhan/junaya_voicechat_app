@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:junaya_voicechat_app/screens/home/room_screen.dart';
+import 'package:junaya_voicechat_app/screens/home/rooms/room_screen.dart';
+import 'package:junaya_voicechat_app/screens/friends/friends_screen.dart';
+import 'package:junaya_voicechat_app/screens/gifts/gifts_screen.dart';
+import 'package:junaya_voicechat_app/screens/home/profile_screen.dart';
+import 'package:junaya_voicechat_app/screens/home/wallet_screen.dart';
 import 'package:junaya_voicechat_app/screens/notifications/notification_screen.dart';
+import 'package:junaya_voicechat_app/theme/app_colors.dart';
 
 
 class HomeScreen extends StatelessWidget {
@@ -14,10 +19,11 @@ class HomeScreen extends StatelessWidget {
       backgroundColor: const Color(0xff0B0E21),
 
       appBar: AppBar(
-        backgroundColor: const Color(0xff121530),
+        backgroundColor: AppColors.surface,
         elevation: 0,
+
         title: Text(
-          "JUNAYA",
+          "JUNAID",
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             letterSpacing: 2,
@@ -26,7 +32,9 @@ class HomeScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications),
+            icon: const Icon(Icons.notifications, color: Colors.white,),
+
+
             onPressed: () {
               Navigator.push(
                 context,
@@ -48,7 +56,7 @@ class HomeScreen extends StatelessWidget {
         onTap: (index) {
           switch (index) {
             case 0:
-              break;
+              break; // Already on Home
 
             case 1:
               Navigator.push(
@@ -60,15 +68,30 @@ class HomeScreen extends StatelessWidget {
               break;
 
             case 2:
-            // Gifts
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const GiftsScreen(),
+                ),
+              );
               break;
 
             case 3:
-            // Friends
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const FriendsScreen(),
+                ),
+              );
               break;
 
             case 4:
-            // Profile
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ProfileScreen(),
+                ),
+              );
               break;
           }
         },
@@ -139,6 +162,84 @@ class HomeScreen extends StatelessWidget {
             ),
 
             const SizedBox(height: 20),
+
+            title("Explore"),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: 2,
+                crossAxisSpacing: 15,
+                mainAxisSpacing: 15,
+                childAspectRatio: 1.5,
+                children: [
+
+                  featureCard(
+                    context,
+                    Icons.mic,
+                    "Create Room",
+                    Colors.deepPurple,
+                        () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const RoomScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  featureCard(
+                    context,
+                    Icons.wallet,
+                    "Wallet",
+                    Colors.green,
+                        () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const WalletScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  featureCard(
+                    context,
+                    Icons.card_giftcard,
+                    "Gift Store",
+                    Colors.orange,
+                        () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const GiftsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  featureCard(
+                    context,
+                    Icons.workspace_premium,
+                    "VIP",
+                    Colors.amber,
+                        () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("VIP Screen Coming Soon"),
+                        ),
+                      );
+                    },
+                  ),
+
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 25),
 
             title("Popular Rooms"),
 
@@ -229,26 +330,6 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
 
-            title("Quick Actions"),
-
-            Padding(
-              padding: const EdgeInsets.all(15),
-              child: Row(
-                mainAxisAlignment:
-                MainAxisAlignment.spaceAround,
-                children: [
-
-                  action(Icons.mic, "Create"),
-
-                  action(Icons.star, "VIP"),
-
-                  action(Icons.card_giftcard, "Gift"),
-
-                  action(Icons.wallet, "Wallet"),
-                ],
-              ),
-            ),
-
             const SizedBox(height: 30),
           ],
         ),
@@ -314,4 +395,52 @@ class HomeScreen extends StatelessWidget {
       ],
     );
   }
+}
+
+Widget featureCard(
+    BuildContext context,
+    IconData icon,
+    String title,
+    Color color,
+    VoidCallback onTap,
+    ) {
+  return InkWell(
+    borderRadius: BorderRadius.circular(18),
+    onTap: onTap,
+    child: Container(
+      decoration: BoxDecoration(
+        color: Colors.white10,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+
+            CircleAvatar(
+              radius: 26,
+              backgroundColor: color,
+              child: Icon(
+                icon,
+                color: Colors.white,
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+
+          ],
+        ),
+      ),
+    ),
+  );
 }

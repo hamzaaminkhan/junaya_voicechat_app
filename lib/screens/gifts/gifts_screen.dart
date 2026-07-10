@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:junaya_voicechat_app/theme/app_colors.dart';
 
 class GiftsScreen extends StatelessWidget {
   const GiftsScreen({super.key});
@@ -61,11 +62,16 @@ class GiftsScreen extends StatelessWidget {
       backgroundColor: const Color(0xff0B0E21),
 
       appBar: AppBar(
-        backgroundColor: const Color(0xff121530),
+        backgroundColor: AppColors.surface,
         elevation: 0,
-        title: Text(
+
+        iconTheme: const IconThemeData(
+          color: Colors.white, // Bright back arrow
+        ),
+
+        title: const Text(
           "Gift Store",
-          style: GoogleFonts.poppins(
+          style: TextStyle(
             color: Colors.amber,
             fontWeight: FontWeight.bold,
           ),

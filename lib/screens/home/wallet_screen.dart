@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:junaya_voicechat_app/theme/app_colors.dart';
 
 class WalletScreen extends StatelessWidget {
   const WalletScreen({super.key});
@@ -10,8 +11,12 @@ class WalletScreen extends StatelessWidget {
       backgroundColor: const Color(0xff0B0E21),
 
       appBar: AppBar(
-        backgroundColor: const Color(0xff121530),
+        backgroundColor: AppColors.surface,
         elevation: 0,
+
+        iconTheme: const IconThemeData(
+          color: Colors.white, // Bright back arrow
+        ),
         title: Text(
           "Wallet",
           style: GoogleFonts.poppins(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:junaya_voicechat_app/screens/settings/settings_screen.dart';
+import 'package:junaya_voicechat_app/theme/app_colors.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -10,8 +12,12 @@ class ProfileScreen extends StatelessWidget {
       backgroundColor: const Color(0xff0B0E21),
 
       appBar: AppBar(
-        backgroundColor: const Color(0xff121530),
+        backgroundColor: AppColors.surface,
         elevation: 0,
+
+        iconTheme: const IconThemeData(
+          color: Colors.white, // Bright back arrow
+        ),
         title: Text(
           "Profile",
           style: GoogleFonts.poppins(
@@ -19,6 +25,19 @@ class ProfileScreen extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const SettingsScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
 
       body: SingleChildScrollView(

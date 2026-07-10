@@ -101,10 +101,15 @@ class _RoomScreenState extends State<RoomScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
+
+        iconTheme: const IconThemeData(
+          color: Colors.white, // Bright back arrow
+        ),
+
         title: const Text(
           "Voice Rooms",
           style: TextStyle(
-            color: Colors.white,
+            color: Colors.amber,
             fontWeight: FontWeight.bold,
           ),
         ),
