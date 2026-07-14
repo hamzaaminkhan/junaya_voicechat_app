@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:junaya_voicechat_app/screens/splash/splash_screen.dart';
-import 'routes/app_routes.dart';
-import 'package:junaya_voicechat_app/theme/app_theme.dart';
-import 'package:junaya_voicechat_app/screens/home/home_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+import 'package:junaya_voicechat_app/firebase_options.dart';
+import 'package:junaya_voicechat_app/routes/app_routes.dart';
+import 'package:junaya_voicechat_app/theme/app_theme.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(const JunayaApp());
 }
 
@@ -16,7 +23,8 @@ class JunayaApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: const SplashScreen(),
+      initialRoute: AppRoutes.intro,
+      routes: AppRoutes.routes,
     );
   }
 }

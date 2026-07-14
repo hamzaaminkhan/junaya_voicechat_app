@@ -114,25 +114,9 @@ class LoginScreen extends StatelessWidget {
 
               const SizedBox(height: 25),
 
-              const Text(
-                "Or sign in with",
-                style: TextStyle(
-                  color: Colors.white70,
-                ),
-              ),
 
               const SizedBox(height: 20),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  socialButton(Icons.facebook),
-                  const SizedBox(width: 12),
-                  socialButton(Icons.flutter_dash),
-                  const SizedBox(width: 12),
-                  socialButton(Icons.g_mobiledata),
-                ],
-              ),
 
               const Spacer(),
 

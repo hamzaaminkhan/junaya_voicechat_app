@@ -1,252 +1,208 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../routes/app_routes.dart';
-import 'login_screen.dart';
 
-class SignupScreen extends StatelessWidget {
+class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
+
+  @override
+  State<SignupScreen> createState() => _SignupScreenState();
+}
+
+class _SignupScreenState extends State<SignupScreen> {
+  final _formKey = GlobalKey<FormState>();
+
+  final firstName = TextEditingController();
+  final lastName = TextEditingController();
+  final email = TextEditingController();
+  final password = TextEditingController();
+  final confirmPassword = TextEditingController();
+
+  bool agree = false;
+  bool loading = false;
+  bool hidePassword = true;
+  bool hideConfirm = true;
+
+  String? gender;
+  DateTime? dob;
+
+  @override
+  void dispose() {
+    firstName.dispose();
+    lastName.dispose();
+    email.dispose();
+    password.dispose();
+    confirmPassword.dispose();
+    super.dispose();
+  }
+
+
+  Future<void> signup() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (!agree) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please accept Privacy Policy")),
+      );
+      return;
+    }
+
+    if (gender == null || dob == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Select gender and birth date")),
+      );
+      return;
+    }
+
+    setState(() => loading = true);
+
+    try {
+      final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email.text.trim(),
+        password: password.text.trim(),
+      );
+
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(cred.user!.uid)
+          .set({
+        "uid": cred.user!.uid,
+        "firstName": firstName.text.trim(),
+        "lastName": lastName.text.trim(),
+        "email": email.text.trim(),
+        "gender": gender,
+        "dob": dob!.toIso8601String(),
+        "coins": 0,
+        "diamonds": 0,
+        "vip": false,
+        "createdAt": FieldValue.serverTimestamp(),
+      });
+
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, AppRoutes.home);
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message ?? "Signup failed")));
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF050816),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            children: [
-              const SizedBox(height: 40),
-
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  "Sign up",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 25),
-
-              Row(
-                children: const [
-                  Expanded(
-                    child: CustomTextField(
-                      hint: "First name",
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: CustomTextField(
-                      hint: "Last name",
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              const CustomTextField(
-                hint: "Email/phone number",
-              ),
-
-              const SizedBox(height: 16),
-
-              const CustomTextField(
-                hint: "Password",
-                isPassword: true,
-              ),
-
-              const SizedBox(height: 16),
-
-              const CustomTextField(
-                hint: "Confirm Password",
-                isPassword: true,
-              ),
-
-              const SizedBox(height: 20),
-
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  "Birth of date",
-                  style: TextStyle(
-                    color: Colors.amber,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: dateBox("Date/month"),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: dateBox("Year"),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  "Gender",
-                  style: TextStyle(
-                    color: Colors.amber,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  genderButton("Male"),
-                  genderButton("Female"),
-                  genderButton("Others"),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              Row(
-                children: const [
-                  Icon(
-                    Icons.check_box_outline_blank,
-                    color: Colors.amber,
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    "I Agree with ",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  Text(
-                    "privacy and policy",
-                    style: TextStyle(
-                      color: Colors.purpleAccent,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 25),
-
-              SizedBox(
-                width: double.infinity,
-                height: 55,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFF31C79),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.pushNamed(
-                      context,
-                      AppRoutes.home,
-                    );
-                  },
-                  child: const Text(
-                    "Sign up",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 25),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Already have an account? ",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text(
-                      "Sign in",
-                      style: TextStyle(
-                        color: Colors.purpleAccent,
-                      ),
-                    ),
-                  )
-                ],
-              ),
-
-              const SizedBox(height: 30),
-            ],
-          ),
-        ),
-        ),
-      ),
-    );
-  }
-
-  static Widget genderButton(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 12,
-      ),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.amber,
-        ),
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
-
-  static Widget dateBox(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 16,
-      ),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.amber,
-        ),
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: Row(
-        children: [
-          Text(
-            text,
-            style: const TextStyle(
-              color: Colors.white70,
+      appBar: AppBar(title: const Text("Sign Up")),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            TextFormField(
+              controller: firstName,
+              decoration: const InputDecoration(labelText: "First Name"),
+              validator: (v)=>v!.isEmpty?"Required":null,
             ),
-          ),
-          const Spacer(),
-          const Icon(
-            Icons.keyboard_arrow_down,
-            color: Colors.amber,
-          ),
-        ],
+            TextFormField(
+              controller: lastName,
+              decoration: const InputDecoration(labelText: "Last Name"),
+              validator: (v)=>v!.isEmpty?"Required":null,
+            ),
+            TextFormField(
+              controller: email,
+              decoration: const InputDecoration(labelText: "Email"),
+              validator: (v)=>v!.contains("@")?null:"Invalid email",
+            ),
+            TextFormField(
+              controller: password,
+              obscureText: hidePassword,
+              decoration: InputDecoration(
+                labelText: "Password",
+                suffixIcon: IconButton(
+                  icon: Icon(hidePassword?Icons.visibility:Icons.visibility_off),
+                  onPressed: ()=>setState(()=>hidePassword=!hidePassword),
+                ),
+              ),
+              validator: (v)=>v!=null&&v.length>=6?null:"Minimum 6 characters",
+            ),
+            TextFormField(
+              controller: confirmPassword,
+              obscureText: hideConfirm,
+              decoration: InputDecoration(
+                labelText: "Confirm Password",
+                suffixIcon: IconButton(
+                  icon: Icon(hideConfirm?Icons.visibility:Icons.visibility_off),
+                  onPressed: ()=>setState(()=>hideConfirm=!hideConfirm),
+                ),
+              ),
+              validator: (v)=>v==password.text?null:"Passwords don't match",
+            ),
+            const SizedBox(height:16),
+            Wrap(
+              spacing:8,
+              children:["Male","Female","Other"].map((g)=>ChoiceChip(
+                label: Text(g),
+                selected: gender==g,
+                onSelected: (_)=>setState(()=>gender=g),
+              )).toList(),
+            ),
+            const SizedBox(height:16),
+            ListTile(
+              title: Text(dob==null?"Select Birth Date":"${dob!.day}/${dob!.month}/${dob!.year}"),
+              trailing: const Icon(Icons.calendar_today),
+              onTap: () async{
+                final d=await showDatePicker(
+                  context: context,
+                  firstDate: DateTime(1950),
+                  lastDate: DateTime.now(),
+                  initialDate: DateTime(2000),
+                );
+                if(d!=null)setState(()=>dob=d);
+              },
+            ),
+            CheckboxListTile(
+              value: agree,
+              onChanged: (v)=>setState(()=>agree=v!),
+              title: const Text("I agree to Privacy Policy"),
+            ),
+            ElevatedButton(
+              onPressed: loading?null:signup,
+              child: loading?const CircularProgressIndicator():const Text("Sign Up"),
+            )
+          ],
+        ),
       ),
     );
   }
+}
+
+
+Widget dateBox(String text) {
+  return Container(
+    padding: const EdgeInsets.symmetric(
+      horizontal: 16,
+      vertical: 16,
+    ),
+    decoration: BoxDecoration(
+      border: Border.all(
+        color: Colors.amber,
+      ),
+      borderRadius: BorderRadius.circular(30),
+    ),
+    child: Row(
+      children: [
+        Text(
+          text,
+          style: const TextStyle(
+            color: Colors.white70,
+          ),
+        ),
+        const Spacer(),
+        const Icon(
+          Icons.keyboard_arrow_down,
+          color: Colors.amber,
+        ),
+      ],
+    ),
+  );
 }

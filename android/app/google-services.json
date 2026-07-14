@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "865954546319",
+    "project_id": "junaid-7787",
+    "storage_bucket": "junaid-7787.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:865954546319:android:a9b480e3251bc9f01a26fa",
+        "android_client_info": {
+          "package_name": "com.example.junaya_voicechat_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGC4QOyELvJOGfTZlyVUnlM4fwwPxzEak"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

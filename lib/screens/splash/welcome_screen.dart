@@ -148,7 +148,7 @@ class _IntroScreenState extends State<IntroScreen>
                         const SizedBox(height: 25),
 
                         Text(
-                          "JUNAYA",
+                          "JUNAID",
                           style: GoogleFonts.poppins(
                             color: Colors.amber,
                             fontSize: 38,
@@ -224,18 +224,37 @@ class _IntroScreenState extends State<IntroScreen>
 
                         const SizedBox(height: 18),
 
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pushReplacementNamed(
-                              context,
-                              AppRoutes.login,
-                            );
-                          },
-                          child: Text(
-                            "Already have an account? Sign In",
+                        RichText(
+                          text: TextSpan(
                             style: GoogleFonts.poppins(
-                              color: Colors.white70,
+                              fontSize: 15,
                             ),
+                            children: [
+                              TextSpan(
+                                text: "Already have an account? ",
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                ),
+                              ),
+                              WidgetSpan(
+                                alignment: PlaceholderAlignment.middle,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.pushReplacementNamed(
+                                      context,
+                                      AppRoutes.login,
+                                    );
+                                  },
+                                  child: Text(
+                                    "Sign In",
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.amber,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
 
