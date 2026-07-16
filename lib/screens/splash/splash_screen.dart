@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:junaya_voicechat_app/theme/app_colors.dart';
-import 'package:junaya_voicechat_app/screens/splash/welcome_screen.dart';
+
+import '../../routes/app_routes.dart';
+import '../../theme/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,6 +13,7 @@ class SplashScreen extends StatefulWidget {
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
+
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
@@ -24,7 +27,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 900),
     );
 
     _scaleAnimation = Tween<double>(
@@ -33,7 +36,7 @@ class _SplashScreenState extends State<SplashScreen>
     ).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Curves.easeOutBack,
+        curve: Curves.easeOutCubic,
       ),
     );
 
@@ -44,15 +47,22 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    Timer(const Duration(seconds: 10), () {
+    Future.delayed(const Duration(seconds: 2), () async {
       if (!mounted) return;
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const IntroScreen(),
-        ),
-      );
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user != null) {
+        Navigator.pushReplacementNamed(
+          context,
+          AppRoutes.home,
+        );
+      } else {
+        Navigator.pushReplacementNamed(
+          context,
+          AppRoutes.intro,
+        );
+      }
     });
   }
 
@@ -76,9 +86,12 @@ class _SplashScreenState extends State<SplashScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
 
-                Image.asset(
-                  "assets/logo.jpeg",
-                  height: 140,
+                Hero(
+                  tag: "appLogo",
+                  child: Image.asset(
+                    "assets/logo.png",
+                    height: 150,
+                  ),
                 ),
 
                  SizedBox(height: 30),
@@ -111,6 +124,16 @@ class _SplashScreenState extends State<SplashScreen>
                   child: CircularProgressIndicator(
                     strokeWidth: 3,
                     color: AppColors.secondary,
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                Text(
+                  "Version 1.0.0",
+                  style: GoogleFonts.poppins(
+                    color: Colors.white38,
+                    fontSize: 12,
                   ),
                 ),
               ],

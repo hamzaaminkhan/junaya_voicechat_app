@@ -140,7 +140,7 @@ class _IntroScreenState extends State<IntroScreen>
                         Hero(
                           tag: "logo",
                           child:  Image.asset(
-                            "assets/logo.jpeg",
+                            "assets/logo.png",
                             height: 130,
                           ),
                         ),
