@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:junaya_voicechat_app/theme/app_colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:junaya_voicechat_app/routes/app_routes.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -105,7 +107,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 backgroundColor: Colors.red,
                 padding: const EdgeInsets.symmetric(vertical: 15),
               ),
-              onPressed: () {},
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
+
+                if (context.mounted) {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    AppRoutes.login,
+                        (route) => false,
+                  );
+                }
+              },
 
               icon: const Icon(Icons.logout),
 
@@ -138,6 +150,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         style: const TextStyle(color: Colors.white),
       ),
       value: value,
+      // ignore: deprecated_member_use
       activeColor: Colors.amber,
       onChanged: onChanged,
     );

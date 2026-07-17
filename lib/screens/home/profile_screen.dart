@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:junaya_voicechat_app/screens/settings/settings_screen.dart';
 import 'package:junaya_voicechat_app/theme/app_colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:junaya_voicechat_app/routes/app_routes.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -153,7 +155,17 @@ class ProfileScreen extends StatelessWidget {
                     backgroundColor: Colors.red,
                     padding: const EdgeInsets.all(16),
                   ),
-                  onPressed: () {},
+                  onPressed: () async {
+                    await FirebaseAuth.instance.signOut();
+
+                    if (context.mounted) {
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        AppRoutes.login,
+                            (route) => false,
+                      );
+                    }
+                  },
                   icon: const Icon(Icons.logout),
                   label: const Text("Logout"),
                 ),
