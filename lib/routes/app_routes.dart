@@ -17,6 +17,7 @@ class AppRoutes {
   static const phoneVerification = "/phoneVerification";
   static const otp = "/otp";
   static const home = "/home";
+  static const emailVerification = '/emailVerification';
 
   static Map<String, WidgetBuilder> routes = {
     intro: (_) => const IntroScreen(),

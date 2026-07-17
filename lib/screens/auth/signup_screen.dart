@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:junaya_voicechat_app/theme/app_colors.dart';
 import '../../routes/app_routes.dart';
+import '../../services/auth_service.dart';
+import '../../services/firestore_service.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -11,34 +12,78 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
-final _formKey = GlobalKey<FormState>();
+//====================================================
+// Form
+//====================================================
 
-final firstName = TextEditingController();
-final lastName = TextEditingController();
-final email = TextEditingController();
-final password = TextEditingController();
-final confirmPassword = TextEditingController();
+final GlobalKey<FormState> _formKey =
+GlobalKey<FormState>();
 
-bool agree = false;
+//====================================================
+// Controllers
+//====================================================
+
+final TextEditingController firstName =
+TextEditingController();
+
+final TextEditingController lastName =
+TextEditingController();
+
+final TextEditingController username =
+TextEditingController();
+
+final TextEditingController email =
+TextEditingController();
+
+final TextEditingController password =
+TextEditingController();
+
+final TextEditingController confirmPassword =
+TextEditingController();
+
+//====================================================
+// Variables
+//====================================================
+
 bool loading = false;
 
+bool agree = false;
+
 bool hidePassword = true;
-bool hideConfirm = true;
+
+bool hideConfirmPassword = true;
 
 String? gender;
+
 DateTime? dob;
 
-// ==========================
-// Validation Methods
-// ==========================
+//====================================================
+// Dispose
+//====================================================
+
+@override
+void dispose() {
+firstName.dispose();
+lastName.dispose();
+username.dispose();
+email.dispose();
+password.dispose();
+confirmPassword.dispose();
+
+super.dispose();
+}
+
+//====================================================
+// Validators
+//====================================================
 
 String? validateFirstName(String? value) {
 if (value == null || value.trim().isEmpty) {
-return "First name is required";
+return 'First name is required';
 }
 
 if (value.trim().length < 2) {
-return "Minimum 2 characters";
+return 'Minimum 2 characters';
 }
 
 return null;
@@ -46,11 +91,35 @@ return null;
 
 String? validateLastName(String? value) {
 if (value == null || value.trim().isEmpty) {
-return "Last name is required";
+return 'Last name is required';
 }
 
 if (value.trim().length < 2) {
-return "Minimum 2 characters";
+return 'Minimum 2 characters';
+}
+
+return null;
+}
+
+String? validateUsername(String? value) {
+if (value == null || value.trim().isEmpty) {
+return 'Username is required';
+}
+
+final username = value.trim();
+
+if (username.length < 4) {
+return 'Minimum 4 characters';
+}
+
+if (username.length > 20) {
+return 'Maximum 20 characters';
+}
+
+final regex = RegExp(r'^[a-zA-Z0-9_.]+$');
+
+if (!regex.hasMatch(username)) {
+return 'Only letters, numbers, "_" and "." are allowed';
 }
 
 return null;
@@ -58,15 +127,15 @@ return null;
 
 String? validateEmail(String? value) {
 if (value == null || value.trim().isEmpty) {
-return "Email is required";
+return 'Email is required';
 }
 
-final emailRegex = RegExp(
-r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+final regex = RegExp(
+r'^[\w\-.]+@([\w-]+\.)+[\w-]{2,4}$',
 );
 
-if (!emailRegex.hasMatch(value.trim())) {
-return "Enter a valid email";
+if (!regex.hasMatch(value.trim())) {
+return 'Enter a valid email';
 }
 
 return null;
@@ -74,23 +143,27 @@ return null;
 
 String? validatePassword(String? value) {
 if (value == null || value.isEmpty) {
-return "Password is required";
+return 'Password is required';
 }
 
 if (value.length < 8) {
-return "Minimum 8 characters";
+return 'Minimum 8 characters';
 }
 
 if (!RegExp(r'[A-Z]').hasMatch(value)) {
-return "Must contain one uppercase letter";
+return 'One uppercase letter required';
 }
 
 if (!RegExp(r'[a-z]').hasMatch(value)) {
-return "Must contain one lowercase letter";
+return 'One lowercase letter required';
 }
 
 if (!RegExp(r'\d').hasMatch(value)) {
-return "Must contain one number";
+return 'One number required';
+}
+
+if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(value)) {
+return 'One special character required';
 }
 
 return null;
@@ -98,196 +171,377 @@ return null;
 
 String? validateConfirmPassword(String? value) {
 if (value == null || value.isEmpty) {
-return "Please confirm your password";
+return 'Confirm your password';
 }
 
 if (value != password.text) {
-return "Passwords do not match";
-}
-
-if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(value)) {
-  return "Must contain one special character";
+return 'Passwords do not match';
 }
 
 return null;
 }
+//====================================================
+// Date Picker
+//====================================================
 
-@override
-void dispose() {
-firstName.dispose();
-lastName.dispose();
-email.dispose();
-password.dispose();
-confirmPassword.dispose();
-super.dispose();
+Future<void> _selectDateOfBirth() async {
+final DateTime? picked = await showDatePicker(
+context: context,
+initialDate: DateTime(2000),
+firstDate: DateTime(1950),
+lastDate: DateTime.now(),
+);
+
+if (picked != null) {
+setState(() {
+dob = picked;
+});
+}
 }
 
-Future<void> signup() async {
-if (!_formKey.currentState!.validate()) return;
+//====================================================
+// Input Decoration
+//====================================================
+
+InputDecoration _inputDecoration({
+required String label,
+required String hint,
+required IconData icon,
+Widget? suffixIcon,
+}) {
+return InputDecoration(
+labelText: label,
+hintText: hint,
+prefixIcon: Icon(icon),
+suffixIcon: suffixIcon,
+border: OutlineInputBorder(
+borderRadius: BorderRadius.circular(15),
+),
+enabledBorder: OutlineInputBorder(
+borderRadius: BorderRadius.circular(15),
+),
+focusedBorder: OutlineInputBorder(
+borderRadius: BorderRadius.circular(15),
+),
+errorBorder: OutlineInputBorder(
+borderRadius: BorderRadius.circular(15),
+),
+focusedErrorBorder: OutlineInputBorder(
+borderRadius: BorderRadius.circular(15),
+),
+);
+}
+
+//====================================================
+// Sign Up
+//====================================================
+
+Future<void> _signUp() async {
+FocusScope.of(context).unfocus();
+
+if (loading) return;
+
+if (!_formKey.currentState!.validate()) {
+return;
+}
+
+if (gender == null) {
+ScaffoldMessenger.of(context).showSnackBar(
+const SnackBar(
+content: Text('Please select your gender.'),
+),
+);
+return;
+}
+
+if (dob == null) {
+ScaffoldMessenger.of(context).showSnackBar(
+const SnackBar(
+content: Text('Please select your date of birth.'),
+),
+);
+return;
+}
 
 if (!agree) {
 ScaffoldMessenger.of(context).showSnackBar(
 const SnackBar(
-content: Text("Please accept Privacy Policy"),
+content: Text(
+'Please accept the Terms & Conditions.',
+),
 ),
 );
 return;
 }
 
-if (gender == null || dob == null) {
-ScaffoldMessenger.of(context).showSnackBar(
-const SnackBar(
-content: Text("Select gender and birth date"),
-),
-);
-return;
-}
-
-setState(() => loading = true);
-
-try {
-final cred =
-await FirebaseAuth.instance.createUserWithEmailAndPassword(
-email: email.text.trim(),
-password: password.text.trim(),
-);
-await FirebaseFirestore.instance
-.collection("users")
-.doc(cred.user!.uid)
-.set({
-"uid": cred.user!.uid,
-"firstName": firstName.text.trim(),
-"lastName": lastName.text.trim(),
-"email": email.text.trim(),
-"gender": gender,
-"dob": dob!.toIso8601String(),
-"coins": 0,
-"diamonds": 0,
-"vip": false,
-"createdAt": FieldValue.serverTimestamp(),
+setState(() {
+loading = true;
 });
 
+try {
+final credential = await AuthService.instance.signUp(
+fullName:
+'${firstName.text.trim()} ${lastName.text.trim()}',
+username: username.text.trim().toLowerCase(),
+email: email.text.trim().toLowerCase(),
+password: password.text.trim(),
+);
+
+if (credential.user != null) {
+await FirestoreService.instance.updateOnlineStatus(
+credential.user!.uid,
+true,
+);
+}
+
 if (!mounted) return;
-Navigator.pushReplacementNamed(context, AppRoutes.home);
-} on FirebaseAuthException catch (e) {
-  String message;
 
-  switch (e.code) {
-    case 'email-already-in-use':
-      message = 'An account already exists with this email.';
-      break;
+ScaffoldMessenger.of(context).showSnackBar(
+const SnackBar(
+content: Text(
+'Account created successfully. Verify your email.',
+),
+),
+);
 
-    case 'invalid-email':
-      message = 'Please enter a valid email address.';
-      break;
+Navigator.pushReplacementNamed(
+context,
+AppRoutes.emailVerification,
+);
+} catch (e) {
+if (!mounted) return;
 
-    case 'weak-password':
-      message = 'Password is too weak.';
-      break;
-
-    case 'operation-not-allowed':
-      message = 'Email & Password sign-in is disabled.';
-      break;
-
-    case 'network-request-failed':
-      message = 'No internet connection.';
-      break;
-
-    default:
-      message = e.message ?? 'Registration failed.';
-  }
-
-  if (!mounted) return;
-
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(message)),
-  );
-} catch (_) {
-  if (!mounted) return;
-
-
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: Text('Something went wrong. Please try again.'),
-    ),
-  );
-}
-
-finally {
+ScaffoldMessenger.of(context).showSnackBar(
+SnackBar(
+content: Text(
+e.toString().replaceFirst(
+'Exception: ',
+'',
+),
+),
+),
+);
+} finally {
 if (mounted) {
-setState(() => loading = false);
+setState(() {
+loading = false;
+});
 }
 }
 }
+
+//====================================================
+// Build
+//====================================================
 
 @override
 Widget build(BuildContext context) {
-return Scaffold(
-appBar: AppBar(
-title: const Text("Sign Up"),
-),
-body: Form(
+return GestureDetector(
+onTap: () => FocusScope.of(context).unfocus(),
+child: Scaffold(
+  backgroundColor: AppColors.background,
+resizeToAvoidBottomInset: true,
+body: SafeArea(
+child: Form(
 key: _formKey,
-autovalidateMode: AutovalidateMode.onUserInteraction,
+autovalidateMode:
+AutovalidateMode.onUserInteraction,
 child: ListView(
-padding: const EdgeInsets.all(20),
+padding: const EdgeInsets.all(24),
 children: [
+//====================================================
+// Header
+//====================================================
 
+const SizedBox(height: 10),
+
+const Icon(
+Icons.account_circle,
+size: 90,
+),
+
+const SizedBox(height: 20),
+
+const Text(
+'Create Account',
+textAlign: TextAlign.center,
+style: TextStyle(
+fontSize: 30,
+fontWeight: FontWeight.bold,
+),
+),
+
+const SizedBox(height: 8),
+
+const Text(
+'Create your JUNAID account',
+textAlign: TextAlign.center,
+style: TextStyle(
+fontSize: 15,
+color: Colors.grey,
+),
+),
+
+const SizedBox(height: 35),
+
+//====================================================
 // First Name
+//====================================================
+
 TextFormField(
 controller: firstName,
-textInputAction: TextInputAction.next,
-decoration: const InputDecoration(
-labelText: "First Name",
-hintText: "Enter your first name",
-),
 validator: validateFirstName,
+textInputAction: TextInputAction.next,
+textCapitalization: TextCapitalization.words,
+decoration: _inputDecoration(
+label: 'First Name',
+hint: 'Enter first name',
+icon: Icons.person_outline,
+),
 ),
 
-const SizedBox(height: 16),
+const SizedBox(height: 18),
 
+//====================================================
 // Last Name
+//====================================================
+
 TextFormField(
 controller: lastName,
-textInputAction: TextInputAction.next,
-decoration: const InputDecoration(
-labelText: "Last Name",
-hintText: "Enter your last name",
-),
 validator: validateLastName,
+textInputAction: TextInputAction.next,
+textCapitalization: TextCapitalization.words,
+decoration: _inputDecoration(
+label: 'Last Name',
+hint: 'Enter last name',
+icon: Icons.badge_outlined,
+),
 ),
 
-const SizedBox(height: 16),
+const SizedBox(height: 18),
 
+//====================================================
+// Username
+//====================================================
+
+TextFormField(
+controller: username,
+validator: validateUsername,
+textInputAction: TextInputAction.next,
+textCapitalization: TextCapitalization.none,
+decoration: _inputDecoration(
+label: 'Username',
+hint: 'Choose a username',
+icon: Icons.alternate_email,
+),
+),
+
+const SizedBox(height: 18),
+
+//====================================================
 // Email
-  TextFormField(
-    controller: email,
-    keyboardType: TextInputType.emailAddress,
-    textInputAction: TextInputAction.next,
-    autocorrect: false,
-    enableSuggestions: false,
-    decoration: const InputDecoration(
-      labelText: "Email",
-      hintText: "example@email.com",
-    ),
-    validator: validateEmail,
-  ),
+//====================================================
 
-const SizedBox(height: 16),
+TextFormField(
+controller: email,
+validator: validateEmail,
+keyboardType: TextInputType.emailAddress,
+textInputAction: TextInputAction.next,
+textCapitalization: TextCapitalization.none,
+autofillHints: const [
+AutofillHints.email,
+],
+decoration: _inputDecoration(
+label: 'Email',
+hint: 'Enter your email',
+icon: Icons.email_outlined,
+),
+),
 
+const SizedBox(height: 18),
+//====================================================
+// Gender
+//====================================================
+
+DropdownButtonFormField<String>(
+initialValue: gender,
+decoration: _inputDecoration(
+label: 'Gender',
+hint: 'Select your gender',
+icon: Icons.person,
+),
+items: const [
+DropdownMenuItem(
+value: 'Male',
+child: Text('Male'),
+),
+DropdownMenuItem(
+value: 'Female',
+child: Text('Female'),
+),
+DropdownMenuItem(
+value: 'Other',
+child: Text('Other'),
+),
+],
+onChanged: (value) {
+setState(() {
+gender = value;
+});
+},
+),
+
+const SizedBox(height: 18),
+
+//====================================================
+// Date of Birth
+//====================================================
+
+InkWell(
+borderRadius: BorderRadius.circular(15),
+onTap: _selectDateOfBirth,
+child: InputDecorator(
+decoration: _inputDecoration(
+label: 'Date of Birth',
+hint: 'Select your date of birth',
+icon: Icons.calendar_month_outlined,
+),
+child: Text(
+dob == null
+? 'Select your date of birth'
+: '${dob!.day}/${dob!.month}/${dob!.year}',
+style: TextStyle(
+color: dob == null
+? Colors.grey
+: Theme.of(context).textTheme.bodyLarge?.color,
+),
+),
+),
+),
+
+const SizedBox(height: 18),
+
+//====================================================
 // Password
+//====================================================
+
 TextFormField(
 controller: password,
+validator: validatePassword,
 obscureText: hidePassword,
 textInputAction: TextInputAction.next,
-decoration: InputDecoration(
-labelText: "Password",
-hintText: "Enter your password",
+autofillHints: const [
+AutofillHints.newPassword,
+],
+decoration: _inputDecoration(
+label: 'Password',
+hint: 'Create a strong password',
+icon: Icons.lock_outline,
 suffixIcon: IconButton(
 icon: Icon(
 hidePassword
-? Icons.visibility
-: Icons.visibility_off,
+? Icons.visibility_off
+: Icons.visibility,
 ),
 onPressed: () {
 setState(() {
@@ -296,157 +550,133 @@ hidePassword = !hidePassword;
 },
 ),
 ),
-validator: validatePassword,
 ),
 
-const SizedBox(height: 16),
+const SizedBox(height: 18),
 
-  // Confirm Password
-  TextFormField(
-    controller: confirmPassword,
-    obscureText: hideConfirm,
-    textInputAction: TextInputAction.done,
-    decoration: InputDecoration(
-      labelText: "Confirm Password",
-      hintText: "Re-enter your password",
-      suffixIcon: IconButton(
-        icon: Icon(
-          hideConfirm
-              ? Icons.visibility
-              : Icons.visibility_off,
-        ),
-        onPressed: () {
-          setState(() {
-            hideConfirm = !hideConfirm;
-          });
-        },
-      ),
-    ),
-    validator: validateConfirmPassword,
-  ),
+//====================================================
+// Confirm Password
+//====================================================
 
-  const SizedBox(height: 20),
-
-  // Gender
-  Wrap(
-    spacing: 8,
-    runSpacing: 8,
-    children: ["Male", "Female", "Other"]
-        .map(
-          (g) => ChoiceChip(
-        label: Text(g),
-        selected: gender == g,
-        onSelected: (_) {
-          setState(() {
-            gender = g;
-          });
-        },
-      ),
-    )
-        .toList(),
-  ),
-
-  const SizedBox(height: 20),
-
-  // Date of Birth
-  ListTile(
-    contentPadding: EdgeInsets.zero,
-    title: Text(
-      dob == null
-          ? "Select Birth Date"
-          : "${dob!.day}/${dob!.month}/${dob!.year}",
-    ),
-    trailing: const Icon(Icons.calendar_today),
-    onTap: () async {
-      final selectedDate = await showDatePicker(
-        context: context,
-        firstDate: DateTime(1950),
-        lastDate: DateTime.now(),
-        initialDate: DateTime(2000),
-      );
-
-      if (selectedDate != null) {
-        setState(() {
-          dob = selectedDate;
-        });
-      }
-    },
-  ),
-
-  const SizedBox(height: 10),
-
-  // Privacy Policy
-  CheckboxListTile(
-    contentPadding: EdgeInsets.zero,
-    value: agree,
-    onChanged: (value) {
-      setState(() {
-        agree = value ?? false;
-      });
-    },
-    controlAffinity: ListTileControlAffinity.leading,
-    title: const Text(
-      "I agree to the Privacy Policy",
-    ),
-  ),
-
-  const SizedBox(height: 25),
-
-  // Sign Up Button
-  SizedBox(
-    height: 55,
-    child: ElevatedButton(
-      onPressed: loading ? null : signup,
-      child: loading
-          ? const SizedBox(
-        width: 22,
-        height: 22,
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5,
-        ),
-      )
-          : const Text(
-        "Sign Up",
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    ),
-  ),
+TextFormField(
+controller: confirmPassword,
+validator: validateConfirmPassword,
+obscureText: hideConfirmPassword,
+textInputAction: TextInputAction.done,
+autofillHints: const [
+AutofillHints.newPassword,
 ],
+onFieldSubmitted: (_) => _signUp(),
+decoration: _inputDecoration(
+label: 'Confirm Password',
+hint: 'Re-enter your password',
+icon: Icons.lock_outline,
+suffixIcon: IconButton(
+icon: Icon(
+hideConfirmPassword
+? Icons.visibility_off
+: Icons.visibility,
+),
+onPressed: () {
+setState(() {
+hideConfirmPassword =
+!hideConfirmPassword;
+});
+},
+),
+),
+),
+
+const SizedBox(height: 24),
+//====================================================
+// Terms & Conditions
+//====================================================
+
+CheckboxListTile(
+value: agree,
+controlAffinity: ListTileControlAffinity.leading,
+contentPadding: EdgeInsets.zero,
+activeColor: Theme.of(context).primaryColor,
+title: const Text(
+'I agree to the Terms & Conditions and Privacy Policy',
+style: TextStyle(fontSize: 14),
+),
+onChanged: (value) {
+setState(() {
+agree = value ?? false;
+});
+},
+),
+
+const SizedBox(height: 30),
+
+//====================================================
+// Create Account Button
+//====================================================
+
+SizedBox(
+width: double.infinity,
+height: 55,
+child: ElevatedButton(
+onPressed: loading ? null : _signUp,
+style: ElevatedButton.styleFrom(
+shape: RoundedRectangleBorder(
+borderRadius: BorderRadius.circular(15),
+),
+),
+child: loading
+? const SizedBox(
+width: 22,
+height: 22,
+child: CircularProgressIndicator(
+strokeWidth: 2.5,
+color: Colors.white,
+),
+)
+: const Text(
+'Create Account',
+style: TextStyle(
+fontSize: 16,
+fontWeight: FontWeight.bold,
+),
+),
+),
+),
+
+const SizedBox(height: 25),
+
+//====================================================
+// Already have an account?
+//====================================================
+
+Row(
+mainAxisAlignment: MainAxisAlignment.center,
+children: [
+const Text(
+"Already have an account?",
+),
+TextButton(
+onPressed: loading
+? null
+: () {
+Navigator.pushReplacementNamed(
+context,
+AppRoutes.login,
+);
+},
+child: const Text(
+"Sign In",
+),
+),
+],
+),
+
+const SizedBox(height: 20),
+],
+),
+),
 ),
 ),
 );
 }
-}
-
-Widget dateBox(String text) {
-  return Container(
-    padding: const EdgeInsets.symmetric(
-      horizontal: 16,
-      vertical: 16,
-    ),
-    decoration: BoxDecoration(
-      border: Border.all(
-        color: Colors.amber,
-      ),
-      borderRadius: BorderRadius.circular(30),
-    ),
-    child: Row(
-      children: [
-        Text(
-          text,
-          style: const TextStyle(
-            color: Colors.white70,
-          ),
-        ),
-        const Spacer(),
-        const Icon(
-          Icons.keyboard_arrow_down,
-          color: Colors.amber,
-        ),
-      ],
-    ),
-  );
 }
