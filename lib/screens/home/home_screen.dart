@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:junaya_voicechat_app/screens/home/rooms/room_screen.dart';
-import 'package:junaya_voicechat_app/screens/friends/friends_screen.dart';
-import 'package:junaya_voicechat_app/screens/gifts/gifts_screen.dart';
 import 'package:junaya_voicechat_app/screens/home/profile_screen.dart';
+import 'package:junaya_voicechat_app/screens/gifts/gifts_screen.dart';
 import 'package:junaya_voicechat_app/screens/home/wallet_screen.dart';
 import 'package:junaya_voicechat_app/screens/notifications/notification_screen.dart';
 import 'package:junaya_voicechat_app/theme/app_colors.dart';
@@ -75,7 +74,7 @@ class HomeScreen extends StatelessWidget {
         onTap: (index) {
           switch (index) {
             case 0:
-              break; // Already on Home
+              break; // Home
 
             case 1:
               Navigator.push(
@@ -90,7 +89,7 @@ class HomeScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const GiftsScreen(),
+                  builder: (_) => const ChatScreen(),
                 ),
               );
               break;
@@ -99,7 +98,7 @@ class HomeScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const FriendsScreen(),
+                  builder: (_) => const NotificationScreen(),
                 ),
               );
               break;
@@ -117,7 +116,7 @@ class HomeScreen extends StatelessWidget {
 
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
+            icon: Icon(Icons.home_rounded),
             label: "Home",
           ),
           BottomNavigationBarItem(
@@ -125,15 +124,15 @@ class HomeScreen extends StatelessWidget {
             label: "Rooms",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.card_giftcard),
-            label: "Gifts",
+            icon: Icon(Icons.chat_bubble_outline),
+            label: "Chat",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: "Friends",
+            icon: Icon(Icons.notifications_none),
+            label: "Notifications",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
+            icon: Icon(Icons.person_outline),
             label: "Profile",
           ),
         ],
