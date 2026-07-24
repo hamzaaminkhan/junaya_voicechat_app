@@ -129,7 +129,7 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
 
-                const SizedBox(height: 50),
+                const SizedBox(height: 30),
 
                 const SizedBox(
                   width: 35,
@@ -140,7 +140,7 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
 
-                const SizedBox(height: 40),
+                const SizedBox(height: 16),
 
                 Text(
                   "Version 1.0.0",

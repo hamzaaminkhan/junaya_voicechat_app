@@ -44,7 +44,7 @@ class VipScreen extends StatelessWidget {
               /// Premium Header
               VipHeader(),
 
-              SizedBox(height: 30),
+              SizedBox(height: 35),
 
               /// VIP Benefits
               VipBenefits(),

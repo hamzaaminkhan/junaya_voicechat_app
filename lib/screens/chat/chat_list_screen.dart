@@ -5,7 +5,7 @@ import 'package:junaya_voicechat_app/models/chat_model.dart';
 import 'package:junaya_voicechat_app/screens/chat/chat_screen.dart';
 import 'package:junaya_voicechat_app/widgets/chat_tile.dart';
 import 'package:junaya_voicechat_app/widgets/search_bar.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});

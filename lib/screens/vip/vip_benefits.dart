@@ -51,85 +51,111 @@ class VipBenefits extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "VIP Benefits",
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "VIP Benefits",
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
+        
+            const SizedBox(height: 18),
+        
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: benefits.length,
+              gridDelegate:
+              const SliverGridDelegateWithFixedCrossAxisCount(
 
-          const SizedBox(height: 18),
+                crossAxisCount:2,
 
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: benefits.length,
-            gridDelegate:
-            const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.95,
-              crossAxisSpacing: 15,
-              mainAxisSpacing: 15,
-            ),
-            itemBuilder: (context, index) {
-              final item = benefits[index];
+                childAspectRatio:0.75,
 
-              return Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: const Color(0xff1A1F38),
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(
-                    color: Colors.white10,
+                crossAxisSpacing:15,
+
+                mainAxisSpacing:15,
+
+              ),
+              itemBuilder: (context, index) {
+                final item = benefits[index];
+        
+                return Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xff1A1F38),
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(
+                      color: Colors.white10,
+                    ),
                   ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircleAvatar(
-                      radius: 28,
-                      backgroundColor: Colors.amber.withOpacity(.15),
-                      child: Icon(
-                        item["icon"],
-                        color: Colors.amber,
-                        size: 30,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: Colors.amber.withOpacity(.15),
+                        child: Icon(
+                          item["icon"],
+                          color: Colors.amber,
+                          size: 26,
+                        ),
                       ),
-                    ),
-
-                    const SizedBox(height: 15),
-
-                    Text(
-                      item["title"],
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
+        
+                      const SizedBox(height: 15),
+        
+                      Text(
+                        item["title"],
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
                       ),
-                    ),
+        
+                      const SizedBox(height: 8),
 
-                    const SizedBox(height: 8),
+                      Flexible(
 
-                    Text(
-                      item["subtitle"],
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                        color: Colors.white60,
-                        fontSize: 12,
-                        height: 1.4,
+                        child: Text(
+
+                          item["subtitle"],
+
+                          textAlign: TextAlign.center,
+
+
+                          maxLines:3,
+
+                          overflow:
+                          TextOverflow.ellipsis,
+
+
+                          style: GoogleFonts.poppins(
+
+                            color: Colors.white60,
+
+                            fontSize:12,
+
+                            height:1.3,
+
+                          ),
+
+                        ),
+
                       ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

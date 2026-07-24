@@ -125,149 +125,162 @@ class _IntroScreenState extends State<IntroScreen>
               ),
             ),
 
-            SafeArea(
-              child: FadeTransition(
-                opacity: fadeAnimation,
-                child: ScaleTransition(
-                  scale: scaleAnimation,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 28),
-                    child: Column(
+SafeArea(
+child: LayoutBuilder(
+builder: (context, constraints) {
+  return SingleChildScrollView(
+    child: ConstrainedBox(
+      constraints: BoxConstraints(
+        minHeight: constraints.maxHeight,
+      ),
+      child: IntrinsicHeight(
+        child: FadeTransition(
+          opacity: fadeAnimation,
+          child: ScaleTransition(
+            scale: scaleAnimation,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: Column(
+                children: [
+
+                  const SizedBox(height: 30),
+
+                  Hero(
+                    tag: "logo",
+                    child: Image.asset(
+                      "assets/logo.png",
+                      height: 130,
+                    ),
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  Text(
+                    "JUNAID",
+                    style: GoogleFonts.poppins(
+                      color: Colors.amber,
+                      fontSize: 38,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 4,
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  Text(
+                    "Voice Chat • Live Rooms • Community",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      color: Colors.white70,
+                      fontSize: 16,
+                    ),
+                  ),
+
+                  const SizedBox(height: 50),
+
+                  Row(
+                    mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween,
+                    children: [
+                      feature(Icons.mic, "Voice"),
+                      feature(Icons.card_giftcard, "Gifts"),
+                      feature(Icons.workspace_premium, "VIP"),
+                    ],
+                  ),
+
+                  const SizedBox(height: 45),
+
+                  Text(
+                    "Meet new people, create voice rooms, send gifts and enjoy live conversations from anywhere in the world.",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      color: Colors.white60,
+                      height: 1.6,
+                      fontSize: 15,
+                    ),
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 58,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.amber,
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                          BorderRadius.circular(18),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(
+                          context,
+                          AppRoutes.login,
+                        );
+                      },
+                      child: Text(
+                        "Get Started",
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  RichText(
+                    text: TextSpan(
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                      ),
                       children: [
-
-                        const Spacer(),
-
-                        Hero(
-                          tag: "logo",
-                          child:  Image.asset(
-                            "assets/logo.png",
-                            height: 130,
-                          ),
-                        ),
-
-                        const SizedBox(height: 25),
-
-                        Text(
-                          "JUNAID",
-                          style: GoogleFonts.poppins(
-                            color: Colors.amber,
-                            fontSize: 38,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 4,
-                          ),
-                        ),
-
-                        const SizedBox(height: 10),
-
-                        Text(
-                          "Voice Chat • Live Rooms • Community",
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.poppins(
+                        TextSpan(
+                          text: "Already have an account? ",
+                          style: const TextStyle(
                             color: Colors.white70,
-                            fontSize: 16,
                           ),
                         ),
-
-                        const SizedBox(height: 50),
-
-                        Row(
-                          mainAxisAlignment:
-                          MainAxisAlignment.spaceBetween,
-                          children: [
-                            feature(Icons.mic, "Voice"),
-                            feature(Icons.card_giftcard, "Gifts"),
-                            feature(Icons.workspace_premium, "VIP"),
-                          ],
-                        ),
-
-                        const SizedBox(height: 45),
-
-                        Text(
-                          "Meet new people, create voice rooms, send gifts and enjoy live conversations from anywhere in the world.",
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.poppins(
-                            color: Colors.white60,
-                            height: 1.6,
-                            fontSize: 15,
-                          ),
-                        ),
-
-                        const Spacer(),
-
-                        SizedBox(
-                          width: double.infinity,
-                          height: 58,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.amber,
-                              foregroundColor: Colors.black,
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                BorderRadius.circular(18),
-                              ),
-                            ),
-                            onPressed: () {
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.middle,
+                          child: GestureDetector(
+                            onTap: () {
                               Navigator.pushReplacementNamed(
                                 context,
                                 AppRoutes.login,
                               );
                             },
                             child: Text(
-                              "Get Started",
+                              "Sign In",
                               style: GoogleFonts.poppins(
+                                color: Colors.amber,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 18,
                               ),
                             ),
                           ),
                         ),
-
-                        const SizedBox(height: 18),
-
-                        RichText(
-                          text: TextSpan(
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                            ),
-                            children: [
-                              TextSpan(
-                                text: "Already have an account? ",
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                ),
-                              ),
-                              WidgetSpan(
-                                alignment: PlaceholderAlignment.middle,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.pushReplacementNamed(
-                                      context,
-                                      AppRoutes.login,
-                                    );
-                                  },
-                                  child: Text(
-                                    "Sign In",
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.amber,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 25),
                       ],
                     ),
                   ),
-                ),
+
+                  const SizedBox(height: 20),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
-    );
-  }
-}
+    ),
+  );
+      }
+    ),
+  ),
+          ],
+        ),
+       )
+      );
+   }
+ }

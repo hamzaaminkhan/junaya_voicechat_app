@@ -1,465 +1,1148 @@
 import 'package:flutter/material.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:junaya_voicechat_app/screens/home/rooms/room_screen.dart';
-import 'package:junaya_voicechat_app/screens/home/profile_screen.dart';
-import 'package:junaya_voicechat_app/screens/gifts/gifts_screen.dart';
-import 'package:junaya_voicechat_app/screens/home/wallet_screen.dart';
-import 'package:junaya_voicechat_app/screens/notifications/notification_screen.dart';
-import 'package:junaya_voicechat_app/theme/app_colors.dart';
-import 'package:junaya_voicechat_app/screens/vip/vip_screen.dart';
+import 'package:junaya_voicechat_app/widgets/room_card.dart';
+import 'package:junaya_voicechat_app/widgets/space_background.dart';
+import '../../widgets/ranking_card.dart';
+import '../../widgets/country_chip.dart';
+import '../../widgets/category_chip.dart';
+import '../vip/vip_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+import '../../widgets/banner_indicator.dart';
+
+class HomeScreen extends StatefulWidget {
+
   const HomeScreen({super.key});
+
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+
+  final List<Map<String,dynamic>> rooms = [
+
+    {
+      "flag":"🇵🇰",
+      "name":"Pakistan Star",
+      "desc":"Music & Fun Chat",
+      "vip":"VIP 3",
+      "level":"LV 8",
+      "role":"Host",
+      "likes":65,
+    },
+
+    {
+      "flag":"🇮🇳",
+      "name":"India Music",
+      "desc":"Join Voice Room",
+      "vip":"VIP 2",
+      "level":"LV 5",
+      "role":"Manager",
+      "likes":32,
+    },
+
+    {
+      "flag":"🇧🇩",
+      "name":"Bangladesh Live",
+      "desc":"Friends Voice Room",
+      "vip":"VIP 1",
+      "level":"LV 4",
+      "role":"Host",
+      "likes":120,
+    },
+
+    {
+      "flag":"🇹🇷",
+      "name":"Turkey Party",
+      "desc":"Music Night",
+      "vip":"VIP 4",
+      "level":"LV 9",
+      "role":"Admin",
+      "likes":250,
+    },
+
+    {
+      "flag":"🇦🇪",
+      "name":"Dubai VIP",
+      "desc":"Luxury Voice Room",
+      "vip":"VIP 5",
+      "level":"LV 10",
+      "role":"Owner",
+      "likes":500,
+    },
+
+  ];
+
+  final PageController bannerController = PageController();
+
+  int bannerIndex = 0;
+  int selectedTab = 0;
+  int selectedCountry = 0;
+
+  final List<String> tabs = [
+
+    "HOT",
+    "RECENT",
+    "FOLLOW"
+
+  ];
+
+  final List<String> countries = [
+
+    "All",
+    "🇵🇰 Pakistan",
+    "🇮🇳 India",
+    "🇧🇩 Bangladesh"
+
+  ];
+
+
 
   @override
   Widget build(BuildContext context) {
+
+
     return Scaffold(
-      backgroundColor: const Color(0xff0B0E21),
 
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
+      extendBody:true,
 
-        title: Text(
-          "JUNAID",
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.bold,
-            letterSpacing: 2,
-            color: Colors.amber,
-          ),
-        ),
-        actions: [
+      floatingActionButton:
+      createRoomButton(),
 
-          // VIP
-          IconButton(
-            icon: const Icon(
-              Icons.workspace_premium,
-              color: Colors.amber,
-              size: 28,
-            ),
-            tooltip: "VIP",
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const VipScreen(),
-                ),
+      backgroundColor:
+      const Color(0xff050018),
+
+
+      body: SpaceBackground(
+
+        child: SafeArea(
+
+          child: RefreshIndicator(
+
+            color:
+            Colors.amber,
+
+
+            onRefresh:()async{
+
+
+              await Future.delayed(
+
+                  const Duration(
+                      seconds:1
+                  )
+
               );
+
+
             },
-          ),
-
-          IconButton(
-            icon: const Icon(Icons.notifications, color: Colors.white,),
 
 
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const NotificationScreen(),
+            child: SingleChildScrollView(
+
+            child: Column(
+
+              children:[
+
+
+                header(),
+
+
+                const SizedBox(height:15),
+
+
+                rankingSection(),
+
+
+                const SizedBox(height:18),
+
+
+                tabSection(),
+
+
+                const SizedBox(height:12),
+
+
+                countrySection(),
+
+
+                const SizedBox(height:18),
+
+
+
+                SizedBox(
+
+                  height:130,
+
+                  child:
+                  homeBannerSlider(),
+
                 ),
-              );
-            },
-          ),
-        ],
-      ),
 
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: const Color(0xff121530),
-        selectedItemColor: Colors.amber,
-        unselectedItemColor: Colors.white54,
-        type: BottomNavigationBarType.fixed,
 
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              break; // Home
+                const SizedBox(height:10),
 
-            case 1:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const RoomScreen(),
+
+                BannerIndicator(
+
+                  total:15,
+
+                  current:bannerIndex,
+
                 ),
-              );
-              break;
 
-            case 2:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const ChatScreen(),
+
+                const SizedBox(height:25),
+
+                sectionTitle(
+                  "Popular Rooms",
                 ),
-              );
-              break;
 
-            case 3:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const NotificationScreen(),
+                const SizedBox(height:10),
+
+                ListView.builder(
+
+                  shrinkWrap:true,
+
+                  physics:
+                  const NeverScrollableScrollPhysics(),
+
+                  itemCount:rooms.length,
+
+                  itemBuilder:(context,index){
+
+                    final room=rooms[index];
+
+
+                    return JunaidRoomCard(
+
+                      flag: room["flag"] as String,
+
+                      roomName: room["name"] as String,
+
+                      description: room["desc"] as String,
+
+                      vip: room["vip"] as String,
+
+                      level: room["level"] as String,
+
+                      role: room["role"] as String,
+
+                      likes: room["likes"] as int,
+
+
+                    );
+
+                  },
+
                 ),
-              );
-              break;
 
-            case 4:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const ProfileScreen(),
-                ),
-              );
-              break;
-          }
-        },
 
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_rounded),
-            label: "Home",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.mic),
-            label: "Rooms",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble_outline),
-            label: "Chat",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications_none),
-            label: "Notifications",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: "Profile",
-          ),
-        ],
-      ),
+                roomList(),
 
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
 
-            const SizedBox(height: 15),
 
-            // Search
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: "Search Rooms...",
-                  prefixIcon: const Icon(Icons.search),
-                  filled: true,
-                  fillColor: Colors.white12,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Banner
-
-            CarouselSlider(
-              options: CarouselOptions(
-                height: 170,
-                autoPlay: true,
-                enlargeCenterPage: true,
-              ),
-              items: [
-                banner("VIP Event"),
-                banner("Daily Rewards"),
-                banner("Voice Battle"),
               ],
-            ),
 
-            const SizedBox(height: 20),
+            )
 
-            title("Explore"),
+          ),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 2,
-                crossAxisSpacing: 15,
-                mainAxisSpacing: 15,
-                childAspectRatio: 1.5,
-                children: [
+        ),
 
-                  featureCard(
-                    context,
-                    Icons.mic,
-                    "Create Room",
-                    Colors.deepPurple,
-                        () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const RoomScreen(),
-                        ),
-                      );
-                    },
+      ),
+
+    ),
+
+    );
+
+
+  }
+
+// ================= HEADER =================
+
+  Widget header() {
+
+    return Padding(
+
+      padding: const EdgeInsets.symmetric(
+        horizontal:8,
+      ),
+
+      child: Row(
+
+        mainAxisAlignment:
+        MainAxisAlignment.spaceBetween,
+
+        children:[
+
+          // LOGO AREA
+
+          Column(
+
+            crossAxisAlignment:
+            CrossAxisAlignment.start,
+
+            children:[
+
+              Row(
+
+                children:[
+
+                  const Text(
+
+                    "♛",
+
+                    style: TextStyle(
+
+                      color: Colors.amber,
+
+                      fontSize:15,
+
+                    ),
+
                   ),
 
-                  featureCard(
-                    context,
-                    Icons.wallet,
-                    "Wallet",
-                    Colors.green,
-                        () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const WalletScreen(),
-                        ),
-                      );
-                    },
-                  ),
+                  Text(
 
-                  featureCard(
-                    context,
-                    Icons.card_giftcard,
-                    "Gift Store",
-                    Colors.orange,
-                        () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const GiftsScreen(),
-                        ),
-                      );
-                    },
-                  ),
+                    "JUNAID",
 
-                  featureCard(
-                    context,
-                    Icons.workspace_premium,
-                    "VIP",
-                    Colors.amber,
-                          () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const VipScreen(),
-                          ),
-                        );
-                      },
+                    style:
+                    GoogleFonts.poppins(
+
+                      color:
+                      Colors.amber,
+
+                      fontSize:15,
+
+                      fontWeight:
+                      FontWeight.w600,
+
+                      letterSpacing:1.5,
+
+                    ),
+
                   ),
 
                 ],
+
               ),
-            ),
 
-            const SizedBox(height: 25),
+              Text(
 
-            title("Popular Rooms"),
+                "  ─  CHAT  ─",
 
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(15),
-              itemCount: 6,
-              gridDelegate:
-              const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: .9,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+                style:
+                GoogleFonts.poppins(
+
+                  color:
+                  Colors.purpleAccent,
+
+                  fontSize:9,
+
+                  letterSpacing:2,
+
+                  fontWeight:
+                  FontWeight.w500,
+
+                ),
+
               ),
-              itemBuilder: (_, index) {
+            ],
 
-                return Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white10,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
+          ),
 
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+          // ICONS
 
-                      CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.amber,
-                        child: Text(
-                          "${index + 1}",
-                          style: const TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ),
 
-                      const SizedBox(height: 10),
+          Row(
 
-                      Text(
-                        "Room ${index + 1}",
-                        style: const TextStyle(color: Colors.white),
-                      ),
+            children:[
 
-                      const SizedBox(height: 5),
 
-                      const Text(
-                        "120 Users",
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
+              glowButton(
 
-            title("Top Hosts"),
+                Icons.workspace_premium,
 
-            SizedBox(
-              height: 110,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: 8,
-                itemBuilder: (_, index) {
+                    (){
 
-                  return Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      children: [
+                  Navigator.push(
 
-                        const CircleAvatar(
-                          radius: 30,
-                          backgroundColor: Colors.purple,
-                          child: Icon(Icons.person),
-                        ),
+                    context,
 
-                        const SizedBox(height: 8),
+                    MaterialPageRoute(
 
-                        Text(
-                          "Host ${index + 1}",
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ],
+                      builder:(_)=>
+                      const VipScreen(),
+
                     ),
+
                   );
+
                 },
+
               ),
+
+              const SizedBox(width:5),
+
+
+              glowButton(
+
+                Icons.notifications_none,
+
+                    (){},
+
+              ),
+
+            ],
+
+          ),
+
+        ],
+
+      ),
+
+    );
+
+  }
+
+// ================= RANKING =================
+
+  Widget rankingSection(){
+
+    return SizedBox(
+
+      height:55,
+
+      child: ListView(
+
+        scrollDirection: Axis.horizontal,
+
+        children:[
+
+          RankingCard(
+            title:"Shining\nStar",
+            icon:"⭐",
+            color:Colors.greenAccent,
+          ),
+
+
+          RankingCard(
+            title:"CP\nRanking",
+            icon:"❤️",
+            color:Colors.pinkAccent,
+          ),
+
+
+          RankingCard(
+            title:"Ranking",
+            icon:"🏆",
+            color:Colors.orangeAccent,
+          ),
+
+        ],
+
+      ),
+
+    );
+
+  }
+
+// ================= TABS =================
+
+  Widget tabSection(){
+
+
+    return SizedBox(
+
+
+      height:30,
+
+
+      child:
+      ListView(
+
+        scrollDirection:
+        Axis.horizontal,
+
+
+        padding:
+        const EdgeInsets.symmetric(
+          horizontal:18,
+        ),
+
+
+
+        children:[
+
+
+
+          CategoryChip(
+
+            text:"HOT",
+
+            active:true,
+
+          ),
+
+
+
+          CategoryChip(
+
+            text:"RECENTLY",
+
+          ),
+
+
+
+          CategoryChip(
+
+            text:"FOLLOW",
+
+          ),
+
+
+
+        ],
+
+
+
+      ),
+
+
+    );
+
+
+  }
+
+// ================= COUNTRY =================
+
+
+
+  Widget countrySection(){
+
+
+    return SizedBox(
+
+
+      height:32,
+
+
+      child:
+      ListView(
+
+        scrollDirection:
+        Axis.horizontal,
+
+
+        padding:
+        const EdgeInsets.symmetric(
+          horizontal:18,
+        ),
+
+
+
+        children:[
+
+
+
+          CountryChip(
+
+            name:"All",
+
+            flag:"✓",
+
+            active:true,
+
+          ),
+
+
+
+          CountryChip(
+
+            name:"Pakistan",
+
+            flag:"🇵🇰",
+
+          ),
+
+
+
+          CountryChip(
+
+            name:"Bangladesh",
+
+            flag:"🇧🇩",
+
+          ),
+
+
+
+          CountryChip(
+
+            name:"India",
+
+            flag:"🇮🇳",
+
+          ),
+
+
+
+          CountryChip(
+
+            name:"Turkey",
+
+            flag:"🇹🇷",
+
+          ),
+
+
+
+          Container(
+
+            padding:
+            const EdgeInsets.all(10),
+
+            child:
+            const Icon(
+
+              Icons.arrow_forward_ios,
+
+              color:Colors.white,
+
+              size:16,
+
             ),
 
-            const SizedBox(height: 30),
-          ],
-        ),
+          )
+
+
+
+        ],
+
+
+
       ),
+
+
+
     );
+
+
   }
 
-  Widget title(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 15, bottom: 10),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Text(
-          text,
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-      ),
-    );
-  }
+// ================= BANNER =================
 
-  Widget banner(String title) {
+
+  Widget banner(
+
+      String title,
+
+      String subtitle,
+
+      ){
+
     return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xff5B2EFF),
-            Color(0xffB721FF),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
+
+      margin:
+      const EdgeInsets.symmetric(
+        horizontal:5,
       ),
-      child: Center(
-        child: Text(
-          title,
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+
+      decoration:
+      BoxDecoration(
+
+        gradient:
+        const LinearGradient(
+
+            colors:[
+
+              Color(0xff4B0082),
+
+              Color(0xff8A2BE2)
+
+            ]
+
+        ),
+
+
+        borderRadius:
+        BorderRadius.circular(12),
+
+      ),
+
+      child:Column(
+
+        mainAxisAlignment:
+        MainAxisAlignment.center,
+
+        children:[
+
+          Text(
+
+            title,
+
+            style:
+            GoogleFonts.poppins(
+
+              color:
+              Colors.white,
+
+              fontSize:25,
+
+              fontWeight:
+              FontWeight.bold,
+
+            ),
+
           ),
-        ),
+
+
+          Text(
+
+            subtitle,
+
+            style:
+            const TextStyle(
+
+              color:
+              Colors.white70,
+
+              fontSize:12,
+
+            ),
+
+          )
+
+
+        ],
+
+
       ),
+
+
     );
+
+
   }
 
-  Widget action(IconData icon, String text) {
-    return Column(
-      children: [
-        CircleAvatar(
-          radius: 28,
-          backgroundColor: Colors.amber,
-          child: Icon(icon, color: Colors.black),
+
+
+  Widget glowButton(
+
+      IconData icon,
+
+      VoidCallback press,
+
+      ){
+
+
+    return Container(
+
+
+      decoration:
+      BoxDecoration(
+
+
+          shape:
+          BoxShape.circle,
+
+
+          boxShadow:[
+
+
+            BoxShadow(
+
+              color:
+              Colors.purpleAccent.withValues(alpha: .08),
+
+              blurRadius:20,
+
+            )
+
+          ]
+
+
+      ),
+
+
+
+      child:IconButton(
+
+
+        onPressed:press,
+
+
+        icon:
+        Icon(
+
+          icon,
+
+          color:
+          Colors.amber,
+
+          size:30,
+
         ),
-        const SizedBox(height: 8),
-        Text(
+
+
+      ),
+
+
+    );
+
+
+  }
+
+  Widget sectionTitle(String text) {
+
+    return Padding(
+
+      padding: const EdgeInsets.symmetric(
+        horizontal: 20,
+      ),
+
+      child: Align(
+
+        alignment: Alignment.centerLeft,
+
+        child: Text(
+
           text,
-          style: const TextStyle(color: Colors.white),
-        )
-      ],
-    );
-  }
-}
 
-Widget featureCard(
-    BuildContext context,
-    IconData icon,
-    String title,
-    Color color,
-    VoidCallback onTap,
-    ) {
-  return InkWell(
-    borderRadius: BorderRadius.circular(18),
-    onTap: onTap,
-    child: Container(
-      decoration: BoxDecoration(
-        color: Colors.white10,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          style: GoogleFonts.poppins(
 
-            CircleAvatar(
-              radius: 26,
-              backgroundColor: color,
-              child: Icon(
-                icon,
-                color: Colors.white,
-              ),
-            ),
+            color: Colors.white,
 
-            const SizedBox(height: 12),
+            fontSize: 22,
 
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            fontWeight: FontWeight.w600,
 
-          ],
+          ),
+
         ),
+
       ),
-    ),
-  );
+
+    );
+
+  }
+
+   Widget homeBannerSlider(){
+
+    return Container(
+
+      height:170,
+
+      margin: const EdgeInsets.symmetric(
+        horizontal:16,
+      ),
+
+
+      child: PageView.builder(
+
+        onPageChanged:(index){
+
+          setState((){
+
+            bannerIndex=index;
+
+          });
+
+        },
+
+
+
+        itemCount:15,
+
+
+        controller:
+        bannerController,
+
+
+        itemBuilder:(context,index){
+
+
+          return Container(
+
+
+            margin:
+            const EdgeInsets.symmetric(
+              horizontal:6,
+            ),
+
+
+
+            decoration:
+            BoxDecoration(
+
+
+                borderRadius:
+                BorderRadius.circular(18),
+
+
+                gradient:
+                LinearGradient(
+
+                  colors:[
+
+                    Colors.purple.shade900,
+
+                    Colors.blue.shade700,
+
+                  ],
+
+                ),
+
+
+                boxShadow:[
+
+
+                  BoxShadow(
+
+                    color:
+                    Colors.purple.withOpacity(.5),
+
+                    blurRadius:20,
+
+                  )
+
+
+                ]
+
+            ),
+
+
+
+
+            child:
+            Stack(
+
+              children:[
+
+
+
+                Align(
+
+                  alignment:
+                  Alignment.center,
+
+
+                  child:
+                  Text(
+
+                    [
+                      "Welcome To JUNAID",
+                      "VIP Events",
+                      "Daily Rewards",
+                      "Recharge Bonus",
+                      "Lucky Draw"
+
+                    ][index % 5],
+
+
+                    style:
+                    GoogleFonts.poppins(
+
+
+                      color:
+                      Colors.white,
+
+
+                      fontSize:22,
+
+
+                      fontWeight:
+                      FontWeight.w700,
+
+
+                    ),
+
+
+                  ),
+
+                ),
+
+
+
+
+              ],
+
+
+            ),
+
+
+          );
+
+
+
+        },
+
+
+      ),
+
+
+    );
+
+  }
+
+  Widget createRoomButton(){
+
+    return Container(
+
+      decoration:
+      BoxDecoration(
+
+          shape:
+          BoxShape.circle,
+
+
+          boxShadow:[
+
+            BoxShadow(
+
+              color:
+              Colors.amber.withOpacity(.6),
+
+              blurRadius:25,
+
+            )
+
+          ]
+
+      ),
+
+
+
+      child:
+      FloatingActionButton(
+
+        backgroundColor:
+        Colors.amber,
+
+
+        onPressed:(){
+
+
+
+        },
+
+
+        child:
+        const Icon(
+
+          Icons.mic,
+
+          color:
+          Colors.black,
+
+          size:30,
+
+        ),
+
+
+      ),
+
+    );
+
+
+  }
+
+  Widget roomList(){
+
+    final List<Map<String,dynamic>> rooms=[
+
+
+      {
+        "flag":"🇵🇰",
+        "name":"Pakistan Star",
+        "desc":"Music & Fun Chat",
+        "vip":"VIP 3",
+        "level":"LV 8",
+        "role":"Host",
+        "likes":65,
+      },
+
+
+      {
+        "flag":"🇮🇳",
+        "name":"India Music",
+        "desc":"Join Voice Room",
+        "vip":"VIP 2",
+        "level":"LV 5",
+        "role":"Manager",
+        "likes":32,
+      },
+
+
+      {
+        "flag":"🇧🇩",
+        "name":"Bangladesh Live",
+        "desc":"Friends Voice Room",
+        "vip":"VIP 1",
+        "level":"LV 4",
+        "role":"Host",
+        "likes":120,
+      },
+
+
+      {
+        "flag":"🇹🇷",
+        "name":"Turkey Night",
+        "desc":"Party & Music",
+        "vip":"VIP 4",
+        "level":"LV 9",
+        "role":"Admin",
+        "likes":250,
+      },
+
+
+      {
+        "flag":"🇦🇪",
+        "name":"Dubai VIP",
+        "desc":"Luxury Voice Chat",
+        "vip":"VIP 5",
+        "level":"LV 10",
+        "role":"Owner",
+        "likes":500,
+      },
+
+
+    ];
+
+
+    return Column(
+
+      children:
+
+      rooms.map((room){
+
+        return JunaidRoomCard(
+
+          flag: room["flag"] as String,
+
+          roomName: room["name"] as String,
+
+          description: room["desc"] as String,
+
+          vip: room["vip"] as String,
+
+          level: room["level"] as String,
+
+          role: room["role"] as String,
+
+          likes: room["likes"] as int,
+
+        );
+
+      }).toList(),
+
+    );
+
+
+  }
+
+
 }

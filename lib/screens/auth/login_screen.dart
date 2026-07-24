@@ -197,10 +197,11 @@ AppRoutes.emailVerification,
 return;
 }
 
-Navigator.pushReplacementNamed(
-context,
-AppRoutes.home,
-);
+  Navigator.pushReplacementNamed(
+    context,
+    AppRoutes.main,
+  );
+
 } catch (e) {
 _showSnackBar(
 e.toString().replaceFirst('Exception: ', ''),
