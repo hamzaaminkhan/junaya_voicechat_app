@@ -47,12 +47,12 @@ flutter:
 
   assets:
     - assets/logo.png
+    - assets/backgrounds/
     #- assets/gifts/
    # - assets/avatars/
    # - assets/icons/
     #- assets/banners/
-    - assets/backgrounds/space_bg.jpeg
-   # - assets/flags/
+
 
 
 

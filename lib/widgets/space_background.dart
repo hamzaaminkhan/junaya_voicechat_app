@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 
 
-
 class SpaceBackground extends StatelessWidget {
 
-
   final Widget child;
-
 
 
   const SpaceBackground({
@@ -19,67 +16,81 @@ class SpaceBackground extends StatelessWidget {
 
 
 
-
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
 
 
+    return SizedBox.expand(
 
-    return Stack(
+      child: Stack(
 
-      children:[
+        fit: StackFit.expand,
+
+        children: [
 
 
-        Positioned.fill(
+          // SPACE IMAGE BACKGROUND
 
-          child:
           Image.asset(
 
             "assets/backgrounds/space_bg.jpeg",
 
-            fit:
-            BoxFit.cover,
+            fit: BoxFit.cover,
+
+
+            errorBuilder: (context, error, stackTrace) {
+
+              return Container(
+
+                color: Colors.black,
+
+                child: const Center(
+
+                  child: Text(
+
+                    "Background image not found",
+
+                    style: TextStyle(
+
+                      color: Colors.red,
+
+                      fontSize: 18,
+
+                    ),
+
+                  ),
+
+                ),
+
+              );
+
+            },
 
           ),
 
-        ),
 
 
+          // DARK TRANSPARENT OVERLAY
 
-
-        Positioned.fill(
-
-
-          child:
           Container(
 
-
-            color:
-            Colors.black.withOpacity(.25),
-
+            color: Colors.black.withOpacity(0.20),
 
           ),
 
 
 
-        ),
+          // SCREEN CONTENT
+
+          child,
 
 
+        ],
 
-
-        child,
-
-
-
-      ],
-
+      ),
 
     );
 
-
-
   }
-
-
 
 }
