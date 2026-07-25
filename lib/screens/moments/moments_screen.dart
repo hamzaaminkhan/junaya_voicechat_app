@@ -10,15 +10,11 @@ class MomentsScreen extends StatelessWidget {
   Widget build(BuildContext context){
 
     return Scaffold(
-
-      backgroundColor:
-      const Color(0xff0B0E21),
-
+      backgroundColor: Colors.transparent,
 
       appBar:AppBar(
 
-        backgroundColor:
-        const Color(0xff121530),
+        backgroundColor: Colors.transparent,
 
         title:
         const Text(

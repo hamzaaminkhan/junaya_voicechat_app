@@ -1,582 +1,497 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
-import 'package:junaya_voicechat_app/screens/settings/settings_screen.dart';
 import 'package:junaya_voicechat_app/routes/app_routes.dart';
+import 'package:junaya_voicechat_app/screens/settings/settings_screen.dart';
 import 'package:junaya_voicechat_app/widgets/space_background.dart';
 
 class ProfileScreen extends StatelessWidget {
-const ProfileScreen({super.key});
+  final VoidCallback? onBack;
 
+  const ProfileScreen({super.key, this.onBack});
 
-@override
-Widget build(BuildContext context) {
+  void _handleBack(BuildContext context) {
+    if (onBack != null) {
+      onBack!();
+      return;
+    }
 
-  return Scaffold(
+    final navigator = Navigator.of(context);
 
-      backgroundColor: Colors.transparent,
+    if (navigator.canPop()) {
+      navigator.pop();
+    } else {
+      navigator.pushReplacementNamed(AppRoutes.main);
+    }
+  }
 
-      body: SpaceBackground(
-
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: onBack == null,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && onBack != null) {
+          onBack!();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SpaceBackground(
           child: SafeArea(
-
-            child: Stack(
-
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xC7080313),
+                    Color(0xB817052A),
+                    Color(0xC7080313),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+              child: Column(
                 children: [
-
- Container(
-
-decoration: const BoxDecoration(
-
-gradient: LinearGradient(
-
-colors: [
-
-Color(0xff080313),
-Color(0xff17052A),
-Color(0xff080313),
-
-],
-
-begin: Alignment.topCenter,
-end: Alignment.bottomCenter,
-
-),
-
-),
-
-
-child: Column(
-
-children: [
-
-
-// HEADER
-
-Padding(
-
-padding: const EdgeInsets.symmetric(
-horizontal: 15,
-vertical: 10,
-),
-
-
-child: Row(
-
-mainAxisAlignment:
-MainAxisAlignment.spaceBetween,
-
-
-children: [
-
-
-  IconButton(
-    icon: const Icon(
-      Icons.arrow_back,
-      color: Colors.white,
-      size: 32,
-    ),
-
-    onPressed: () {
-
-      Navigator.pushReplacementNamed(
-        context,
-        AppRoutes.home,
-      );
-
-    },
-  ),
-
-
-
-IconButton(
-
-icon: const Icon(
-Icons.edit_square,
-color: Colors.amber,
-size: 28,
-),
-
-
-onPressed: () {},
-
-),
-
-],
-
-),
-
-),
-
-
-
-Expanded(
-
-child: SingleChildScrollView(
-
-child: Column(
-
-children: [
-
-const SizedBox(height: 10),
-
-
-
-// PROFILE HEADER
-
-_profileHeader(),
-
-
-const SizedBox(height: 20),
-
-
-
-// STATS
-
-_statsSection(),
-
-
-
-const SizedBox(height: 20),
-
-
-
-// EDIT PROFILE BUTTON
-
-_editButton(),
-
-
-
-const SizedBox(height: 20),
-
-
-
-// MENU ITEMS
-
-_menuList(context),
-
-
-
-const SizedBox(height: 25),
-
-
-
-// LOGOUT
-
-_logoutButton(context),
-
-
-const SizedBox(height: 25),
-
-],
-
-),
-
-),
-
-),
-
-
-],
-
-),
-
-),
-
-]
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 15,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                          onPressed: () => _handleBack(context),
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.edit_square,
+                            color: Colors.amber,
+                            size: 28,
+                          ),
+                          onPressed: () {},
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 10),
+                          _profileHeader(),
+                          const SizedBox(height: 20),
+                          _statsSection(),
+                          const SizedBox(height: 20),
+                          _editButton(),
+                          const SizedBox(height: 20),
+                          _menuList(context),
+                          const SizedBox(height: 25),
+                          _logoutButton(context),
+                          const SizedBox(height: 25),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
-
-)
-    )
-  );
-
-}
+      ),
+    );
+  }
 
 // PROFILE HEADER
 
-Widget _profileHeader() {
+  Widget _profileHeader() {
 
-return Column(
+    return Column(
 
-children: [
+      children: [
 
 
 // Avatar
 
-Container(
+        Container(
 
-padding: const EdgeInsets.all(4),
+          padding: const EdgeInsets.all(4),
 
-decoration: BoxDecoration(
+          decoration: BoxDecoration(
 
-shape: BoxShape.circle,
+            shape: BoxShape.circle,
 
-border: Border.all(
+            border: Border.all(
 
-color: Colors.amber,
+              color: Colors.amber,
 
-width: 3,
+              width: 3,
 
-),
+            ),
 
-),
+          ),
 
 
-child: const CircleAvatar(
+          child: const CircleAvatar(
 
-radius: 58,
+            radius: 58,
 
-backgroundColor: Color(0xff251137),
+            backgroundColor: Colors.transparent,
 
 
-child: Icon(
+            child: Icon(
 
-Icons.person,
+              Icons.person,
 
-size: 65,
+              size: 65,
 
-color: Colors.white,
+              color: Colors.white,
 
-),
+            ),
 
-),
+          ),
 
-),
+        ),
 
 
 
-const SizedBox(height: 15),
+        const SizedBox(height: 15),
 
 
 
-Row(
+        Row(
 
-mainAxisAlignment:
-MainAxisAlignment.center,
+          mainAxisAlignment:
+          MainAxisAlignment.center,
 
 
-children: [
+          children: [
 
 
-Text(
+            Text(
 
-"MR. ALEX",
+              "MR. ALEX",
 
-style: GoogleFonts.poppins(
+              style: GoogleFonts.poppins(
 
-color: Colors.white,
+                color: Colors.white,
 
-fontSize: 26,
+                fontSize: 26,
 
-fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.bold,
 
-),
+              ),
 
-),
+            ),
 
 
 
-const SizedBox(width: 5),
+            const SizedBox(width: 5),
 
 
 
-const Icon(
+            const Icon(
 
-Icons.male,
+              Icons.male,
 
-color: Colors.blueAccent,
+              color: Colors.blueAccent,
 
-size: 25,
+              size: 25,
 
-),
+            ),
 
-],
+          ],
 
-),
+        ),
 
 
 
-const SizedBox(height: 5),
+        const SizedBox(height: 5),
 
 
 
-Row(
+        Row(
 
-mainAxisAlignment:
-MainAxisAlignment.center,
+          mainAxisAlignment:
+          MainAxisAlignment.center,
 
 
-children: [
+          children: [
 
 
-Text(
+            Text(
 
-"ID : 137804327",
+              "ID : 137804327",
 
-style: GoogleFonts.poppins(
+              style: GoogleFonts.poppins(
 
-color: Colors.white70,
+                color: Colors.white70,
 
-fontSize: 14,
+                fontSize: 14,
 
-),
+              ),
 
-),
+            ),
 
 
 
-const SizedBox(width: 8),
+            const SizedBox(width: 8),
 
 
 
-const Icon(
+            const Icon(
 
-Icons.copy,
+              Icons.copy,
 
-size: 16,
+              size: 16,
 
-color: Colors.white70,
+              color: Colors.white70,
 
-),
+            ),
 
-],
+          ],
 
-),
+        ),
 
 
 
-const SizedBox(height: 15),
+        const SizedBox(height: 15),
 
 
 
 // VIP BADGE
 
-Container(
+        Container(
 
-padding: const EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
 
-horizontal: 22,
+            horizontal: 22,
 
-vertical: 8,
+            vertical: 8,
 
-),
-
-
-decoration: BoxDecoration(
-
-color: Colors.amber,
-
-borderRadius:
-BorderRadius.circular(25),
-
-),
+          ),
 
 
-child: const Text(
+          decoration: BoxDecoration(
 
-"VIP 3",
+            color: Colors.amber,
 
-style: TextStyle(
+            borderRadius:
+            BorderRadius.circular(25),
 
-color: Colors.black,
-
-fontWeight: FontWeight.bold,
-
-),
-
-),
-
-),
+          ),
 
 
+          child: const Text(
 
-const SizedBox(height: 20),
+            "VIP 3",
+
+            style: TextStyle(
+
+              color: Colors.black,
+
+              fontWeight: FontWeight.bold,
+
+            ),
+
+          ),
+
+        ),
+
+
+
+        const SizedBox(height: 22),
 
 
 
 // COINS + DIAMONDS
 
 
-Row(
+        Row(
 
-mainAxisAlignment:
-MainAxisAlignment.center,
+          mainAxisAlignment:
+          MainAxisAlignment.center,
 
 
-children: [
+          children: [
 
 
-_moneyCard(
+            _moneyCard(
 
-Icons.monetization_on,
+              Icons.monetization_on,
 
-"128,540",
+              "128,540",
 
-"Coins",
+              "Coins",
 
-Colors.orange,
+              Colors.orange,
 
-),
+            ),
 
 
 
-const SizedBox(width: 15),
+            const SizedBox(width: 15),
 
 
 
-_moneyCard(
+            _moneyCard(
 
-Icons.diamond,
+              Icons.diamond,
 
-"12,900",
+              "12,900",
 
-"Diamonds",
+              "Diamonds",
 
-Colors.deepPurpleAccent,
+              Colors.deepPurpleAccent,
 
-),
+            ),
 
 
-],
+          ],
 
-),
+        ),
 
-],
+      ],
 
-);
+    );
 
-}
+  }
 
 
 
 
 
-Widget _moneyCard(
+  Widget _moneyCard(
 
-IconData icon,
+      IconData icon,
 
-String value,
+      String value,
 
-String title,
+      String title,
 
-Color iconColor,
+      Color iconColor,
 
-) {
+      ) {
 
 
-return Container(
+    return Container(
 
-width: 145,
+      width: 145,
 
-height: 65,
+      height: 65,
 
 
-decoration: BoxDecoration(
+      decoration: BoxDecoration(
 
-borderRadius:
-BorderRadius.circular(15),
+        borderRadius:
+        BorderRadius.circular(15),
 
 
-border: Border.all(
+        border: Border.all(
 
-color:
-Colors.purpleAccent
-.withOpacity(.7),
+          color:
+          Colors.purpleAccent
+              .withOpacity(.7),
 
-),
+        ),
 
-color:
-const Color(0xff12071F),
+        color:
+        const Color(0xff12071F),
 
-),
+      ),
 
 
 
-child: Row(
+      child: Row(
 
-mainAxisAlignment:
-MainAxisAlignment.center,
+        mainAxisAlignment:
+        MainAxisAlignment.center,
 
 
-children: [
+        children: [
 
 
-Icon(
+          Icon(
 
-icon,
+            icon,
 
-color: iconColor,
+            color: iconColor,
 
-size: 30,
+            size: 30,
 
-),
+          ),
 
 
 
-const SizedBox(width: 8),
+          const SizedBox(width: 8),
 
 
 
-Column(
+          Column(
 
-mainAxisAlignment:
-MainAxisAlignment.center,
+            mainAxisAlignment:
+            MainAxisAlignment.center,
 
 
-crossAxisAlignment:
-CrossAxisAlignment.start,
+            crossAxisAlignment:
+            CrossAxisAlignment.start,
 
 
-children: [
+            children: [
 
 
-Text(
+              Text(
 
-value,
+                value,
 
-style: const TextStyle(
+                style: const TextStyle(
 
-color: Colors.white,
+                  color: Colors.white,
 
-fontWeight:
-FontWeight.bold,
+                  fontWeight:
+                  FontWeight.bold,
 
-fontSize: 16,
+                  fontSize: 16,
 
-),
+                ),
 
-),
+              ),
 
 
 
-Text(
+              Text(
 
-title,
+                title,
 
-style: const TextStyle(
+                style: const TextStyle(
 
-color: Colors.white70,
+                  color: Colors.white70,
 
-fontSize: 12,
+                  fontSize: 12,
 
-),
+                ),
 
-),
+              ),
 
 
-],
+            ],
 
-),
+          ),
 
 
-],
+        ],
 
-),
+      ),
 
-);
+    );
 
-}
+  }
 
 
 
@@ -584,568 +499,137 @@ fontSize: 12,
 
 // STATS SECTION
 
-Widget _statsSection() {
+  Widget _statsSection() {
 
 
-return Container(
+    return Container(
 
-margin:
-const EdgeInsets.symmetric(
-horizontal: 15,
-),
+      margin:
+      const EdgeInsets.symmetric(
+        horizontal: 15,
+      ),
 
 
-padding:
-const EdgeInsets.symmetric(
-vertical: 18,
-),
+      padding:
+      const EdgeInsets.symmetric(
+        vertical: 18,
+      ),
 
 
 
-decoration: BoxDecoration(
+      decoration: BoxDecoration(
 
-borderRadius:
-BorderRadius.circular(18),
+        borderRadius:
+        BorderRadius.circular(18),
 
 
-border: Border.all(
+        border: Border.all(
 
-color:
-Colors.purpleAccent
-.withOpacity(.6),
+          color:
+          Colors.purpleAccent
+              .withOpacity(.6),
 
-),
+        ),
 
 
-),
+      ),
 
 
 
-child: Row(
+      child: Row(
 
-mainAxisAlignment:
-MainAxisAlignment.spaceAround,
+        mainAxisAlignment:
+        MainAxisAlignment.spaceAround,
 
 
-children: [
+        children: [
 
 
-_statItem(
-Icons.person,
-"124",
-"Friends",
-),
-
-
-
-_statItem(
-Icons.person_add,
-"124",
-"Following",
-),
-
-
-
-_statItem(
-Icons.groups,
-"124",
-"Followers",
-),
-
-
-
-_statItem(
-Icons.remove_red_eye,
-"124",
-"Visitors",
-),
-
-
-],
-
-),
-
-);
-
-}
-
-
-
-
-
-Widget _statItem(
-
-IconData icon,
-
-String number,
-
-String title,
-
-) {
-
-
-return Column(
-
-children: [
-
-
-Icon(
-
-icon,
-
-color: Colors.amber,
-
-size: 25,
-
-),
-
-
-
-const SizedBox(height: 5),
-
-
-
-Text(
-
-number,
-
-style: const TextStyle(
-
-color: Colors.white,
-
-fontWeight:
-FontWeight.bold,
-
-fontSize: 16,
-
-),
-
-),
-
-
-
-Text(
-
-title,
-
-style: const TextStyle(
-
-color: Colors.white70,
-
-fontSize: 11,
-
-),
-
-),
-
-],
-
-);
-
-}
-
-// EDIT PROFILE BUTTON
-
-Widget _editButton() {
-
-return Container(
-
-margin:
-const EdgeInsets.symmetric(
-horizontal: 15,
-),
-
-
-height: 58,
-
-
-decoration: BoxDecoration(
-
-borderRadius:
-BorderRadius.circular(16),
-
-
-border: Border.all(
-
-color:
-Colors.purpleAccent,
-
-),
-
-),
-
-
-
-child: InkWell(
-
-borderRadius:
-BorderRadius.circular(16),
-
-
-onTap: () {
-
-// Open edit profile screen later
-
-},
-
-
-child: const Row(
-
-mainAxisAlignment:
-MainAxisAlignment.center,
-
-
-children: [
-
-
-Icon(
-
-Icons.edit,
-
-color: Colors.amber,
-
-),
-
-
-
-SizedBox(width: 10),
-
-
-
-Text(
-
-"Edit Profile",
-
-style: TextStyle(
-
-color: Colors.white,
-
-fontSize: 17,
-
-),
-
-),
-
-
-],
-
-),
-
-),
-
-);
-
-}
-
-
-
-
-
-// MENU LIST
-
-Widget _menuList(BuildContext context) {
-
-
-return Column(
-
-children: [
-
-
-_menuTile(
-Icons.account_balance_wallet,
-"Wallet",
-),
-
-
-
-_menuTile(
-Icons.shopping_bag,
-"Store",
-),
-
-
-
-_menuTile(
-Icons.person_add,
-"Invite Friend",
-),
-
-
-
-_menuTile(
-Icons.handshake,
-"Join Agency",
-),
-
-
-
-_menuTile(
-Icons.assignment,
-"Task",
-),
-
-
-
-_menuTile(
-Icons.bar_chart,
-"Level",
-),
-
-
-
-_menuTile(
-Icons.emoji_events,
-"Medal",
-),
-
-
-
-_menuTile(
-Icons.shield,
-"CP Zone",
-),
-
-
-
-_menuTile(
-Icons.workspace_premium,
-"Privilege",
-),
-
-
-
-_menuTile(
-Icons.help,
-"Help",
-),
-
-
-
-_menuTile(
-Icons.settings,
-"Setting",
-onTap: () {
-
-Navigator.push(
-
-context,
-
-MaterialPageRoute(
-
-builder: (_) =>
-const SettingsScreen(),
-
-),
-
-);
-
-},
-),
-
-
-
-_menuTile(
-Icons.language,
-"Language",
-),
-
-
-
-_menuTile(
-Icons.headset_mic,
-"Help Center",
-),
-
-
-],
-
-);
-
-}
-
-
-
-
-
-Widget _menuTile(
-
-IconData icon,
-
-String title,
-
-{
-
-VoidCallback? onTap,
-
-}
-
-) {
-
-
-return Container(
-
-margin:
-const EdgeInsets.symmetric(
-
-horizontal: 15,
-
-vertical: 5,
-
-),
-
-
-decoration: BoxDecoration(
-
-color:
-const Color(0xff12071F),
-
-
-borderRadius:
-BorderRadius.circular(15),
-
-
-border: Border.all(
-
-color:
-Colors.purpleAccent
-.withOpacity(.45),
-
-),
-
-),
-
-
-
-child: ListTile(
-
-
-leading: Icon(
-
-icon,
-
-color: Colors.amber,
-
-),
-
-
-
-title: Text(
-
-title,
-
-style: GoogleFonts.poppins(
-
-color: Colors.white,
-
-fontSize: 15,
-
-),
-
-),
-
-
-
-trailing: const Icon(
-
-Icons.arrow_forward_ios,
-
-color: Colors.white54,
-
-size: 16,
-
-),
-
-
-
-onTap: onTap,
-
-),
-
-);
-
-}
-
-
-
-
-
-// LOGOUT BUTTON
-
-Widget _logoutButton(BuildContext context) {
-  return Padding(
-
-    padding:
-    const EdgeInsets.symmetric(
-      horizontal: 15,
-    ),
-
-
-    child: SizedBox(
-
-      width: double.infinity,
-
-
-      child: ElevatedButton.icon(
-
-
-        style:
-        ElevatedButton.styleFrom(
-
-          backgroundColor:
-          Colors.redAccent,
-
-
-          padding:
-          const EdgeInsets.all(16),
-
-
-          shape:
-          RoundedRectangleBorder(
-
-            borderRadius:
-            BorderRadius.circular(15),
-
+          _statItem(
+            Icons.person,
+            "124",
+            "Friends",
           ),
 
+
+
+          _statItem(
+            Icons.person_add,
+            "124",
+            "Following",
+          ),
+
+
+
+          _statItem(
+            Icons.groups,
+            "124",
+            "Followers",
+          ),
+
+
+
+          _statItem(
+            Icons.remove_red_eye,
+            "124",
+            "Visitors",
+          ),
+
+
+        ],
+
+      ),
+
+    );
+
+  }
+
+
+
+
+
+  Widget _statItem(
+
+      IconData icon,
+
+      String number,
+
+      String title,
+
+      ) {
+
+
+    return Column(
+
+      children: [
+
+
+        Icon(
+
+          icon,
+
+          color: Colors.amber,
+
+          size: 25,
+
         ),
 
 
-        onPressed: () async {
-          await FirebaseAuth
-              .instance
-              .signOut();
+
+        const SizedBox(height: 5),
 
 
-          if (context.mounted) {
-            Navigator.pushNamedAndRemoveUntil(
 
-              context,
+        Text(
 
-              AppRoutes.login,
+          number,
 
-                  (route) => false,
-
-            );
-          }
-        },
-
-
-        icon: const Icon(
-
-          Icons.logout,
-
-          color: Colors.white,
-
-        ),
-
-
-        label: const Text(
-
-          "Logout",
-
-          style: TextStyle(
+          style: const TextStyle(
 
             color: Colors.white,
+
+            fontWeight:
+            FontWeight.bold,
 
             fontSize: 16,
 
@@ -1153,10 +637,441 @@ Widget _logoutButton(BuildContext context) {
 
         ),
 
+
+
+        Text(
+
+          title,
+
+          style: const TextStyle(
+
+            color: Colors.white70,
+
+            fontSize: 11,
+
+          ),
+
+        ),
+
+      ],
+
+    );
+
+  }
+
+// EDIT PROFILE BUTTON
+
+  Widget _editButton() {
+
+    return Container(
+
+      margin:
+      const EdgeInsets.symmetric(
+        horizontal: 15,
       ),
 
-    ),
 
-  );
-}
+      height: 58,
+
+
+      decoration: BoxDecoration(
+
+        borderRadius:
+        BorderRadius.circular(16),
+
+
+        border: Border.all(
+
+          color:
+          Colors.purpleAccent,
+
+        ),
+
+      ),
+
+
+
+      child: InkWell(
+
+        borderRadius:
+        BorderRadius.circular(16),
+
+
+        onTap: () {
+
+// Open edit profile screen later
+
+        },
+
+
+        child: const Row(
+
+          mainAxisAlignment:
+          MainAxisAlignment.center,
+
+
+          children: [
+
+
+            Icon(
+
+              Icons.edit,
+
+              color: Colors.amber,
+
+            ),
+
+
+
+            SizedBox(width: 10),
+
+
+
+            Text(
+
+              "Edit Profile",
+
+              style: TextStyle(
+
+                color: Colors.white,
+
+                fontSize: 17,
+
+              ),
+
+            ),
+
+
+          ],
+
+        ),
+
+      ),
+
+    );
+
+  }
+
+
+
+
+
+// MENU LIST
+
+  Widget _menuList(BuildContext context) {
+
+
+    return Column(
+
+      children: [
+
+
+        _menuTile(
+          Icons.account_balance_wallet,
+          "Wallet",
+        ),
+
+
+
+        _menuTile(
+          Icons.shopping_bag,
+          "Store",
+        ),
+
+
+
+        _menuTile(
+          Icons.person_add,
+          "Invite Friend",
+        ),
+
+
+
+        _menuTile(
+          Icons.handshake,
+          "Join Agency",
+        ),
+
+
+
+        _menuTile(
+          Icons.assignment,
+          "Task",
+        ),
+
+
+
+        _menuTile(
+          Icons.bar_chart,
+          "Level",
+        ),
+
+
+
+        _menuTile(
+          Icons.emoji_events,
+          "Medal",
+        ),
+
+
+
+        _menuTile(
+          Icons.shield,
+          "CP Zone",
+        ),
+
+
+
+        _menuTile(
+          Icons.workspace_premium,
+          "Privilege",
+        ),
+
+
+
+        _menuTile(
+          Icons.help,
+          "Help",
+        ),
+
+
+
+        _menuTile(
+          Icons.settings,
+          "Setting",
+          onTap: () {
+
+            Navigator.push(
+
+              context,
+
+              MaterialPageRoute(
+
+                builder: (_) =>
+                const SettingsScreen(),
+
+              ),
+
+            );
+
+          },
+        ),
+
+
+
+        _menuTile(
+          Icons.language,
+          "Language",
+        ),
+
+
+
+        _menuTile(
+          Icons.headset_mic,
+          "Help Center",
+        ),
+
+
+      ],
+
+    );
+
+  }
+
+
+
+
+
+  Widget _menuTile(
+
+      IconData icon,
+
+      String title,
+
+      {
+
+        VoidCallback? onTap,
+
+      }
+
+      ) {
+
+
+    return Container(
+
+      margin:
+      const EdgeInsets.symmetric(
+
+        horizontal: 15,
+
+        vertical: 5,
+
+      ),
+
+
+      decoration: BoxDecoration(
+
+        color:
+        const Color(0xff12071F),
+
+
+        borderRadius:
+        BorderRadius.circular(15),
+
+
+        border: Border.all(
+
+          color:
+          Colors.purpleAccent
+              .withOpacity(.45),
+
+        ),
+
+      ),
+
+
+
+      child: ListTile(
+
+
+        leading: Icon(
+
+          icon,
+
+          color: Colors.amber,
+
+        ),
+
+
+
+        title: Text(
+
+          title,
+
+          style: GoogleFonts.poppins(
+
+            color: Colors.white,
+
+            fontSize: 15,
+
+          ),
+
+        ),
+
+
+
+        trailing: const Icon(
+
+          Icons.arrow_forward_ios,
+
+          color: Colors.white54,
+
+          size: 16,
+
+        ),
+
+
+
+        onTap: onTap,
+
+      ),
+
+    );
+
+  }
+
+
+
+
+
+// LOGOUT BUTTON
+
+  Widget _logoutButton(BuildContext context) {
+    return Padding(
+
+      padding:
+      const EdgeInsets.symmetric(
+        horizontal: 15,
+      ),
+
+
+      child: SizedBox(
+
+        width: double.infinity,
+
+
+        child: ElevatedButton.icon(
+
+
+          style:
+          ElevatedButton.styleFrom(
+
+            backgroundColor:
+            Colors.redAccent,
+
+
+            padding:
+            const EdgeInsets.all(16),
+
+
+            shape:
+            RoundedRectangleBorder(
+
+              borderRadius:
+              BorderRadius.circular(15),
+
+            ),
+
+          ),
+
+
+          onPressed: () async {
+            await FirebaseAuth
+                .instance
+                .signOut();
+
+
+            if (context.mounted) {
+              Navigator.pushNamedAndRemoveUntil(
+
+                context,
+
+                AppRoutes.login,
+
+                    (route) => false,
+
+              );
+            }
+          },
+
+
+          icon: const Icon(
+
+            Icons.logout,
+
+            color: Colors.white,
+
+          ),
+
+
+          label: const Text(
+
+            "Logout",
+
+            style: TextStyle(
+
+              color: Colors.white,
+
+              fontSize: 16,
+
+            ),
+
+          ),
+
+        ),
+
+      ),
+
+    );
+  }
 }

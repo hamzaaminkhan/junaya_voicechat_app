@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:junaya_voicechat_app/services/firebase_options.dart';
 import 'package:junaya_voicechat_app/routes/app_routes.dart';
 import 'package:junaya_voicechat_app/theme/app_theme.dart';
+import 'package:junaya_voicechat_app/widgets/space_background.dart';
 
 
 void main() async {
@@ -63,6 +64,11 @@ class JunayaApp extends StatelessWidget {
       routes:
       AppRoutes.routes,
 
+      builder: (context, child) {
+        return SpaceBackground(
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
 
     );
 

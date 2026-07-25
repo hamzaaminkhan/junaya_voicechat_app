@@ -13,9 +13,9 @@ class ChatDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF12091F),
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF12091F),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         title: Row(
           children: [
@@ -108,7 +108,7 @@ class ChatDetailsScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 CircleAvatar(
-                  backgroundColor: const Color(0xFFFFC107),
+                  backgroundColor: Colors.transparent,
                   child: IconButton(
                     icon: const Icon(
                       Icons.send,

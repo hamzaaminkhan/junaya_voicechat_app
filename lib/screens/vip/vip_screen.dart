@@ -6,7 +6,6 @@ import 'package:junaya_voicechat_app/screens/vip/vip_button.dart';
 import 'package:junaya_voicechat_app/screens/vip/vip_header.dart';
 import 'package:junaya_voicechat_app/screens/vip/vip_plans.dart';
 
-import '../../theme/app_colors.dart';
 
 
 class VipScreen extends StatelessWidget {
@@ -15,10 +14,10 @@ class VipScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
 
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         iconTheme: const IconThemeData(

@@ -8,10 +8,10 @@ class WalletScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xff0B0E21),
+      backgroundColor: Colors.transparent,
 
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: Colors.transparent,
         elevation: 0,
 
         iconTheme: const IconThemeData(

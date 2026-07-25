@@ -64,7 +64,7 @@ class ChatTile extends StatelessWidget {
             chat.time,
             style: const TextStyle(
               color: Colors.grey,
-              fontSize: 11,
+              fontSize: 9,
             ),
           ),
 

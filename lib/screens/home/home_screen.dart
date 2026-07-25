@@ -150,31 +150,31 @@ class _HomeScreenState extends State<HomeScreen> {
                 header(),
 
 
-                const SizedBox(height:15),
+                const SizedBox(height:5),
 
 
                 rankingSection(),
 
 
-                const SizedBox(height:18),
+                const SizedBox(height:12),
 
 
                 tabSection(),
 
 
-                const SizedBox(height:12),
+                const SizedBox(height:8),
 
 
                 countrySection(),
 
 
-                const SizedBox(height:18),
+                const SizedBox(height:12),
 
 
 
                 SizedBox(
 
-                  height:130,
+                  height:110,
 
                   child:
                   homeBannerSlider(),
@@ -194,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
 
 
-                const SizedBox(height:25),
+                const SizedBox(height:15),
 
                 sectionTitle(
                   "Popular Rooms",

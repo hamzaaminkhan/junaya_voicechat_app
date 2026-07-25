@@ -43,8 +43,7 @@ class _VoiceRoomScreenState extends State<VoiceRoomScreen>{
     return Scaffold(
 
 
-      backgroundColor:
-      const Color(0xff050018),
+      backgroundColor: Colors.transparent,
 
 
 

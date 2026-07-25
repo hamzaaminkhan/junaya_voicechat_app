@@ -102,7 +102,7 @@ class AppRoutes {
 
 
     home:
-        (_) => const HomeScreen(),
+        (_) => const MainScreen(),
 
 
 
