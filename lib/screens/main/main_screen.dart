@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../chat/chat_list_screen.dart';
 import '../home/home_screen.dart';
-import '../home/profile_screen.dart';
+import '../home/profile/profile_screen.dart';
 import '../moments/moments_screen.dart';
 
 class MainScreen extends StatefulWidget {

@@ -13,7 +13,7 @@ import '../screens/splash/welcome_screen.dart';
 
 import '../screens/home/rooms/room_screen.dart';
 import '../screens/chat/chat_list_screen.dart';
-import '../screens/home/profile_screen.dart';
+import '../screens/home/profile/profile_screen.dart';
 import '../screens/vip/vip_screen.dart';
 
 

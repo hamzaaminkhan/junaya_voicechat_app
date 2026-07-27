@@ -48,8 +48,8 @@ flutter:
   assets:
     - assets/logo.png
     - assets/backgrounds/
+    - assets/users/
     #- assets/gifts/
-   # - assets/avatars/
    # - assets/icons/
     #- assets/banners/
 
