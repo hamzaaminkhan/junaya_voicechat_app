@@ -174,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 SizedBox(
 
-                  height:110,
+                  height:170,
 
                   child:
                   homeBannerSlider(),
@@ -307,7 +307,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   Text(
 
-                    "JUNAID",
+                    "JUNAYA",
 
                     style:
                     GoogleFonts.poppins(
@@ -930,38 +930,35 @@ class _HomeScreenState extends State<HomeScreen> {
                   Alignment.center,
 
 
-                  child:
-                  Text(
+                  child: ClipRRect(
 
-                    [
-                      "Welcome To JUNAID",
-                      "VIP Events",
-                      "Daily Rewards",
-                      "Recharge Bonus",
-                      "Lucky Draw"
+                    borderRadius:
+                    BorderRadius.circular(18),
 
-                    ][index % 5],
+                    child: Image.asset(
 
+                      [
+                        "assets/banners/welcome.png",
+                        "assets/banners/welcome2.png",
+                        "assets/banners/welcome3.png",
+                        "assets/banners/welcome4.png",
 
-                    style:
-                    GoogleFonts.poppins(
-
-
-                      color:
-                      Colors.white,
+                      ][index % 4],
 
 
-                      fontSize:22,
+                      fit: BoxFit.cover,
 
+                      width: double.infinity,
 
-                      fontWeight:
-                      FontWeight.w700,
-
+                      height: double.infinity,
 
                     ),
 
-
                   ),
+
+
+
+
 
                 ),
 

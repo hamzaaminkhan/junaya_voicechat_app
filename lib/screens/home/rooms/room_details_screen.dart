@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:junaya_voicechat_app/theme/app_colors.dart';
 import 'package:junaya_voicechat_app/widgets/room/bottom_controls.dart';
 import 'package:junaya_voicechat_app/widgets/room/live_chat.dart';
 import 'package:junaya_voicechat_app/widgets/room/room_header.dart';

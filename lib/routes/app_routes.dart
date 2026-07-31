@@ -8,7 +8,6 @@ import '../screens/auth/phone_verification_screen.dart';
 import '../screens/auth/signup_screen.dart';
 import '../screens/main/main_screen.dart';
 
-import '../screens/home/home_screen.dart';
 import '../screens/splash/welcome_screen.dart';
 
 import '../screens/home/rooms/room_screen.dart';

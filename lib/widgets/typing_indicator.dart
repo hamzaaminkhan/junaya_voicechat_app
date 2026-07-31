@@ -31,7 +31,7 @@ class _TypingIndicatorState extends State<TypingIndicator>
   Widget dot(int index) {
     return AnimatedBuilder(
       animation: _controller,
-      builder: (_, __) {
+      builder: (_, _) {
 
         double value =
             (_controller.value + index * .2) % 1;

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:junaya_voicechat_app/theme/app_colors.dart';
 
 class GiftsScreen extends StatelessWidget {
   const GiftsScreen({super.key});
