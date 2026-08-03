@@ -6,6 +6,7 @@ import 'package:junaya_voicechat_app/routes/app_routes.dart';
 import 'package:junaya_voicechat_app/screens/home/profile/edit_profile_screen.dart';
 import 'package:junaya_voicechat_app/screens/settings/settings_screen.dart';
 import 'package:junaya_voicechat_app/widgets/space_background.dart';
+import 'package:junaya_voicechat_app/screens/home/profile/edit_profile_details_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final VoidCallback? onBack;
@@ -672,7 +673,12 @@ class ProfileScreen extends StatelessWidget {
 
         onTap: () {
 
-// Open edit profile screen later
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const EditProfileDetailsScreen(),
+            ),
+          );
 
         },
 

@@ -156,7 +156,7 @@ builder: (context, constraints) {
                   const SizedBox(height: 25),
 
                   Text(
-                    "JUNAID",
+                    "JUNAYA",
                     style: GoogleFonts.poppins(
                       color: Colors.amber,
                       fontSize: 38,
