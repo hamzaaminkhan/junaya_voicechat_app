@@ -374,7 +374,7 @@ fontWeight: FontWeight.bold,
 const SizedBox(height: 8),
 
 const Text(
-'Create your JUNAID account',
+'Create your JUNAYA account',
 textAlign: TextAlign.center,
 style: TextStyle(
 fontSize: 15,

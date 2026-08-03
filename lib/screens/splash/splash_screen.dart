@@ -110,7 +110,7 @@ class _SplashScreenState extends State<SplashScreen>
                  SizedBox(height: 30),
 
                 Text(
-                  "JUNAID",
+                  "JUNAYA",
                   style: GoogleFonts.poppins(
                     color: AppColors.secondary,
                     fontSize: 34,

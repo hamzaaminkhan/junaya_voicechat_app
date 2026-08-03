@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 
-class EditProfileDetailsScreen extends StatelessWidget {
+class EditProfileScreen extends StatelessWidget {
 
-  const EditProfileDetailsScreen({super.key});
+  const EditProfileScreen({super.key});
 
 
   @override

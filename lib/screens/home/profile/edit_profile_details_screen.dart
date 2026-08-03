@@ -2,19 +2,19 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-class EditProfileScreen extends StatefulWidget {
+class EditProfileDetailsScreen extends StatefulWidget {
   final String? backgroundAsset;
 
-  const EditProfileScreen({
+  const EditProfileDetailsScreen({
     super.key,
     this.backgroundAsset,
   });
 
   @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
+  State<EditProfileDetailsScreen> createState() => _EditProfileScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
+class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
   String username = 'MR.ALEX';
   String gender = 'Male';
   String birthday = '2002-01-20';

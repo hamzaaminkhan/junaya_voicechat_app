@@ -42,7 +42,7 @@ class JunayaApp extends StatelessWidget {
       debugShowCheckedModeBanner:false,
 
 
-      title:'JUNAID',
+      title:'JUNAYA',
 
 
 
