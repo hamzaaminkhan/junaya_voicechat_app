@@ -30,6 +30,7 @@ class _BannerSliderState extends State<BannerSlider> {
         SizedBox(
           height: 170,
           child: PageView.builder(
+            physics: const PageScrollPhysics(),
             controller: _controller,
             itemCount: widget.banners.length,
             onPageChanged: (index) {

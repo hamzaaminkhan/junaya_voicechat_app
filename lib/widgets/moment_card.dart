@@ -26,14 +26,14 @@ class MomentCard extends StatelessWidget {
 
       margin: const EdgeInsets.symmetric(
 
-        horizontal: 10,
+        horizontal: 12,
 
-        vertical: 8,
+        vertical: 6,
 
       ),
 
 
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
 
 
       decoration: BoxDecoration(
@@ -81,7 +81,7 @@ class MomentCard extends StatelessWidget {
 
               CircleAvatar(
 
-                radius: 24,
+                radius: 20,
 
 
                 backgroundImage:
@@ -96,7 +96,7 @@ class MomentCard extends StatelessWidget {
 
 
 
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
 
 
 
@@ -120,7 +120,7 @@ class MomentCard extends StatelessWidget {
 
                       color: Colors.white,
 
-                      fontSize: 16,
+                      fontSize: 14,
 
                       fontWeight:
                       FontWeight.bold,
@@ -146,7 +146,7 @@ class MomentCard extends StatelessWidget {
 
                       color: Colors.white60,
 
-                      fontSize: 12,
+                      fontSize: 11,
 
                     ),
 
@@ -164,7 +164,7 @@ class MomentCard extends StatelessWidget {
 
 
 
-          const SizedBox(height:12),
+          const SizedBox(height:8),
 
 
 
@@ -182,9 +182,9 @@ class MomentCard extends StatelessWidget {
 
               color: Colors.white,
 
-              fontSize: 15,
+              fontSize: 13.5,
 
-              height:1.4,
+              height:1.3,
 
             ),
 
@@ -233,7 +233,7 @@ class MomentCard extends StatelessWidget {
 
                 color: Colors.white70,
 
-                size:22,
+                size:19,
 
               ),
 
@@ -270,7 +270,7 @@ class MomentCard extends StatelessWidget {
 
                 color: Colors.white70,
 
-                size:21,
+                size:19,
 
               ),
 
@@ -351,7 +351,7 @@ class MomentCard extends StatelessWidget {
           moment.images.first,
 
 
-          height:220,
+          height:170,
 
 
           width:double.infinity,

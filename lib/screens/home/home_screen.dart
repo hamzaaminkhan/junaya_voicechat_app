@@ -6,7 +6,7 @@ import '../../widgets/ranking_card.dart';
 import '../../widgets/country_chip.dart';
 import '../../widgets/category_chip.dart';
 import '../vip/vip_screen.dart';
-
+import 'dart:async';
 import '../../widgets/banner_indicator.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -20,6 +20,49 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+
+  @override
+  void initState() {
+    super.initState();
+
+    bannerTimer = Timer.periodic(
+      const Duration(seconds: 3),
+          (timer) {
+
+        if (bannerController.hasClients) {
+
+          int nextPage = bannerIndex + 1;
+
+          if (nextPage >= 15) {
+            nextPage = 0;
+          }
+
+          bannerController.animateToPage(
+            nextPage,
+            duration:
+            const Duration(milliseconds: 500),
+            curve:
+            Curves.easeInOut,
+          );
+
+        }
+
+      },
+    );
+  }
+
+
+  @override
+  void dispose() {
+
+    bannerTimer?.cancel();
+
+    bannerController.dispose();
+
+    super.dispose();
+
+  }
+
 
   final List<Map<String,dynamic>> rooms = [
 
@@ -76,6 +119,8 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   final PageController bannerController = PageController();
+
+  Timer? bannerTimer;
 
   int bannerIndex = 0;
   int selectedTab = 0;

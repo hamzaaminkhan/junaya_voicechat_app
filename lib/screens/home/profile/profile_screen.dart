@@ -80,15 +80,14 @@ class ProfileScreen extends StatelessWidget {
                           ),
 
                           onPressed: () {
-
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (_) => const EditProfileScreen(),
                               ),
                             );
-
                           },
+
                         ),
 
                       ],
@@ -666,6 +665,9 @@ class ProfileScreen extends StatelessWidget {
 
 
       child: InkWell(
+
+        splashColor: Colors.purpleAccent.withOpacity(.3),
+        highlightColor: Colors.purpleAccent.withOpacity(.15),
 
         borderRadius:
         BorderRadius.circular(16),
