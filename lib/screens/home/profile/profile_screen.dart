@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:junaya_voicechat_app/routes/app_routes.dart';
 import 'package:junaya_voicechat_app/screens/home/profile/edit_profile_screen.dart';
-import 'package:junaya_voicechat_app/screens/settings/settings_screen.dart';
 import 'package:junaya_voicechat_app/widgets/space_background.dart';
 import 'package:junaya_voicechat_app/screens/home/profile/edit_profile_details_screen.dart';
 
@@ -750,83 +749,61 @@ class ProfileScreen extends StatelessWidget {
         _menuTile(
           Icons.account_balance_wallet,
           "Wallet",
+          onTap: () => Navigator.pushNamed(context, AppRoutes.wallet),
         ),
-
-
 
         _menuTile(
           Icons.shopping_bag,
           "Store",
+          onTap: () => Navigator.pushNamed(context, AppRoutes.store),
         ),
-
-
 
         _menuTile(
           Icons.person_add,
           "Invite Friend",
+          onTap: () => Navigator.pushNamed(context, AppRoutes.inviteFriends),
         ),
-
-
 
         _menuTile(
           Icons.handshake,
           "Join Agency",
+          onTap: () => Navigator.pushNamed(context, AppRoutes.joinAgency),
         ),
-
 
         _menuTile(
           Icons.bar_chart,
           "Level",
+          onTap: () => Navigator.pushNamed(context, AppRoutes.level),
         ),
-
-
 
         _menuTile(
           Icons.emoji_events,
           "Medal",
+          onTap: () => Navigator.pushNamed(context, AppRoutes.medal),
         ),
-
-
 
         _menuTile(
           Icons.shield,
           "CP Zone",
+          onTap: () => Navigator.pushNamed(context, AppRoutes.cpZone),
         ),
-
 
         _menuTile(
           Icons.settings,
           "Setting",
-          onTap: () {
-
-            Navigator.push(
-
-              context,
-
-              MaterialPageRoute(
-
-                builder: (_) =>
-                const SettingsScreen(),
-
-              ),
-
-            );
-
-          },
+          onTap: () => Navigator.pushNamed(context, AppRoutes.settings),
         ),
-
-
 
         _menuTile(
           Icons.language,
           "Language",
+          onTap: () => Navigator.pushNamed(context, AppRoutes.language),
         ),
-
-
 
         _menuTile(
           Icons.headset_mic,
           "Help Center",
+          onTap: () => Navigator.pushNamed(context, AppRoutes.helpCenter),
         ),
 
 

@@ -179,38 +179,38 @@ class FriendsScreen extends StatelessWidget {
                         backgroundColor: Colors.amber,
                         foregroundColor: Colors.black,
                       ),
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text("Invite Friend"),
-                              content: Text(
-                                "Invite ${friend["name"]} to your voice room?",
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text("Cancel"),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          "${friend["name"]} has been invited.",
-                                        ),
-                                        backgroundColor: Colors.green,
-                                      ),
-                                    );
-                                  },
-                                  child: const Text("Invite"),
-                                ),
-                              ],
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text("Invite Friend"),
+                            content: Text(
+                              "Invite ${friend["name"]} to your voice room?",
                             ),
-                          );
-                        },
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text("Cancel"),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        "${friend["name"]} has been invited.",
+                                      ),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                },
+                                child: const Text("Invite"),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                       child: const Text("Invite"),
                     ),
                   ),
