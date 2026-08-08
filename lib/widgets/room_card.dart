@@ -3,11 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../screens/home/rooms/room_screen.dart';
 
-
-
 class JunaidRoomCard extends StatelessWidget {
-
-
   final String flag;
   final String roomName;
   final String description;
@@ -16,889 +12,208 @@ class JunaidRoomCard extends StatelessWidget {
   final String role;
   final int likes;
 
-
   const JunaidRoomCard({
-
     super.key,
-
     required this.flag,
-
     required this.roomName,
-
     required this.description,
-
     required this.vip,
-
     required this.level,
-
     required this.role,
-
     required this.likes,
-
   });
 
-
-
-
-
   @override
-  Widget build(BuildContext context){
-
-
+  Widget build(BuildContext context) {
     return Container(
-
-
-      margin:
-      const EdgeInsets.symmetric(
-
-        horizontal:15,
-
-        vertical:10,
-
+      margin: const EdgeInsets.symmetric(horizontal: 14),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(.16),
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(
+          color: Colors.white.withOpacity(.09),
+        ),
       ),
-
-
-
-      padding:
-      const EdgeInsets.all(14),
-
-
-
-
-      decoration:
-      BoxDecoration(
-
-
-
-          gradient:
-          LinearGradient(
-
-
-            colors:[
-
-
-              const Color(0xff14102F),
-
-              const Color(0xff090018),
-
-
-            ],
-
-
-          ),
-
-
-
-
-          borderRadius:
-          BorderRadius.circular(28),
-
-
-
-
-          border:
-          Border.all(
-
-
-
-            color:
-            Colors.purpleAccent.withOpacity(.6),
-
-
-
-            width:1.2,
-
-
-
-          ),
-
-
-
-
-          boxShadow:[
-
-
-
-            BoxShadow(
-
-
-              color:
-              Colors.purpleAccent.withOpacity(.25),
-
-
-              blurRadius:30,
-
-
-              spreadRadius:2,
-
-
-            )
-
-
-          ]
-
-
-      ),
-
-
-
-
-
-      child:Column(
-
-
-
-        children:[
-
-
-
-
-
-// TOP ROOM INFO
-
-
+      child: Column(
+        children: [
           Row(
-
-
-            children:[
-
-
-
-
-// MIC ICON
-
-
-
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
               Container(
-
-
-                height:50,
-
-
-                width:50,
-
-
-
-                decoration:
-                BoxDecoration(
-
-
-
-                    gradient:
-                    const LinearGradient(
-
-
-
-                      colors:[
-
-
-                        Color(0xffB721FF),
-
-
-                        Color(0xff21D4FD),
-
-
-
-                      ],
-
-
-
-                    ),
-
-
-
-
-                    borderRadius:
-                    BorderRadius.circular(22),
-
-
-
-
-                    boxShadow:[
-
-
-                      BoxShadow(
-
-                        color:
-                        Colors.blue.withOpacity(.7),
-
-                        blurRadius:25,
-
-                      )
-
-
-                    ]
-
-
-
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  color: const Color(0xFF6D2BC8).withOpacity(.24),
+                  border: Border.all(
+                    color: const Color(0xFF9F6CFF).withOpacity(.35),
+                  ),
                 ),
-
-
-
-
-                child:
-                const Icon(
-
-
-                  Icons.mic,
-
-
-                  size:40,
-
-
-                  color:
-                  Colors.white,
-
-
+                child: const Icon(
+                  Icons.mic_none_rounded,
+                  color: Color(0xFFD9C6FF),
+                  size: 25,
                 ),
-
-
-
               ),
-
-
-
-
-
-
-
-              const SizedBox(width:13),
-
-
-
-
-
-// ROOM TEXT
-
-
+              const SizedBox(width: 10),
               Expanded(
-
-
-
-                child:Column(
-
-
-
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
-
-
-
-                  children:[
-
-
-
-
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Row(
-
-                      children:[
-
-
-
+                      children: [
                         Text(
-
-
-                          "$flag $roomName",
-
-
-
-                          style:
-                          GoogleFonts.poppins(
-
-
-                            color:
-                            Colors.white,
-
-
-                            fontSize:10,
-
-
-                            fontWeight:
-                            FontWeight.bold,
-
-
-                          ),
-
-
-
+                          flag,
+                          style: const TextStyle(fontSize: 13),
                         ),
-
-
-
+                        const SizedBox(width: 5),
+                        Expanded(
+                          child: Text(
+                            roomName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       ],
-
-
-
                     ),
-
-
-
-
-
-                    const SizedBox(height:6),
-
-
-
-
+                    const SizedBox(height: 3),
                     Text(
-
-
                       description,
-
-
-
-                      style:
-                      GoogleFonts.poppins(
-
-
-
-                        color:
-                        Colors.white60,
-
-
-                        fontSize:14,
-
-
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white54,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w400,
                       ),
-
-
-
                     ),
-
-
-
-
-
                   ],
-
-
-
                 ),
-
-
-
               ),
-
-
-
-
-
-
-
-
-// VIP BADGE
-
-
-
-              Container(
-
-
-                padding:
-                const EdgeInsets.symmetric(
-
-                  horizontal:12,
-
-                  vertical:6,
-
-                ),
-
-
-
-
-                decoration:
-                BoxDecoration(
-
-
-
-                  borderRadius:
-                  BorderRadius.circular(20),
-
-
-
-
-                  border:
-                  Border.all(
-
-                    color:
-                    Colors.pinkAccent,
-
-                  ),
-
-
-
-                  color:
-                  Colors.pink.withOpacity(.15),
-
-
-
-                ),
-
-
-
-
-
-                child:
-                Text(
-
-
-                  vip,
-
-
-                  style:
-                  const TextStyle(
-
-
-                    color:
-                    Colors.pinkAccent,
-
-
-                    fontWeight:
-                    FontWeight.bold,
-
-
-                  ),
-
-
-                ),
-
-
-
-
-              ),
-
-
-
-
-
+              const SizedBox(width: 8),
+              _vipBadge(),
             ],
-
-
-
           ),
-
-
-
-
-
-
-
-          const SizedBox(height:25),
-
-
-
-
-
-
-// LEVEL ROW
-
-
+          const SizedBox(height: 10),
           Row(
-
-
-
-            children:[
-
-
-
-
-              badge(
-
+            children: [
+              _metaChip(
                 level,
-
-                Colors.greenAccent,
-
+                const Color(0xFF68E9BF),
               ),
-
-
-
-
-
-              const SizedBox(width:10),
-
-
-
-
-
-              badge(
-
+              const SizedBox(width: 6),
+              _metaChip(
                 role,
-
-                Colors.orangeAccent,
-
+                const Color(0xFFFFC46B),
               ),
-
-
-
-
-
               const Spacer(),
-
-
-
-
-
-              Row(
-
-
-                children:[
-
-
-
-                  const Icon(
-
-
-                    Icons.favorite,
-
-
-                    color:
-                    Colors.purpleAccent,
-
-
-                    size:22,
-
-
-                  ),
-
-
-
-                  const SizedBox(width:5),
-
-
-
-
-                  Text(
-
-
-                    "$likes",
-
-
-                    style:
-                    const TextStyle(
-
-
-                      color:
-                      Colors.white,
-
-
-                      fontSize:16,
-
-
-                      fontWeight:
-                      FontWeight.bold,
-
-
-                    ),
-
-
-
-                  ),
-
-
-
-                ],
-
-
-
+              const Icon(
+                Icons.favorite_rounded,
+                color: Color(0xFFEA6BDA),
+                size: 16,
               ),
-
-
-
-
-
+              const SizedBox(width: 4),
+              Text(
+                '$likes',
+                style: GoogleFonts.poppins(
+                  color: Colors.white70,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(width: 10),
+              _joinButton(context),
             ],
-
-
-
           ),
-
-
-
-
-
-
-          const SizedBox(height:18),
-
-
-
-
-
-
-
-// JOIN BUTTON
-
-
-
-          GestureDetector(
-
-
-
-            onTap:(){
-
-
-
-              Navigator.push(
-
-
-                context,
-
-
-                MaterialPageRoute(
-
-
-                  builder:(_)=>
-
-                  const RoomScreen(),
-
-
-                ),
-
-
-
-              );
-
-
-
-            },
-
-
-
-
-
-            child:
-            Container(
-
-
-
-              height:27,
-
-
-
-              width:
-              double.infinity,
-
-
-
-
-              decoration:
-              BoxDecoration(
-
-
-
-                  gradient:
-                  const LinearGradient(
-
-
-
-                    colors:[
-
-
-                      Color(0xffffd700),
-
-
-                      Color(0xffff9800),
-
-
-                    ],
-
-
-
-                  ),
-
-
-
-                  borderRadius:
-                  BorderRadius.circular(18),
-
-
-
-                  boxShadow:[
-                    BoxShadow(
-                      color:Colors.amber.withOpacity(.6),
-                      blurRadius:25,
-                    )
-                  ]
-
-
-
-
-              ),
-
-
-
-
-
-              child:
-              Center(
-
-
-                child:
-                Text(
-
-
-
-                  "Join Room",
-
-
-
-                  style:
-                  GoogleFonts.poppins(
-
-
-
-                    color:
-                    Colors.black,
-
-
-                    fontSize:17,
-
-
-                    fontWeight:
-                    FontWeight.bold,
-
-
-                  ),
-
-
-
-                ),
-
-
-
-              ),
-
-
-
-
-
-            ),
-
-
-
-
-          ),
-
-
-
-
-
         ],
-
-
-
       ),
-
-
-
-
     );
-
-
-
   }
 
-
-
-
-
-
-  Widget badge(
-
-      String text,
-
-      Color color,
-
-      ){
-
-
-
+  Widget _vipBadge() {
     return Container(
-
-
-      padding:
-      const EdgeInsets.symmetric(
-
-
-        horizontal:14,
-
-
-        vertical:6,
-
-
+      padding: const EdgeInsets.symmetric(
+        horizontal: 9,
+        vertical: 4,
       ),
-
-
-
-
-      decoration:
-      BoxDecoration(
-
-
-
-        color:
-        color.withOpacity(.15),
-
-
-
-
-        border:
-        Border.all(
-
-          color:color,
-
+      decoration: BoxDecoration(
+        color: const Color(0xFFFF4D98).withOpacity(.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0xFFFF6AA9).withOpacity(.50),
         ),
-
-
-
-
-        borderRadius:
-        BorderRadius.circular(18),
-
-
-
       ),
-
-
-
-
-      child:
-      Text(
-
-
-
-        text,
-
-
-
-        style:
-        TextStyle(
-
-
-
-          color:
-          color,
-
-
-          fontWeight:
-          FontWeight.bold,
-
-
-          fontSize:12,
-
-
+      child: Text(
+        vip,
+        style: GoogleFonts.poppins(
+          color: const Color(0xFFFF86B9),
+          fontSize: 9.5,
+          fontWeight: FontWeight.w600,
         ),
-
-
-
       ),
-
-
-
     );
-
-
-
   }
 
+  Widget _metaChip(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: 3,
+      ),
+      decoration: BoxDecoration(
+        color: color.withOpacity(.07),
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(
+          color: color.withOpacity(.32),
+        ),
+      ),
+      child: Text(
+        text,
+        style: GoogleFonts.poppins(
+          color: color.withOpacity(.92),
+          fontSize: 9.5,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
 
-
+  Widget _joinButton(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const RoomScreen()),
+          );
+        },
+        borderRadius: BorderRadius.circular(10),
+        child: Ink(
+          height: 29,
+          padding: const EdgeInsets.symmetric(horizontal: 11),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFC857),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Center(
+            child: Text(
+              'Join',
+              style: GoogleFonts.poppins(
+                color: const Color(0xFF17100A),
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

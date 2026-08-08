@@ -1,1190 +1,490 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import 'package:junaya_voicechat_app/widgets/room_card.dart';
 import 'package:junaya_voicechat_app/widgets/space_background.dart';
-import '../../widgets/ranking_card.dart';
-import '../../widgets/country_chip.dart';
-import '../../widgets/category_chip.dart';
-import '../vip/vip_screen.dart';
-import 'dart:async';
+
 import '../../widgets/banner_indicator.dart';
+import '../../widgets/category_chip.dart';
+import '../../widgets/country_chip.dart';
+import '../../widgets/ranking_card.dart';
+import '../notifications/notification_screen.dart';
+import '../vip/vip_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-
   const HomeScreen({super.key});
-
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
-
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static const List<String> _bannerAssets = [
+    'assets/banners/welcome.png',
+    'assets/banners/welcome2.png',
+    'assets/banners/welcome3.png',
+    'assets/banners/welcome4.png',
+  ];
 
-  @override
-  void initState() {
-    super.initState();
-
-    bannerTimer = Timer.periodic(
-      const Duration(seconds: 3),
-          (timer) {
-
-        if (bannerController.hasClients) {
-
-          int nextPage = bannerIndex + 1;
-
-          if (nextPage >= 15) {
-            nextPage = 0;
-          }
-
-          bannerController.animateToPage(
-            nextPage,
-            duration:
-            const Duration(milliseconds: 500),
-            curve:
-            Curves.easeInOut,
-          );
-
-        }
-
-      },
-    );
-  }
-
-
-  @override
-  void dispose() {
-
-    bannerTimer?.cancel();
-
-    bannerController.dispose();
-
-    super.dispose();
-
-  }
-
-
-  final List<Map<String,dynamic>> rooms = [
-
+  final List<Map<String, dynamic>> rooms = [
     {
-      "flag":"🇵🇰",
-      "name":"Pakistan Star",
-      "desc":"Music & Fun Chat",
-      "vip":"VIP 3",
-      "level":"LV 8",
-      "role":"Host",
-      "likes":65,
+      'flag': '🇵🇰',
+      'name': 'Pakistan Star',
+      'desc': 'Music & Fun Chat',
+      'vip': 'VIP 3',
+      'level': 'LV 8',
+      'role': 'Host',
+      'likes': 65,
     },
-
     {
-      "flag":"🇮🇳",
-      "name":"India Music",
-      "desc":"Join Voice Room",
-      "vip":"VIP 2",
-      "level":"LV 5",
-      "role":"Manager",
-      "likes":32,
+      'flag': '🇮🇳',
+      'name': 'India Music',
+      'desc': 'Join Voice Room',
+      'vip': 'VIP 2',
+      'level': 'LV 5',
+      'role': 'Manager',
+      'likes': 32,
     },
-
     {
-      "flag":"🇧🇩",
-      "name":"Bangladesh Live",
-      "desc":"Friends Voice Room",
-      "vip":"VIP 1",
-      "level":"LV 4",
-      "role":"Host",
-      "likes":120,
+      'flag': '🇧🇩',
+      'name': 'Bangladesh Live',
+      'desc': 'Friends Voice Room',
+      'vip': 'VIP 1',
+      'level': 'LV 4',
+      'role': 'Host',
+      'likes': 120,
     },
-
     {
-      "flag":"🇹🇷",
-      "name":"Turkey Party",
-      "desc":"Music Night",
-      "vip":"VIP 4",
-      "level":"LV 9",
-      "role":"Admin",
-      "likes":250,
+      'flag': '🇹🇷',
+      'name': 'Turkey Party',
+      'desc': 'Music Night',
+      'vip': 'VIP 4',
+      'level': 'LV 9',
+      'role': 'Admin',
+      'likes': 250,
     },
-
     {
-      "flag":"🇦🇪",
-      "name":"Dubai VIP",
-      "desc":"Luxury Voice Room",
-      "vip":"VIP 5",
-      "level":"LV 10",
-      "role":"Owner",
-      "likes":500,
+      'flag': '🇦🇪',
+      'name': 'Dubai VIP',
+      'desc': 'Luxury Voice Room',
+      'vip': 'VIP 5',
+      'level': 'LV 10',
+      'role': 'Owner',
+      'likes': 500,
     },
-
   ];
 
   final PageController bannerController = PageController();
-
   Timer? bannerTimer;
 
   int bannerIndex = 0;
   int selectedTab = 0;
   int selectedCountry = 0;
 
-  final List<String> tabs = [
+  final List<String> tabs = ['HOT', 'RECENT', 'FOLLOW'];
 
-    "HOT",
-    "RECENT",
-    "FOLLOW"
-
+  final List<Map<String, String>> countries = const [
+    {'name': 'All', 'flag': '✓'},
+    {'name': 'Pakistan', 'flag': '🇵🇰'},
+    {'name': 'Bangladesh', 'flag': '🇧🇩'},
+    {'name': 'India', 'flag': '🇮🇳'},
+    {'name': 'Turkey', 'flag': '🇹🇷'},
   ];
 
-  final List<String> countries = [
+  @override
+  void initState() {
+    super.initState();
 
-    "All",
-    "🇵🇰 Pakistan",
-    "🇮🇳 India",
-    "🇧🇩 Bangladesh"
+    bannerTimer = Timer.periodic(
+      const Duration(seconds: 4),
+          (_) {
+        if (!bannerController.hasClients) return;
 
-  ];
+        final int nextPage = (bannerIndex + 1) % _bannerAssets.length;
+        bannerController.animateToPage(
+          nextPage,
+          duration: const Duration(milliseconds: 450),
+          curve: Curves.easeOutCubic,
+        );
+      },
+    );
+  }
 
-
+  @override
+  void dispose() {
+    bannerTimer?.cancel();
+    bannerController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-
-
     return Scaffold(
-
-      extendBody:true,
-
-      floatingActionButton:
-      createRoomButton(),
-
-      backgroundColor:
-      const Color(0xff050018),
-
-
-      body: SpaceBackground(
-
-        child: SafeArea(
-
-          child: RefreshIndicator(
-
-            color:
-            Colors.amber,
-
-
-            onRefresh:()async{
-
-
-              await Future.delayed(
-
-                  const Duration(
-                      seconds:1
-                  )
-
-              );
-
-
-            },
-
-
-            child: SingleChildScrollView(
-
-            child: Column(
-
-              children:[
-
-
-                header(),
-
-
-                const SizedBox(height:5),
-
-
-                rankingSection(),
-
-
-                const SizedBox(height:12),
-
-
-                tabSection(),
-
-
-                const SizedBox(height:8),
-
-
-                countrySection(),
-
-
-                const SizedBox(height:12),
-
-
-
-                SizedBox(
-
-                  height:170,
-
-                  child:
-                  homeBannerSlider(),
-
-                ),
-
-
-                const SizedBox(height:10),
-
-
-                BannerIndicator(
-
-                  total:15,
-
-                  current:bannerIndex,
-
-                ),
-
-
-                const SizedBox(height:15),
-
-                sectionTitle(
-                  "Popular Rooms",
-                ),
-
-                const SizedBox(height:10),
-
-                ListView.builder(
-
-                  shrinkWrap:true,
-
-                  physics:
-                  const NeverScrollableScrollPhysics(),
-
-                  itemCount:rooms.length,
-
-                  itemBuilder:(context,index){
-
-                    final room=rooms[index];
-
-
-                    return JunaidRoomCard(
-
-                      flag: room["flag"] as String,
-
-                      roomName: room["name"] as String,
-
-                      description: room["desc"] as String,
-
-                      vip: room["vip"] as String,
-
-                      level: room["level"] as String,
-
-                      role: room["role"] as String,
-
-                      likes: room["likes"] as int,
-
-
-                    );
-
-                  },
-
-                ),
-
-
-                roomList(),
-
-
-
-              ],
-
-            )
-
-          ),
-
-        ),
-
+      extendBody: true,
+      backgroundColor: Colors.transparent,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 72, right: 2),
+        child: createRoomButton(),
       ),
-
-    ),
-
+      body: SpaceBackground(
+        child: SafeArea(
+          bottom: false,
+          child: RefreshIndicator(
+            color: const Color(0xFFFFC857),
+            backgroundColor: const Color(0xEE10051B),
+            onRefresh: () async {
+              await Future<void>.delayed(const Duration(milliseconds: 700));
+            },
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
+              slivers: [
+                SliverToBoxAdapter(child: header()),
+                const SliverToBoxAdapter(child: SizedBox(height: 7)),
+                SliverToBoxAdapter(child: rankingSection()),
+                const SliverToBoxAdapter(child: SizedBox(height: 10)),
+                SliverToBoxAdapter(child: tabSection()),
+                const SliverToBoxAdapter(child: SizedBox(height: 7)),
+                SliverToBoxAdapter(child: countrySection()),
+                const SliverToBoxAdapter(child: SizedBox(height: 11)),
+                SliverToBoxAdapter(child: homeBannerSlider()),
+                const SliverToBoxAdapter(child: SizedBox(height: 7)),
+                SliverToBoxAdapter(
+                  child: BannerIndicator(
+                    total: _bannerAssets.length,
+                    current: bannerIndex,
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 15)),
+                SliverToBoxAdapter(
+                  child: sectionTitle(
+                    'Popular Rooms',
+                    trailing: 'Live now',
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 6)),
+                SliverList.separated(
+                  itemCount: rooms.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final room = rooms[index];
+                    return JunaidRoomCard(
+                      flag: room['flag'] as String,
+                      roomName: room['name'] as String,
+                      description: room['desc'] as String,
+                      vip: room['vip'] as String,
+                      level: room['level'] as String,
+                      role: room['role'] as String,
+                      likes: room['likes'] as int,
+                    );
+                  },
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 130)),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
-
-
   }
-
-// ================= HEADER =================
 
   Widget header() {
-
     return Padding(
-
-      padding: const EdgeInsets.symmetric(
-        horizontal:8,
-      ),
-
+      padding: const EdgeInsets.fromLTRB(15, 6, 10, 1),
       child: Row(
-
-        mainAxisAlignment:
-        MainAxisAlignment.spaceBetween,
-
-        children:[
-
-          // LOGO AREA
-
-          Column(
-
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
-
-            children:[
-
-              Row(
-
-                children:[
-
-                  const Text(
-
-                    "♛",
-
-                    style: TextStyle(
-
-                      color: Colors.amber,
-
-                      fontSize:15,
-
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.workspace_premium_rounded,
+                      color: Color(0xFFFFC857),
+                      size: 17,
                     ),
-
-                  ),
-
-                  Text(
-
-                    "JUNAYA",
-
-                    style:
-                    GoogleFonts.poppins(
-
-                      color:
-                      Colors.amber,
-
-                      fontSize:15,
-
-                      fontWeight:
-                      FontWeight.w600,
-
-                      letterSpacing:1.5,
-
+                    const SizedBox(width: 5),
+                    Text(
+                      'JUNAYA',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.5,
+                      ),
                     ),
-
-                  ),
-
-                ],
-
-              ),
-
-              Text(
-
-                "  ─  CHAT  ─",
-
-                style:
-                GoogleFonts.poppins(
-
-                  color:
-                  Colors.purpleAccent,
-
-                  fontSize:9,
-
-                  letterSpacing:2,
-
-                  fontWeight:
-                  FontWeight.w500,
-
-                ),
-
-              ),
-            ],
-
-          ),
-
-          // ICONS
-
-
-          Row(
-
-            children:[
-
-
-              glowButton(
-
-                Icons.workspace_premium,
-
-                    (){
-
-                  Navigator.push(
-
-                    context,
-
-                    MaterialPageRoute(
-
-                      builder:(_)=>
-                      const VipScreen(),
-
-                    ),
-
-                  );
-
-                },
-
-              ),
-
-              const SizedBox(width:5),
-
-
-              glowButton(
-
-                Icons.notifications_none,
-
-                    (){},
-
-              ),
-
-            ],
-
-          ),
-
-        ],
-
-      ),
-
-    );
-
-  }
-
-// ================= RANKING =================
-
-  Widget rankingSection(){
-
-    return SizedBox(
-
-      height:55,
-
-      child: ListView(
-
-        scrollDirection: Axis.horizontal,
-
-        children:[
-
-          RankingCard(
-            title:"Shining\nStar",
-            icon:"⭐",
-            color:Colors.greenAccent,
-          ),
-
-
-          RankingCard(
-            title:"CP\nRanking",
-            icon:"❤️",
-            color:Colors.pinkAccent,
-          ),
-
-
-          RankingCard(
-            title:"Ranking",
-            icon:"🏆",
-            color:Colors.orangeAccent,
-          ),
-
-        ],
-
-      ),
-
-    );
-
-  }
-
-// ================= TABS =================
-
-  Widget tabSection(){
-
-
-    return SizedBox(
-
-
-      height:30,
-
-
-      child:
-      ListView(
-
-        scrollDirection:
-        Axis.horizontal,
-
-
-        padding:
-        const EdgeInsets.symmetric(
-          horizontal:18,
-        ),
-
-
-
-        children:[
-
-
-
-          CategoryChip(
-
-            text:"HOT",
-
-            active:true,
-
-          ),
-
-
-
-          CategoryChip(
-
-            text:"RECENTLY",
-
-          ),
-
-
-
-          CategoryChip(
-
-            text:"FOLLOW",
-
-          ),
-
-
-
-        ],
-
-
-
-      ),
-
-
-    );
-
-
-  }
-
-// ================= COUNTRY =================
-
-
-
-  Widget countrySection(){
-
-
-    return SizedBox(
-
-
-      height:32,
-
-
-      child:
-      ListView(
-
-        scrollDirection:
-        Axis.horizontal,
-
-
-        padding:
-        const EdgeInsets.symmetric(
-          horizontal:18,
-        ),
-
-
-
-        children:[
-
-
-
-          CountryChip(
-
-            name:"All",
-
-            flag:"✓",
-
-            active:true,
-
-          ),
-
-
-
-          CountryChip(
-
-            name:"Pakistan",
-
-            flag:"🇵🇰",
-
-          ),
-
-
-
-          CountryChip(
-
-            name:"Bangladesh",
-
-            flag:"🇧🇩",
-
-          ),
-
-
-
-          CountryChip(
-
-            name:"India",
-
-            flag:"🇮🇳",
-
-          ),
-
-
-
-          CountryChip(
-
-            name:"Turkey",
-
-            flag:"🇹🇷",
-
-          ),
-
-
-
-          Container(
-
-            padding:
-            const EdgeInsets.all(10),
-
-            child:
-            const Icon(
-
-              Icons.arrow_forward_ios,
-
-              color:Colors.white,
-
-              size:16,
-
-            ),
-
-          )
-
-
-
-        ],
-
-
-
-      ),
-
-
-
-    );
-
-
-  }
-
-// ================= BANNER =================
-
-
-  Widget banner(
-
-      String title,
-
-      String subtitle,
-
-      ){
-
-    return Container(
-
-      margin:
-      const EdgeInsets.symmetric(
-        horizontal:5,
-      ),
-
-      decoration:
-      BoxDecoration(
-
-        gradient:
-        const LinearGradient(
-
-            colors:[
-
-              Color(0xff4B0082),
-
-              Color(0xff8A2BE2)
-
-            ]
-
-        ),
-
-
-        borderRadius:
-        BorderRadius.circular(12),
-
-      ),
-
-      child:Column(
-
-        mainAxisAlignment:
-        MainAxisAlignment.center,
-
-        children:[
-
-          Text(
-
-            title,
-
-            style:
-            GoogleFonts.poppins(
-
-              color:
-              Colors.white,
-
-              fontSize:25,
-
-              fontWeight:
-              FontWeight.bold,
-
-            ),
-
-          ),
-
-
-          Text(
-
-            subtitle,
-
-            style:
-            const TextStyle(
-
-              color:
-              Colors.white70,
-
-              fontSize:12,
-
-            ),
-
-          )
-
-
-        ],
-
-
-      ),
-
-
-    );
-
-
-  }
-
-
-
-  Widget glowButton(
-
-      IconData icon,
-
-      VoidCallback press,
-
-      ){
-
-
-    return Container(
-
-
-      decoration:
-      BoxDecoration(
-
-
-          shape:
-          BoxShape.circle,
-
-
-          boxShadow:[
-
-
-            BoxShadow(
-
-              color:
-              Colors.purpleAccent.withValues(alpha: .08),
-
-              blurRadius:20,
-
-            )
-
-          ]
-
-
-      ),
-
-
-
-      child:IconButton(
-
-
-        onPressed:press,
-
-
-        icon:
-        Icon(
-
-          icon,
-
-          color:
-          Colors.amber,
-
-          size:30,
-
-        ),
-
-
-      ),
-
-
-    );
-
-
-  }
-
-  Widget sectionTitle(String text) {
-
-    return Padding(
-
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20,
-      ),
-
-      child: Align(
-
-        alignment: Alignment.centerLeft,
-
-        child: Text(
-
-          text,
-
-          style: GoogleFonts.poppins(
-
-            color: Colors.white,
-
-            fontSize: 22,
-
-            fontWeight: FontWeight.w600,
-
-          ),
-
-        ),
-
-      ),
-
-    );
-
-  }
-
-   Widget homeBannerSlider(){
-
-    return Container(
-
-      height:170,
-
-      margin: const EdgeInsets.symmetric(
-        horizontal:16,
-      ),
-
-
-      child: PageView.builder(
-
-        onPageChanged:(index){
-
-          setState((){
-
-            bannerIndex=index;
-
-          });
-
-        },
-
-
-
-        itemCount:15,
-
-
-        controller:
-        bannerController,
-
-
-        itemBuilder:(context,index){
-
-
-          return Container(
-
-
-            margin:
-            const EdgeInsets.symmetric(
-              horizontal:6,
-            ),
-
-
-
-            decoration:
-            BoxDecoration(
-
-
-                borderRadius:
-                BorderRadius.circular(18),
-
-
-                gradient:
-                LinearGradient(
-
-                  colors:[
-
-                    Colors.purple.shade900,
-
-                    Colors.blue.shade700,
-
                   ],
-
                 ),
-
-
-                boxShadow:[
-
-
-                  BoxShadow(
-
-                    color:
-                    Colors.purple.withOpacity(.5),
-
-                    blurRadius:20,
-
-                  )
-
-
-                ]
-
-            ),
-
-
-
-
-            child:
-            Stack(
-
-              children:[
-
-
-
-                Align(
-
-                  alignment:
-                  Alignment.center,
-
-
-                  child: ClipRRect(
-
-                    borderRadius:
-                    BorderRadius.circular(18),
-
-                    child: Image.asset(
-
-                      [
-                        "assets/banners/welcome.png",
-                        "assets/banners/welcome2.png",
-                        "assets/banners/welcome3.png",
-                        "assets/banners/welcome4.png",
-
-                      ][index % 4],
-
-
-                      fit: BoxFit.cover,
-
-                      width: double.infinity,
-
-                      height: double.infinity,
-
-                    ),
-
+                Text(
+                  'VOICE CHAT',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white54,
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 2.2,
                   ),
-
-
-
-
-
                 ),
-
-
-
-
               ],
-
-
             ),
-
-
-          );
-
-
-
-        },
-
-
+          ),
+          _headerAction(
+            icon: Icons.workspace_premium_outlined,
+            tooltip: 'VIP',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const VipScreen()),
+              );
+            },
+          ),
+          const SizedBox(width: 7),
+          _headerAction(
+            icon: Icons.notifications_none_rounded,
+            tooltip: 'Notifications',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const NotificationScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
-
-
     );
-
   }
 
-  Widget createRoomButton(){
-
-    return Container(
-
-      decoration:
-      BoxDecoration(
-
-          shape:
-          BoxShape.circle,
-
-
-          boxShadow:[
-
-            BoxShadow(
-
-              color:
-              Colors.amber.withOpacity(.6),
-
-              blurRadius:25,
-
-            )
-
-          ]
-
-      ),
-
-
-
-      child:
-      FloatingActionButton(
-
-        backgroundColor:
-        Colors.amber,
-
-
-        onPressed:(){
-
-
-
-        },
-
-
-        child:
-        const Icon(
-
-          Icons.mic,
-
-          color:
-          Colors.black,
-
-          size:30,
-
+  Widget _headerAction({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onTap,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Ink(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(.16),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.white.withOpacity(.10),
+              ),
+            ),
+            child: Icon(
+              icon,
+              color: const Color(0xFFFFC857),
+              size: 21,
+            ),
+          ),
         ),
-
-
       ),
-
     );
-
-
   }
 
-  Widget roomList(){
-
-    final List<Map<String,dynamic>> rooms=[
-
-
-      {
-        "flag":"🇵🇰",
-        "name":"Pakistan Star",
-        "desc":"Music & Fun Chat",
-        "vip":"VIP 3",
-        "level":"LV 8",
-        "role":"Host",
-        "likes":65,
-      },
-
-
-      {
-        "flag":"🇮🇳",
-        "name":"India Music",
-        "desc":"Join Voice Room",
-        "vip":"VIP 2",
-        "level":"LV 5",
-        "role":"Manager",
-        "likes":32,
-      },
-
-
-      {
-        "flag":"🇧🇩",
-        "name":"Bangladesh Live",
-        "desc":"Friends Voice Room",
-        "vip":"VIP 1",
-        "level":"LV 4",
-        "role":"Host",
-        "likes":120,
-      },
-
-
-      {
-        "flag":"🇹🇷",
-        "name":"Turkey Night",
-        "desc":"Party & Music",
-        "vip":"VIP 4",
-        "level":"LV 9",
-        "role":"Admin",
-        "likes":250,
-      },
-
-
-      {
-        "flag":"🇦🇪",
-        "name":"Dubai VIP",
-        "desc":"Luxury Voice Chat",
-        "vip":"VIP 5",
-        "level":"LV 10",
-        "role":"Owner",
-        "likes":500,
-      },
-
-
-    ];
-
-
-    return Column(
-
-      children:
-
-      rooms.map((room){
-
-        return JunaidRoomCard(
-
-          flag: room["flag"] as String,
-
-          roomName: room["name"] as String,
-
-          description: room["desc"] as String,
-
-          vip: room["vip"] as String,
-
-          level: room["level"] as String,
-
-          role: room["role"] as String,
-
-          likes: room["likes"] as int,
-
-        );
-
-      }).toList(),
-
+  Widget rankingSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 13),
+      child: Row(
+        children: const [
+          Expanded(
+            child: RankingCard(
+              title: 'Shining Star',
+              icon: '✦',
+              color: Color(0xFF62E6BD),
+            ),
+          ),
+          SizedBox(width: 7),
+          Expanded(
+            child: RankingCard(
+              title: 'CP Ranking',
+              icon: '♥',
+              color: Color(0xFFFF74B8),
+            ),
+          ),
+          SizedBox(width: 7),
+          Expanded(
+            child: RankingCard(
+              title: 'Ranking',
+              icon: '♛',
+              color: Color(0xFFFFC857),
+            ),
+          ),
+        ],
+      ),
     );
-
-
   }
 
+  Widget tabSection() {
+    return SizedBox(
+      height: 34,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        scrollDirection: Axis.horizontal,
+        itemCount: tabs.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 7),
+        itemBuilder: (context, index) {
+          return GestureDetector(
+            onTap: () => setState(() => selectedTab = index),
+            child: CategoryChip(
+              text: tabs[index],
+              active: selectedTab == index,
+            ),
+          );
+        },
+      ),
+    );
+  }
 
+  Widget countrySection() {
+    return SizedBox(
+      height: 34,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        scrollDirection: Axis.horizontal,
+        itemCount: countries.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 7),
+        itemBuilder: (context, index) {
+          final country = countries[index];
+          return GestureDetector(
+            onTap: () => setState(() => selectedCountry = index),
+            child: CountryChip(
+              name: country['name']!,
+              flag: country['flag']!,
+              active: selectedCountry == index,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget sectionTitle(
+      String text, {
+        String? trailing,
+      }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 19,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          if (trailing != null)
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 9,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(.055),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white.withOpacity(.08),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 5,
+                    height: 5,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF66E7BD),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    trailing,
+                    style: GoogleFonts.poppins(
+                      color: Colors.white60,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget homeBannerSlider() {
+    return SizedBox(
+      height: 170,
+      child: PageView.builder(
+        controller: bannerController,
+        itemCount: _bannerAssets.length,
+        onPageChanged: (index) {
+          if (!mounted) return;
+          setState(() => bannerIndex = index);
+        },
+        itemBuilder: (context, index) {
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withOpacity(.10),
+              ),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Image.asset(
+              _bannerAssets[index],
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget createRoomButton() {
+    return SizedBox(
+      width: 50,
+      height: 50,
+      child: FloatingActionButton(
+        heroTag: 'home-create-room',
+        elevation: 4,
+        highlightElevation: 2,
+        backgroundColor: const Color(0xE62A0E3B),
+        foregroundColor: const Color(0xFFFFD266),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: const Color(0xFFFFD266).withOpacity(.65),
+          ),
+        ),
+        onPressed: () {},
+        child: const Icon(
+          Icons.mic_none_rounded,
+          size: 25,
+        ),
+      ),
+    );
+  }
 }

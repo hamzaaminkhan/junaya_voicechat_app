@@ -1,176 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-
-
 class RankingCard extends StatelessWidget {
-
-
   final String title;
   final String icon;
   final Color color;
 
-
-
   const RankingCard({
-
     super.key,
-
     required this.title,
-
     required this.icon,
-
     required this.color,
-
   });
 
-
-
   @override
-  Widget build(BuildContext context){
-
-
+  Widget build(BuildContext context) {
     return Container(
-
-
-      width:110,
-
-      height:3,
-
-
-      margin:
-      const EdgeInsets.symmetric(horizontal:5),
-
-
-
-      decoration:
-      BoxDecoration(
-
-
-          gradient:
-          LinearGradient(
-
-            colors:[
-
-              color.withOpacity(.6),
-
-              color.withOpacity(.38),
-
-            ],
-
-            begin:
-            Alignment.topLeft,
-
-            end:
-            Alignment.bottomRight,
-
-          ),
-
-
-
-          borderRadius:
-          BorderRadius.circular(22),
-
-
-
-          boxShadow:[
-
-
-            BoxShadow(
-
-              color:
-              color.withOpacity(.1),
-
-              blurRadius:1,
-
-              spreadRadius:1,
-
-            )
-
-          ]
-
-
+      height: 46,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(.14),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: Colors.white.withOpacity(.08),
+        ),
       ),
-
-
-
-
-      child:
-      Column(
-
-        mainAxisAlignment:
-        MainAxisAlignment.center,
-
-
-        children:[
-
-
-
-          Text(
-
-            icon,
-
-
-            style:
-            const TextStyle(
-
-              fontSize:6,
-
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 25,
+            height: 25,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: color.withOpacity(.10),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: color.withOpacity(.28),
+              ),
             ),
-
-
-          ),
-
-
-
-
-          const SizedBox(height:3),
-
-
-
-
-
-          Text(
-
-            title,
-
-
-            textAlign:
-            TextAlign.center,
-
-
-            style:
-            GoogleFonts.poppins(
-
-
-              color:
-              Colors.white,
-
-
-              fontSize:10,
-
-
-              fontWeight:
-              FontWeight.w700,
-
-
+            child: Text(
+              icon,
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-
-
           ),
-
-
-
+          const SizedBox(width: 7),
+          Flexible(
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(
+                color: Colors.white.withOpacity(.88),
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         ],
-
-
       ),
-
-
     );
-
-
   }
-
-
 }

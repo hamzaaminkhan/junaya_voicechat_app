@@ -4,6 +4,7 @@ import '../chat/chat_list_screen.dart';
 import '../home/home_screen.dart';
 import '../home/profile/profile_screen.dart';
 import '../moments/moments_screen.dart';
+import '../../widgets/space_background.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -42,38 +43,44 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBody: true,
-      body: IndexedStack(
-        index: currentIndex,
-        children: pages,
+      body: SpaceBackground(
+        child: IndexedStack(
+          index: currentIndex,
+          children: pages,
+        ),
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: const Color(0xE6090020),
+          color: const Color(0xB30A0313),
           borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(25),
+            top: Radius.circular(19),
           ),
-          border: Border.all(
-            color: Colors.purpleAccent.withOpacity(.35),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.purpleAccent.withOpacity(.25),
-              blurRadius: 20,
+          border: Border(
+            top: BorderSide(
+              color: Colors.white.withOpacity(.08),
             ),
-          ],
+          ),
         ),
         child: ClipRRect(
           borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(25),
+            top: Radius.circular(19),
           ),
           child: BottomNavigationBar(
+            elevation: 0,
             backgroundColor: Colors.transparent,
             type: BottomNavigationBarType.fixed,
             currentIndex: currentIndex,
-            selectedItemColor: Colors.amber,
+            selectedItemColor: const Color(0xFFFFC857),
             unselectedItemColor: Colors.white54,
+            selectedIconTheme: const IconThemeData(size: 24),
+            unselectedIconTheme: const IconThemeData(size: 23),
             selectedLabelStyle: const TextStyle(
-              fontWeight: FontWeight.bold,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w500,
             ),
             items: const [
               BottomNavigationBarItem(
@@ -81,15 +88,15 @@ class _MainScreenState extends State<MainScreen> {
                 label: 'Home',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.auto_awesome),
+                icon: Icon(Icons.auto_awesome_rounded),
                 label: 'Moments',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.chat_bubble_outline),
+                icon: Icon(Icons.chat_bubble_outline_rounded),
                 label: 'Chat',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.person_outline),
+                icon: Icon(Icons.person_outline_rounded),
                 label: 'Profile',
               ),
             ],

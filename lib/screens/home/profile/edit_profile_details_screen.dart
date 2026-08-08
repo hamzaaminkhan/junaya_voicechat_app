@@ -1,6 +1,7 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../../../widgets/space_background.dart';
 
 class EditProfileDetailsScreen extends StatefulWidget {
   final String? backgroundAsset;
@@ -11,10 +12,12 @@ class EditProfileDetailsScreen extends StatefulWidget {
   });
 
   @override
-  State<EditProfileDetailsScreen> createState() => _EditProfileScreenState();
+  State<EditProfileDetailsScreen> createState() =>
+      _EditProfileDetailsScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
+class _EditProfileDetailsScreenState
+    extends State<EditProfileDetailsScreen> {
   String username = 'MR.ALEX';
   String gender = 'Male';
   String birthday = '2002-01-20';
@@ -25,62 +28,258 @@ class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
   String job = 'Click to set';
   String signature = 'Click to set';
 
-  static const Color purple = Color(0xff9B5CFF);
-  static const Color cardColor = Color(0xff061426);
+  static const Color gold = Color(0xFFFFC94D);
+  static const Color purple = Color(0xFFB25CFF);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Stack(
+      body: _buildBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildTopBar(),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(
+                    16,
+                    4,
+                    16,
+                    28,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildProfileHeader(),
+                      const SizedBox(height: 14),
+                      _buildPhotoAction(),
+                      const SizedBox(height: 14),
+                      _buildProfileNoticeCard(),
+                      const SizedBox(height: 12),
+                      _buildVoiceCard(),
+                      const SizedBox(height: 12),
+                      _buildDetailsCard(),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackground({
+    required Widget child,
+  }) {
+    final asset = widget.backgroundAsset?.trim();
+
+    if (asset != null && asset.isNotEmpty) {
+      return Stack(
+        fit: StackFit.expand,
         children: [
-          Positioned.fill(
-            child: _Background(
-              assetPath: widget.backgroundAsset,
-            ),
+          Image.asset(
+            asset,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) {
+              return SpaceBackground(child: child);
+            },
           ),
-
-          Positioned.fill(
-            child: Container(
-              color: Colors.black.withOpacity(0.32),
-            ),
+          Container(
+            color: Colors.black.withOpacity(.18),
           ),
+          child,
+        ],
+      );
+    }
 
-          SafeArea(
-            child: Column(
-              children: [
-                _buildTopBar(),
+    return SpaceBackground(
+      child: child,
+    );
+  }
 
-                Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(
-                      20,
-                      10,
-                      20,
-                      35,
+  Widget _buildTopBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        8,
+        4,
+        12,
+        4,
+      ),
+      child: SizedBox(
+        height: 46,
+        child: Row(
+          children: [
+            IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(
+                Icons.arrow_back_rounded,
+                color: Colors.white,
+                size: 26,
+              ),
+            ),
+            Expanded(
+              child: Text(
+                'Edit Profile',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(width: 48),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileHeader() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: _cardDecoration(),
+      child: Row(
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 78,
+                height: 78,
+                padding: const EdgeInsets.all(2.5),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: purple.withOpacity(.85),
+                    width: 2,
+                  ),
+                ),
+                child: const CircleAvatar(
+                  backgroundColor: Color(0xFF20152D),
+                  child: Icon(
+                    Icons.person_rounded,
+                    color: Colors.white70,
+                    size: 42,
+                  ),
+                ),
+              ),
+              Positioned(
+                right: -2,
+                bottom: 2,
+                child: GestureDetector(
+                  onTap: _showPhotoMessage,
+                  child: Container(
+                    width: 27,
+                    height: 27,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: gold,
+                      border: Border.all(
+                        color: const Color(0xFF180A20),
+                        width: 2,
+                      ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildPhotoHeader(),
+                    child: const Icon(
+                      Icons.camera_alt_rounded,
+                      color: Color(0xFF180A20),
+                      size: 15,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Profile photo',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Upload up to 6 photos. Review may take up to 72 hours.',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white54,
+                    fontSize: 11.5,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-                        const SizedBox(height: 18),
+  Widget _buildPhotoAction() {
+    return _ActionButton(
+      icon: Icons.add_a_photo_outlined,
+      label: 'Add profile photo',
+      color: gold,
+      onTap: _showPhotoMessage,
+    );
+  }
 
-                        _buildAddPhotoButton(),
-
-                        const SizedBox(height: 12),
-
-                        _buildProfileInformationCard(),
-
-                        const SizedBox(height: 16),
-
-                        _buildVoiceCard(),
-
-                        const SizedBox(height: 16),
-
-                        _buildDetailsCard(),
-                      ],
+  Widget _buildProfileNoticeCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: _cardDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionHeader(
+            icon: Icons.info_outline_rounded,
+            title: 'Profile photo rules',
+          ),
+          const SizedBox(height: 11),
+          _ruleRow(
+            'VIP 6–10 and Emperor users can set a GIF avatar under 5MB.',
+          ),
+          const SizedBox(height: 8),
+          _ruleRow(
+            'After changing your avatar, wait 48 hours before editing it again.',
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(11),
+            decoration: BoxDecoration(
+              color: gold.withOpacity(.06),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: gold.withOpacity(.14),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.shield_outlined,
+                  color: gold,
+                  size: 18,
+                ),
+                const SizedBox(width: 9),
+                Expanded(
+                  child: Text(
+                    'Avoid inappropriate content and personal information such as phone numbers, addresses, account numbers, or children’s photos. Content may be reviewed and removed if it violates policy.',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white60,
+                      fontSize: 10.8,
+                      height: 1.45,
                     ),
                   ),
                 ),
@@ -92,287 +291,26 @@ class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
     );
   }
 
-  Widget _buildTopBar() {
-    return SizedBox(
-      height: 85,
-      child: Stack(
-        children: [
-
-          // Title
-          Align(
-            alignment: Alignment.center,
-            child: const Text(
-              'Profile',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-
-
-          // Back Button
-          Positioned(
-            left: 18,
-            top: 18,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.pop(context);
-              },
-              child: Container(
-                width: 46,
-                height: 46,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.35),
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(
-                    color: const Color(0xff9B5CFF),
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xff9B5CFF)
-                          .withOpacity(.45),
-                      blurRadius: 12,
-                    )
-                  ],
-                ),
-                child: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  color: Colors.white,
-                  size: 22,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPhotoHeader() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        const Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Profile photo',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 21,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(height: 7),
-              Text(
-                'Upload up to 6 photos.\nReview may take 72 hours.',
-                style: TextStyle(
-                  color: Color(0xffD2CBD8),
-                  fontSize: 15,
-                  height: 1.45,
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(width: 20),
-
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              width: 112,
-              height: 112,
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.9),
-                boxShadow: [
-                  BoxShadow(
-                    color: purple.withOpacity(0.65),
-                    blurRadius: 18,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: Container(
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0xff8D898D),
-                ),
-                child: const Icon(
-                  Icons.person,
-                  color: Color(0xffEEEEEE),
-                  size: 76,
-                ),
-              ),
-            ),
-
-            Positioned(
-              right: -3,
-              bottom: 5,
-              child: GestureDetector(
-                onTap: _showPhotoMessage,
-                child: Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                    border: Border.all(
-                      color: const Color(0xffE6DDF2),
-                      width: 2,
-                    ),
-                  ),
-                  child: const Icon(
-                    Icons.photo_camera_outlined,
-                    color: purple,
-                    size: 22,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAddPhotoButton() {
-    return InkWell(
-      onTap: _showPhotoMessage,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: double.infinity,
-        height: 58,
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.22),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.58),
-          ),
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.photo_camera_outlined,
-              color: purple,
-              size: 28,
-            ),
-            SizedBox(width: 12),
-            Text(
-              'Click to add profile photo',
-              style: TextStyle(
-                color: Color(0xffE5D6F6),
-                fontSize: 17,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProfileInformationCard() {
-    return _GlassCard(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const _SectionTitle(
-              icon: Icons.person_outline_rounded,
-              title: 'Profile',
-            ),
-
-            const SizedBox(height: 17),
-
-            _buildBullet(
-              'VIP 6 to VIP 10 and Emperor can set GIF avatar '
-                  '(shall be less than 5MB)',
-            ),
-
-            const SizedBox(height: 10),
-
-            _buildBullet(
-              'After editing your avatar, you need to wait 48 hours '
-                  'before you can edit it again.',
-            ),
-
-            const SizedBox(height: 17),
-
-            Divider(
-              color: purple.withOpacity(0.85),
-              thickness: 1,
-            ),
-
-            const SizedBox(height: 14),
-
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 5,
-              ),
-              decoration: BoxDecoration(
-                color: const Color(0xff7740CC),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: const Text(
-                'Notice:',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            const Text(
-              'Never upload inappropriate content that violates our '
-                  'policies or personal information such as phone number, '
-                  'account number, address, or kid pictures. All content '
-                  'will be reviewed by AI and the human review team.\n'
-                  'Once illegal content is detected, it may result in '
-                  'content deletion, profile reset, or account suspension.',
-              style: TextStyle(
-                color: Color(0xffE6E1EA),
-                fontSize: 14.5,
-                height: 1.45,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBullet(String text) {
+  Widget _ruleRow(String text) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(top: 6),
-          child: Icon(
-            Icons.diamond,
+        Container(
+          margin: const EdgeInsets.only(top: 6),
+          width: 6,
+          height: 6,
+          decoration: const BoxDecoration(
             color: purple,
-            size: 10,
+            shape: BoxShape.circle,
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 9),
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(
-              color: Color(0xffE3DDE8),
-              fontSize: 14.5,
+            style: GoogleFonts.poppins(
+              color: Colors.white70,
+              fontSize: 11.3,
               height: 1.4,
             ),
           ),
@@ -382,75 +320,47 @@ class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
   }
 
   Widget _buildVoiceCard() {
-    return _GlassCard(
-      child: Padding(
-        padding: const EdgeInsets.all(15),
-        child: Column(
-          children: [
-            const _SectionTitle(
-              icon: Icons.graphic_eq_rounded,
-              title: 'Voice card',
-            ),
-
-            const SizedBox(height: 17),
-
-            InkWell(
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Voice recording will be connected next.',
-                    ),
-                  ),
-                );
-              },
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                width: double.infinity,
-                height: 58,
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.18),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xff8DBA62),
-                    width: 1,
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: _cardDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionHeader(
+            icon: Icons.graphic_eq_rounded,
+            title: 'Voice card',
+          ),
+          const SizedBox(height: 11),
+          _ActionButton(
+            icon: Icons.mic_none_rounded,
+            label: 'Add voice card',
+            color: const Color(0xFFA8E86F),
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Voice recording will be connected next.',
                   ),
                 ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.add_circle_outline_rounded,
-                      color: Color(0xffA9E972),
-                      size: 28,
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      'Click to add my voice card',
-                      style: TextStyle(
-                        color: Color(0xffA9E972),
-                        fontSize: 17,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildDetailsCard() {
-    return _GlassCard(
+    return Container(
+      decoration: _cardDecoration(),
       child: Column(
         children: [
           _ProfileTile(
             icon: Icons.person_outline_rounded,
             label: 'Username',
             value: username,
-            subtitle: 'Username can only be changed once.',
+            subtitle: 'Can only be changed once',
             onTap: () {
               _editTextValue(
                 title: 'Username',
@@ -461,23 +371,20 @@ class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
               );
             },
           ),
-
           _ProfileTile(
             icon: Icons.male_rounded,
             label: 'Gender',
             value: gender,
             onTap: _selectGender,
           ),
-
           _ProfileTile(
-            icon: Icons.calendar_month_outlined,
+            icon: Icons.calendar_today_outlined,
             label: 'Birthday',
             value: birthday,
             onTap: _selectBirthday,
           ),
-
           _ProfileTile(
-            icon: Icons.outlined_flag_rounded,
+            icon: Icons.flag_outlined,
             label: 'Country',
             value: country,
             onTap: () {
@@ -490,9 +397,8 @@ class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
               );
             },
           ),
-
           _ProfileTile(
-            icon: Icons.account_balance_outlined,
+            icon: Icons.location_city_outlined,
             label: 'Province',
             value: province,
             onTap: () {
@@ -505,7 +411,6 @@ class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
               );
             },
           ),
-
           _ProfileTile(
             icon: Icons.height_rounded,
             label: 'Height',
@@ -521,7 +426,6 @@ class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
               );
             },
           ),
-
           _ProfileTile(
             icon: Icons.monitor_weight_outlined,
             label: 'Weight',
@@ -537,7 +441,6 @@ class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
               );
             },
           ),
-
           _ProfileTile(
             icon: Icons.work_outline_rounded,
             label: 'Job',
@@ -552,7 +455,6 @@ class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
               );
             },
           ),
-
           _ProfileTile(
             icon: Icons.edit_note_rounded,
             label: 'Signature',
@@ -568,7 +470,6 @@ class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
               );
             },
           ),
-
           _ProfileTile(
             icon: Icons.workspace_premium_outlined,
             label: 'Title',
@@ -589,6 +490,48 @@ class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
     );
   }
 
+  Widget _sectionHeader({
+    required IconData icon,
+    required String title,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: purple.withOpacity(.10),
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: Icon(
+            icon,
+            color: purple,
+            size: 18,
+          ),
+        ),
+        const SizedBox(width: 9),
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontSize: 14.5,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  BoxDecoration _cardDecoration() {
+    return BoxDecoration(
+      color: Colors.black.withOpacity(.14),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(
+        color: Colors.white.withOpacity(.08),
+      ),
+    );
+  }
+
   void _showPhotoMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -602,81 +545,53 @@ class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
   Future<void> _selectGender() async {
     final String? result = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: const Color(0xff0B1628),
+      backgroundColor: const Color(0xFF0E0714),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(24),
+          top: Radius.circular(20),
         ),
       ),
       builder: (context) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 15,
+            padding: const EdgeInsets.fromLTRB(
+              16,
+              14,
+              16,
+              16,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Select Gender',
-                  style: TextStyle(
+                Container(
+                  width: 38,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  'Select gender',
+                  style: GoogleFonts.poppins(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-
-                const SizedBox(height: 10),
-
-                ListTile(
-                  leading: const Icon(
-                    Icons.male_rounded,
-                    color: purple,
-                  ),
-                  title: const Text(
-                    'Male',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context, 'Male');
-                  },
+                const SizedBox(height: 8),
+                _genderOption(
+                  icon: Icons.male_rounded,
+                  label: 'Male',
                 ),
-
-                ListTile(
-                  leading: const Icon(
-                    Icons.female_rounded,
-                    color: purple,
-                  ),
-                  title: const Text(
-                    'Female',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context, 'Female');
-                  },
+                _genderOption(
+                  icon: Icons.female_rounded,
+                  label: 'Female',
                 ),
-
-                ListTile(
-                  leading: const Icon(
-                    Icons.person_outline_rounded,
-                    color: purple,
-                  ),
-                  title: const Text(
-                    'Prefer not to say',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.pop(
-                      context,
-                      'Prefer not to say',
-                    );
-                  },
+                _genderOption(
+                  icon: Icons.person_outline_rounded,
+                  label: 'Prefer not to say',
                 ),
               ],
             ),
@@ -692,11 +607,40 @@ class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
     }
   }
 
+  Widget _genderOption({
+    required IconData icon,
+    required String label,
+  }) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 4,
+      ),
+      leading: Icon(
+        icon,
+        color: purple,
+        size: 21,
+      ),
+      title: Text(
+        label,
+        style: GoogleFonts.poppins(
+          color: Colors.white,
+          fontSize: 13,
+        ),
+      ),
+      onTap: () => Navigator.pop(
+        context,
+        label,
+      ),
+    );
+  }
+
   Future<void> _selectBirthday() async {
     final DateTime initialDate =
-        DateTime.tryParse(birthday) ?? DateTime(2002, 1, 20);
+        DateTime.tryParse(birthday) ??
+            DateTime(2002, 1, 20);
 
-    final DateTime? selectedDate = await showDatePicker(
+    final DateTime? selectedDate =
+    await showDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: DateTime(1940),
@@ -706,7 +650,7 @@ class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
           data: ThemeData.dark().copyWith(
             colorScheme: const ColorScheme.dark(
               primary: purple,
-              surface: Color(0xff101A2D),
+              surface: Color(0xFF120A18),
             ),
           ),
           child: child!,
@@ -731,59 +675,73 @@ class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
     String? hintText,
     int maxLines = 1,
   }) async {
-    final bool isEmptyValue = currentValue == 'Click to set';
+    final bool isEmptyValue =
+        currentValue == 'Click to set';
 
-    final TextEditingController controller = TextEditingController(
+    final TextEditingController controller =
+    TextEditingController(
       text: isEmptyValue ? '' : currentValue,
     );
 
-    final String? result = await showDialog<String>(
+    final String? result =
+    await showDialog<String>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          backgroundColor: const Color(0xff0C1728),
+          backgroundColor: const Color(0xFF120A18),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
           title: Text(
             'Edit $title',
-            style: const TextStyle(
+            style: GoogleFonts.poppins(
               color: Colors.white,
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
             ),
           ),
           content: TextField(
             controller: controller,
             maxLines: maxLines,
             autofocus: true,
-            style: const TextStyle(
+            style: GoogleFonts.poppins(
               color: Colors.white,
+              fontSize: 13,
             ),
             decoration: InputDecoration(
               hintText: hintText ?? 'Enter $title',
-              hintStyle: TextStyle(
-                color: Colors.white.withOpacity(0.45),
+              hintStyle: GoogleFonts.poppins(
+                color: Colors.white38,
+                fontSize: 12,
               ),
+              filled: true,
+              fillColor: Colors.white.withOpacity(.04),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius:
+                BorderRadius.circular(12),
                 borderSide: BorderSide(
-                  color: purple.withOpacity(0.65),
+                  color:
+                  Colors.white.withOpacity(.10),
                 ),
               ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+              focusedBorder:
+              OutlineInputBorder(
+                borderRadius:
+                BorderRadius.circular(12),
                 borderSide: const BorderSide(
-                  color: purple,
-                  width: 1.5,
+                  color: gold,
                 ),
               ),
             ),
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext);
-              },
+              onPressed: () =>
+                  Navigator.pop(dialogContext),
               child: const Text(
                 'Cancel',
                 style: TextStyle(
-                  color: Colors.white70,
+                  color: Colors.white54,
                 ),
               ),
             ),
@@ -797,7 +755,7 @@ class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
               child: const Text(
                 'Save',
                 style: TextStyle(
-                  color: purple,
+                  color: gold,
                 ),
               ),
             ),
@@ -808,11 +766,68 @@ class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
 
     controller.dispose();
 
-    if (result != null && result.trim().isNotEmpty) {
+    if (result != null &&
+        result.trim().isNotEmpty) {
       setState(() {
         onSaved(result.trim());
       });
     }
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(13),
+        child: Container(
+          width: double.infinity,
+          height: 44,
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(.10),
+            borderRadius: BorderRadius.circular(13),
+            border: Border.all(
+              color: color.withOpacity(.24),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment:
+            MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                color: color,
+                size: 19,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  color: Colors.white.withOpacity(.86),
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -835,267 +850,100 @@ class _ProfileTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool unset = value == 'Click to set';
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         child: Container(
+          height: subtitle == null ? 54 : 62,
           padding: const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 13,
+            horizontal: 13,
+            vertical: 10,
           ),
           decoration: BoxDecoration(
             border: showBottomBorder
                 ? Border(
               bottom: BorderSide(
-                color: Colors.white.withOpacity(0.14),
+                color:
+                Colors.white.withOpacity(.065),
               ),
             )
                 : null,
           ),
           child: Row(
             children: [
-              Icon(
-                icon,
-                color: const Color(0xffB16EFF),
-                size: 26,
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFB25CFF)
+                      .withOpacity(.08),
+                  borderRadius:
+                  BorderRadius.circular(9),
+                ),
+                child: Icon(
+                  icon,
+                  color: const Color(0xFFB25CFF),
+                  size: 17,
+                ),
               ),
-
-              const SizedBox(width: 12),
-
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
+                  mainAxisAlignment:
+                  MainAxisAlignment.center,
                   children: [
                     Text(
                       label,
-                      style: const TextStyle(
+                      style: GoogleFonts.poppins(
                         color: Colors.white,
-                        fontSize: 16.5,
+                        fontSize: 12.7,
+                        fontWeight:
+                        FontWeight.w500,
                       ),
                     ),
-
                     if (subtitle != null) ...[
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 2),
                       Text(
                         subtitle!,
-                        style: const TextStyle(
-                          color: Color(0xffB5ADBB),
-                          fontSize: 11.5,
+                        style:
+                        GoogleFonts.poppins(
+                          color: Colors.white38,
+                          fontSize: 9.5,
                         ),
                       ),
                     ],
                   ],
                 ),
               ),
-
-              const SizedBox(width: 10),
-
+              const SizedBox(width: 8),
               Flexible(
                 child: Text(
                   value,
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  overflow:
+                  TextOverflow.ellipsis,
                   textAlign: TextAlign.right,
-                  style: TextStyle(
-                    color: value == 'Click to set'
-                        ? Colors.white.withOpacity(0.52)
-                        : const Color(0xffE8E2EB),
-                    fontSize: 16,
+                  style: GoogleFonts.poppins(
+                    color: unset
+                        ? Colors.white38
+                        : Colors.white70,
+                    fontSize: 11.5,
                   ),
                 ),
               ),
-
-              const SizedBox(width: 8),
-
+              const SizedBox(width: 5),
               const Icon(
-                Icons.arrow_forward_ios_rounded,
-                color: Color(0xffD3CED7),
-                size: 17,
+                Icons.chevron_right_rounded,
+                color: Colors.white30,
+                size: 19,
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  final IconData icon;
-  final String title;
-
-  const _SectionTitle({
-    required this.icon,
-    required this.title,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: const Color(0xff32166A).withOpacity(0.85),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xff9958FF).withOpacity(0.35),
-                blurRadius: 10,
-              ),
-            ],
-          ),
-          child: Icon(
-            icon,
-            color: const Color(0xffC78CFF),
-            size: 21,
-          ),
-        ),
-
-        const SizedBox(width: 10),
-
-        Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _GlassCard extends StatelessWidget {
-  final Widget child;
-
-  const _GlassCard({
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(14),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: 7,
-          sigmaY: 7,
-        ),
-        child: Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: const Color(0xff061426).withOpacity(0.69),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: const Color(0xff8E72A9).withOpacity(0.52),
-            ),
-          ),
-          child: child,
-        ),
-      ),
-    );
-  }
-}
-
-class _Background extends StatelessWidget {
-  final String? assetPath;
-
-  const _Background({
-    this.assetPath,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (assetPath != null && assetPath!.trim().isNotEmpty) {
-      return Image.asset(
-        assetPath!,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) {
-          return const _FallbackBackground();
-        },
-      );
-    }
-
-    return const _FallbackBackground();
-  }
-}
-
-class _FallbackBackground extends StatelessWidget {
-  const _FallbackBackground();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xff020817),
-            Color(0xff081329),
-            Color(0xff061322),
-            Color(0xff020611),
-          ],
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            left: -120,
-            top: 280,
-            child: _GlowCircle(
-              size: 300,
-              color: Color(0xff00B6D7),
-            ),
-          ),
-          Positioned(
-            right: -130,
-            top: 120,
-            child: _GlowCircle(
-              size: 300,
-              color: Color(0xff6A19FF),
-            ),
-          ),
-          Positioned(
-            right: -90,
-            bottom: 160,
-            child: _GlowCircle(
-              size: 260,
-              color: Color(0xff9728FF),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _GlowCircle extends StatelessWidget {
-  final double size;
-  final Color color;
-
-  const _GlowCircle({
-    required this.size,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ImageFiltered(
-      imageFilter: ImageFilter.blur(
-        sigmaX: 75,
-        sigmaY: 75,
-      ),
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color.withOpacity(0.45),
         ),
       ),
     );

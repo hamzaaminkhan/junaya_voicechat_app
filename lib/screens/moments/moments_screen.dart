@@ -1264,18 +1264,6 @@ class _MomentsBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFF0C0015),
-            Color(0xFF07000E),
-            Color(0xFF0A0011),
-          ],
-        ),
-      ),
-    );
+    return const SizedBox.expand();
   }
 }
