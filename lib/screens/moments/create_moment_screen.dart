@@ -21,7 +21,7 @@ class CreateMomentScreen extends StatefulWidget {
 }
 
 class _CreateMomentScreenState extends State<CreateMomentScreen> {
-  static const Color backgroundColor = Color(0xFF080011);
+  static const Color backgroundColor = Colors.transparent;
   static const Color purpleColor = Color(0xFF9D3BFF);
   static const Color lightPurpleColor = Color(0xFFD27AFF);
   static const Color goldColor = Color(0xFFFFD36A);
@@ -107,7 +107,7 @@ class _CreateMomentScreenState extends State<CreateMomentScreen> {
       ..showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: const Color(0xFF361050),
+          backgroundColor: Colors.transparent,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -117,7 +117,7 @@ class _CreateMomentScreenState extends State<CreateMomentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           const Positioned.fill(
@@ -193,7 +193,7 @@ class _CreateMomentScreenState extends State<CreateMomentScreen> {
                   'Edit',
                   style: TextStyle(
                     color: goldColor,
-                    fontSize: 34,
+                    fontSize: 27,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.6,
                   ),
@@ -232,7 +232,7 @@ class _CreateMomentScreenState extends State<CreateMomentScreen> {
         boxShadow: [
           BoxShadow(
             color: purpleColor.withOpacity(0.07),
-            blurRadius: 18,
+            blurRadius: 1,
             spreadRadius: 1,
           ),
         ],
@@ -359,11 +359,11 @@ class _GlowBackButton extends StatelessWidget {
             boxShadow: [
               BoxShadow(
                 color: const Color(0xFF9D3BFF).withOpacity(0.5),
-                blurRadius: 16,
+                blurRadius: 1,
               ),
               BoxShadow(
                 color: const Color(0xFFFFD36A).withOpacity(0.25),
-                blurRadius: 12,
+                blurRadius: 1,
               ),
             ],
           ),
@@ -412,7 +412,7 @@ class _GlowSendButton extends StatelessWidget {
             boxShadow: [
               BoxShadow(
                 color: const Color(0xFFA52EFF).withOpacity(0.55),
-                blurRadius: 17,
+                blurRadius: 1,
               ),
               BoxShadow(
                 color: const Color(0xFFFFD36A).withOpacity(0.22),
@@ -435,7 +435,7 @@ class _GlowSendButton extends StatelessWidget {
               style: TextStyle(
                 color: Color(0xFFFFE2A0),
                 fontWeight: FontWeight.w700,
-                fontSize: 18,
+                fontSize: 17,
               ),
             ),
           ),
@@ -484,7 +484,7 @@ class _UploadTile extends StatelessWidget {
                       boxShadow: [
                         BoxShadow(
                           color: const Color(0xFFA837FF).withOpacity(0.55),
-                          blurRadius: 14,
+                          blurRadius: 1,
                         ),
                       ],
                     ),
@@ -652,7 +652,7 @@ class _DiamondDivider extends StatelessWidget {
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFFA52FFF).withOpacity(0.8),
-                  blurRadius: 10,
+                  blurRadius: 1,
                 ),
               ],
             ),
@@ -746,8 +746,7 @@ class _EditScreenBackground extends StatelessWidget {
             end: Alignment.bottomCenter,
             colors: [
               Color(0xFF0D0017),
-              Color(0xFF06000E),
-              Color(0xFF090011),
+
             ],
           ),
         ),

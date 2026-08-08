@@ -1,1873 +1,653 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-
 class EditProfileScreen extends StatelessWidget {
-
   const EditProfileScreen({super.key});
-
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
       backgroundColor: Colors.black,
-
-
       body: Stack(
-
         children: [
-
-
-          // SPACE BACKGROUND
-
           Positioned.fill(
-
             child: Image.asset(
-
               "assets/backgrounds/space_bg.jpeg",
-
               fit: BoxFit.cover,
-
             ),
-
           ),
-
-
-
-          // DARK OVERLAY
-
           Positioned.fill(
-
             child: Container(
-
               color: Colors.black.withOpacity(.35),
-
             ),
-
           ),
-
-
-
-
-
           SafeArea(
-
             child: Column(
-
               children: [
-
-
-
-                // TOP BAR
-
-                Padding(
-
-                  padding: const EdgeInsets.symmetric(
-
-                    horizontal: 15,
-
-                    vertical: 10,
-
-                  ),
-
-
-                  child: Row(
-
-                    mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween,
-
-
-                    children: [
-
-
-
-                      IconButton(
-
-                        icon: const Icon(
-
-                          Icons.arrow_back,
-
-                          color: Colors.white,
-
-                          size: 30,
-
-                        ),
-
-
-                        onPressed: () {
-
-                          Navigator.pop(context);
-
-                        },
-
-                      ),
-
-
-
-
-
-                      Text(
-
-                        "Edit Profile",
-
-                        style:
-                        GoogleFonts.poppins(
-
-                          color: Colors.white,
-
-                          fontSize: 20,
-
-                          fontWeight:
-                          FontWeight.bold,
-
-                        ),
-
-                      ),
-
-
-
-
-
-                      TextButton(
-
-                        onPressed: () {
-
-                          Navigator.pop(context);
-
-                        },
-
-
-                        child: Text(
-
-                          "Save",
-
-                          style:
-                          GoogleFonts.poppins(
-
-                            color: Colors.amber,
-
-                            fontSize: 16,
-
-                            fontWeight:
-                            FontWeight.bold,
-
-                          ),
-
-                        ),
-
-                      ),
-
-
-
-                    ],
-
-                  ),
-
-                ),
-
-
-
-
-
-
-
-                const SizedBox(height: 20),
-
-
-
-
-
-
-
-                // PROFILE IMAGE
-
-                Container(
-
-                  padding:
-                  const EdgeInsets.all(4),
-
-
-                  decoration: BoxDecoration(
-
-                    shape: BoxShape.circle,
-
-
-                    border: Border.all(
-
-                      color:
-                      Colors.purpleAccent,
-
-                      width: 3,
-
-                    ),
-
-                  ),
-
-
-
-                  child: const CircleAvatar(
-
-                    radius: 65,
-
-
-                    backgroundColor:
-                    Color(0xff21152E),
-
-
-
-                    child: Icon(
-
-                      Icons.person,
-
-                      size: 70,
-
-                      color: Colors.white,
-
-                    ),
-
-                  ),
-
-                ),
-
-
-
-
-
-
-
-                const SizedBox(height: 15),
-
-
-
-
-
-
-                Text(
-
-                  "Change Avatar",
-
-                  style:
-                  GoogleFonts.poppins(
-
-                    color: Colors.amber,
-
-                    fontSize: 15,
-
-                  ),
-
-                ),
-
-
-
-
-
-
-                const SizedBox(height: 30),
-
-
-
-
-
-
-
-                // TABS
-
-                Container(
-
-                  margin:
-                  const EdgeInsets.symmetric(
-
-                    horizontal: 20,
-
-                  ),
-
-
-                  height: 50,
-
-
-                  decoration: BoxDecoration(
-
-                    color:
-                    Colors.black.withOpacity(.35),
-
-
-                    borderRadius:
-                    BorderRadius.circular(25),
-
-
-                    border: Border.all(
-
-                      color:
-                      Colors.purpleAccent
-                          .withOpacity(.5),
-
-                    ),
-
-                  ),
-
-
-
-
-                  child: Row(
-
-                    mainAxisAlignment:
-                    MainAxisAlignment.spaceAround,
-
-
-                    children: [
-
-
-
-                      _tab(
-                        "Profile",
-                        true,
-                      ),
-
-
-                      _tab(
-                        "Props",
-                        false,
-                      ),
-
-
-                      _tab(
-                        "Post",
-                        false,
-                      ),
-
-
-
-                    ],
-
-                  ),
-
-                ),
-
-
-
-
-
-                const SizedBox(height: 20),
-
-
-
-
-
-
+                _topBar(context),
                 Expanded(
-
                   child: SingleChildScrollView(
-
+                    padding: const EdgeInsets.only(bottom: 24),
                     child: Column(
-
                       children: [
-
-
-
-                        // NEXT PART WILL ADD PROFILE DETAILS
-
-
+                        const SizedBox(height: 4),
+                        _avatarSection(),
+                        const SizedBox(height: 14),
+                        _tabs(),
+                        const SizedBox(height: 14),
                         _profileDetails(),
-
-                        const SizedBox(height: 30),
-
+                        const SizedBox(height: 20),
                         _supporterSection(),
-
-                        const SizedBox(height: 30),
-
+                        const SizedBox(height: 22),
                         _relationshipSection(),
-
-                        const SizedBox(height: 30),
-
+                        const SizedBox(height: 22),
                         _medalSection(),
-
-                        const SizedBox(height: 40),
-
                       ],
-
                     ),
-
                   ),
-
                 ),
-
-
-
               ],
-
             ),
-
           ),
-
-
-
         ],
-
       ),
-
     );
-
   }
 
-
-
-
-
-
-
-  Widget _tab(
-
-      String title,
-
-      bool active,
-
-      ) {
-
-
-    return Container(
-
-      padding:
-      const EdgeInsets.symmetric(
-
-        horizontal: 25,
-
-      ),
-
-
-      child: Column(
-
-        mainAxisAlignment:
-        MainAxisAlignment.center,
-
-
-        children: [
-
-
-
-          Text(
-
-            title,
-
-            style:
-            GoogleFonts.poppins(
-
-              color: active
-                  ? Colors.white
-                  : Colors.white54,
-
-              fontWeight:
-              active
-                  ? FontWeight.bold
-                  : FontWeight.normal,
-
-            ),
-
-          ),
-
-
-
-
-          if(active)
-
-            Container(
-
-              margin:
-              const EdgeInsets.only(
-
-                top: 5,
-
+  Widget _topBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 3, 10, 3),
+      child: SizedBox(
+        height: 44,
+        child: Row(
+          children: [
+            SizedBox(
+              width: 48,
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                  size: 26,
+                ),
+                onPressed: () => Navigator.pop(context),
               ),
-
-
-              height: 3,
-
-
-              width: 35,
-
-
-              decoration: BoxDecoration(
-
-                color:
-                Colors.purpleAccent,
-
-
-                borderRadius:
-                BorderRadius.circular(5),
-
-              ),
-
             ),
-
-
-
-        ],
-
+            Expanded(
+              child: Text(
+                "Edit Profile",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 58,
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                ),
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  "Save",
+                  style: GoogleFonts.poppins(
+                    color: Colors.amber,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
-
     );
+  }
 
+  Widget _avatarSection() {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.purpleAccent,
+              width: 2.5,
+            ),
+          ),
+          child: const CircleAvatar(
+            radius: 46,
+            backgroundColor: Color(0xff21152E),
+            child: Icon(
+              Icons.person,
+              size: 50,
+              color: Colors.white,
+            ),
+          ),
+        ),
+        const SizedBox(height: 7),
+        Text(
+          "Change Avatar",
+          style: GoogleFonts.poppins(
+            color: Colors.amber,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _tabs() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      height: 42,
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(.30),
+        borderRadius: BorderRadius.circular(21),
+        border: Border.all(
+          color: Colors.purpleAccent.withOpacity(.5),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(child: _tab("Profile", true)),
+          Expanded(child: _tab("Props", false)),
+          Expanded(child: _tab("Post", false)),
+        ],
+      ),
+    );
+  }
+
+  Widget _tab(String title, bool active) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            color: active ? Colors.white : Colors.white54,
+            fontSize: 13,
+            fontWeight: active ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+        const SizedBox(height: 3),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          height: 2.5,
+          width: active ? 30 : 0,
+          decoration: BoxDecoration(
+            color: active ? Colors.purpleAccent : Colors.transparent,
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _profileDetails() {
-
     return Padding(
-
-      padding: const EdgeInsets.symmetric(
-        horizontal: 25,
-      ),
-
-
+      padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Column(
-
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
-
-
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
-
-
-          // NAME ROW
-
-          Row(
-
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 7,
+            runSpacing: 7,
             children: [
-
-
               Text(
-
                 "MR. ALEX",
-
-                style:
-                GoogleFonts.poppins(
-
+                style: GoogleFonts.poppins(
                   color: Colors.white,
-
-                  fontSize: 28,
-
-                  fontWeight:
-                  FontWeight.bold,
-
+                  fontSize: 21,
+                  fontWeight: FontWeight.w700,
                 ),
-
               ),
-
-
-
-              const SizedBox(width: 8),
-
-
-
               const Icon(
-
                 Icons.male,
-
-                color:
-                Colors.blueAccent,
-
-                size: 30,
-
+                color: Colors.blueAccent,
+                size: 21,
               ),
-
-
-
-
-              const SizedBox(width: 10),
-
-
-
-
               _smallBadge(
-
                 Icons.workspace_premium,
-
                 "0",
-
                 Colors.orange,
-
               ),
-
-
-
-
-              const SizedBox(width: 8),
-
-
-
-
               _smallBadge(
-
                 Icons.diamond,
-
                 "0",
-
                 Colors.pinkAccent,
-
               ),
-
-
-
             ],
-
           ),
-
-
-
-
-
-
-          const SizedBox(height: 15),
-
-
-
-
-
-          // ID + COUNTRY
-
-          Row(
-
+          const SizedBox(height: 10),
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 7,
+            runSpacing: 5,
             children: [
-
-
-
               Text(
-
                 "ID:137804327",
-
-                style:
-                GoogleFonts.poppins(
-
-                  color:
-                  Colors.white70,
-
-                  fontSize: 16,
-
+                style: GoogleFonts.poppins(
+                  color: Colors.white70,
+                  fontSize: 13,
                 ),
-
               ),
-
-
-
-
-              const SizedBox(width: 8),
-
-
-
-
               const Icon(
-
                 Icons.copy,
-
-                color:
-                Colors.white70,
-
-                size: 20,
-
+                color: Colors.white70,
+                size: 16,
               ),
-
-
-
-
-
-              const SizedBox(width: 15),
-
-
-
-
               const Text(
-
                 "|",
-
-                style:
-                TextStyle(
-
-                  color:
-                  Colors.white54,
-
-                  fontSize: 22,
-
-                ),
-
-              ),
-
-
-
-
-
-              const SizedBox(width: 15),
-
-
-
-
-              const Text(
-
-                "🇵🇰  Pakistan",
-
-                style:
-                TextStyle(
-
-                  color:
-                  Colors.white,
-
-                  fontSize: 16,
-
-                ),
-
-              ),
-
-
-
-            ],
-
-          ),
-
-
-
-
-
-
-          const SizedBox(height: 20),
-
-
-
-
-
-
-          // WEIGHT
-
-          Row(
-
-            children: [
-
-
-              Container(
-
-                height: 35,
-
-                width: 35,
-
-
-                decoration: BoxDecoration(
-
-                  color:
-                  Colors.black.withOpacity(.3),
-
-
-                  borderRadius:
-                  BorderRadius.circular(8),
-
-
-                  border: Border.all(
-
-                    color:
-                    Colors.purpleAccent,
-
-                  ),
-
-                ),
-
-
-                child: const Icon(
-
-                  Icons.monitor_weight,
-
-                  color:
-                  Colors.white70,
-
-                  size: 20,
-
-                ),
-
-              ),
-
-
-
-              const SizedBox(width: 12),
-
-
-
-
-              Text(
-
-                "64 kg",
-
-                style:
-                GoogleFonts.poppins(
-
-                  color:
-                  Colors.white70,
-
+                style: TextStyle(
+                  color: Colors.white38,
                   fontSize: 17,
-
                 ),
-
               ),
-
-
-
+              const Text(
+                "🇵🇰  Pakistan",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                ),
+              ),
             ],
-
           ),
-
-
-
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Container(
+                height: 30,
+                width: 30,
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(.28),
+                  borderRadius: BorderRadius.circular(7),
+                  border: Border.all(
+                    color: Colors.purpleAccent.withOpacity(.8),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.monitor_weight,
+                  color: Colors.white70,
+                  size: 17,
+                ),
+              ),
+              const SizedBox(width: 9),
+              Text(
+                "64 kg",
+                style: GoogleFonts.poppins(
+                  color: Colors.white70,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
         ],
-
       ),
-
     );
-
   }
 
   Widget _smallBadge(
-
       IconData icon,
-
       String text,
-
       Color color,
-
       ) {
-
-
     return Container(
-
-      padding:
-      const EdgeInsets.symmetric(
-
-        horizontal: 12,
-
-        vertical: 5,
-
+      padding: const EdgeInsets.symmetric(
+        horizontal: 9,
+        vertical: 3,
       ),
-
-
       decoration: BoxDecoration(
-
-        color:
-        color,
-
-        borderRadius:
-        BorderRadius.circular(20),
-
+        color: color,
+        borderRadius: BorderRadius.circular(16),
       ),
-
-
       child: Row(
-
+        mainAxisSize: MainAxisSize.min,
         children: [
-
-
           Icon(
-
             icon,
-
-            size: 14,
-
-            color:
-            Colors.white,
-
+            size: 12,
+            color: Colors.white,
           ),
-
-
-
-          const SizedBox(width: 4),
-
-
-
+          const SizedBox(width: 3),
           Text(
-
             text,
-
-            style:
-            const TextStyle(
-
-              color:
-              Colors.white,
-
-              fontWeight:
-              FontWeight.bold,
-
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
             ),
-
           ),
-
-
         ],
-
       ),
-
     );
-
-
   }
 
   Widget _supporterSection() {
-
-
     return Padding(
-
-      padding: const EdgeInsets.symmetric(
-        horizontal: 25,
-      ),
-
-
+      padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Column(
-
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
-
-
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
-
-          // TITLE ROW
-
           Row(
-
-            mainAxisAlignment:
-            MainAxisAlignment.spaceBetween,
-
-
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-
-
               Text(
-
                 "Supporter",
-
-                style:
-                GoogleFonts.poppins(
-
-                  color: Colors.white,
-
-                  fontSize: 22,
-
-                  fontWeight:
-                  FontWeight.bold,
-
-                ),
-
+                style: _sectionTitleStyle(),
               ),
-
-
-
               Row(
-
                 children: [
-
-
                   Text(
-
                     "Ranking",
-
-                    style:
-                    GoogleFonts.poppins(
-
-                      color:
-                      Colors.white70,
-
-                      fontSize: 16,
-
+                    style: GoogleFonts.poppins(
+                      color: Colors.white60,
+                      fontSize: 13,
                     ),
-
                   ),
-
-
-
+                  const SizedBox(width: 2),
                   const Icon(
-
                     Icons.arrow_forward_ios,
-
-                    color:
-                    Colors.white70,
-
-                    size: 16,
-
+                    color: Colors.white60,
+                    size: 13,
                   ),
-
-
-
                 ],
-
               ),
-
-
-
             ],
-
           ),
-
-
-
-
-          const SizedBox(height: 20),
-
-
-
-
-
-          // MEDALS ROW
-
+          const SizedBox(height: 12),
           Row(
-
-            mainAxisAlignment:
-            MainAxisAlignment.spaceAround,
-
-
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-
-
-              _medalItem(
-
-                Colors.amber,
-
-                Icons.weekend,
-
-              ),
-
-
-
-              _medalItem(
-
-                Colors.grey,
-
-                Icons.weekend,
-
-              ),
-
-
-
-
-              _medalItem(
-
-                Colors.orange,
-
-                Icons.weekend,
-
-              ),
-
-
-
-
-              _medalItem(
-
-                Colors.deepOrange,
-
-                Icons.weekend,
-
-              ),
-
-
-
+              _medalItem(Colors.amber, Icons.weekend),
+              _medalItem(Colors.grey, Icons.weekend),
+              _medalItem(Colors.orange, Icons.weekend),
+              _medalItem(Colors.deepOrange, Icons.weekend),
             ],
-
           ),
-
-
-
         ],
-
       ),
-
     );
-
   }
 
   Widget _medalItem(
-
       Color color,
-
       IconData icon,
-
       ) {
-
-
     return Container(
-
-      height: 75,
-
-      width: 75,
-
-
+      height: 56,
+      width: 56,
       decoration: BoxDecoration(
-
-        shape:
-        BoxShape.circle,
-
-
-        gradient:
-        LinearGradient(
-
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
           colors: [
-
             color,
-
             color.withOpacity(.5),
-
           ],
-
         ),
-
-
-
         border: Border.all(
-
-          color:
-          Colors.white24,
-
-          width: 2,
-
+          color: Colors.white24,
+          width: 1.5,
         ),
-
-
-
         boxShadow: [
-
-
           BoxShadow(
-
-            color:
-            color.withOpacity(.4),
-
-            blurRadius: 12,
-
-          )
-
-
+            color: color.withOpacity(.25),
+            blurRadius: 8,
+          ),
         ],
-
-
       ),
-
-
-
       child: Icon(
-
         icon,
-
-        color:
-        Colors.white70,
-
-        size: 35,
-
+        color: Colors.white70,
+        size: 27,
       ),
-
-
-
     );
-
-
   }
 
   Widget _relationshipSection() {
-
     return Padding(
-
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20,
-      ),
-
-
+      padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Column(
-
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
-
-
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
-
           Text(
-
             "Special Relationship",
-
-            style:
-            GoogleFonts.poppins(
-
-              color: Colors.white,
-
-              fontSize: 22,
-
-              fontWeight:
-              FontWeight.bold,
-
-            ),
-
+            style: _sectionTitleStyle(),
           ),
-
-
-
-          const SizedBox(height: 15),
-
-
-
-
-
-          // RELATIONSHIP CARD
-
+          const SizedBox(height: 11),
           Container(
-
-            height: 170,
-
-
+            height: 126,
             width: double.infinity,
-
-
             decoration: BoxDecoration(
-
-
-              color:
-              const Color(0xff7A123E)
-                  .withOpacity(.75),
-
-
-
-              borderRadius:
-              BorderRadius.circular(20),
-
-
-
+              color: const Color(0xff7A123E).withOpacity(.70),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
-
-                color:
-                Colors.amber,
-
-                width: 2,
-
+                color: Colors.amber,
+                width: 1.5,
               ),
-
-
-
             ),
-
-
-
-
             child: Stack(
-
-              alignment:
-              Alignment.center,
-
-
+              alignment: Alignment.center,
               children: [
-
-
-
-                // LEFT PROFILE
-
                 Positioned(
-
-                  left: 35,
-
-
+                  left: 28,
                   child: Column(
-
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-
-
                       Container(
-
-                        padding:
-                        const EdgeInsets.all(3),
-
-
-                        decoration:
-                        BoxDecoration(
-
-                          shape:
-                          BoxShape.circle,
-
-
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
                           border: Border.all(
-
-                            color:
-                            Colors.amber,
-
-                            width: 3,
-
+                            color: Colors.amber,
+                            width: 2,
                           ),
-
                         ),
-
-
-
-                        child:
-                        const CircleAvatar(
-
-                          radius: 38,
-
-
-                          backgroundColor:
-                          Colors.black,
-
-
-                          child:
-                          Icon(
-
+                        child: const CircleAvatar(
+                          radius: 29,
+                          backgroundColor: Colors.black,
+                          child: Icon(
                             Icons.person,
-
-                            color:
-                            Colors.white,
-
-                            size: 40,
-
+                            color: Colors.white,
+                            size: 31,
                           ),
-
                         ),
-
                       ),
-
-
-
-                      const SizedBox(height: 8),
-
-
-
+                      const SizedBox(height: 5),
                       const Text(
-
                         "MR. ALEX",
-
-                        style:
-                        TextStyle(
-
-                          color:
-                          Colors.white,
-
-                          fontWeight:
-                          FontWeight.bold,
-
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
                         ),
-
                       ),
-
-
                     ],
-
                   ),
-
                 ),
-
-
-
-
-
-
-                // HEART LINE
-
                 const Icon(
-
                   Icons.favorite,
-
-                  color:
-                  Colors.pinkAccent,
-
-                  size: 40,
-
+                  color: Colors.pinkAccent,
+                  size: 30,
                 ),
-
-
-
-
-
-                // RIGHT EMPTY PARTNER
-
                 Positioned(
-
-                  right: 45,
-
-
+                  right: 35,
                   child: Container(
-
-                    height: 70,
-
-                    width: 70,
-
-
-                    decoration:
-                    BoxDecoration(
-
-                      shape:
-                      BoxShape.circle,
-
-
+                    height: 55,
+                    width: 55,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
                       border: Border.all(
-
-                        color:
-                        Colors.amber,
-
-                        width: 3,
-
+                        color: Colors.amber,
+                        width: 2,
                       ),
-
-
-                      color:
-                      Colors.black26,
-
+                      color: Colors.black26,
                     ),
-
-
-
-                    child:
-                    const Icon(
-
+                    child: const Icon(
                       Icons.question_mark,
-
-                      color:
-                      Colors.white,
-
-                      size: 35,
-
+                      color: Colors.white,
+                      size: 27,
                     ),
-
-
-
                   ),
-
                 ),
-
-
-
-
               ],
-
             ),
-
-
           ),
-
-
-
-
-
-
-          const SizedBox(height: 20),
-
-
-
-
-
-          // EMPTY PROP BOXES
-
+          const SizedBox(height: 12),
           Row(
-
-            mainAxisAlignment:
-            MainAxisAlignment.spaceBetween,
-
-
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-
-
               _emptyPropBox(),
-
               _emptyPropBox(),
-
               _emptyPropBox(),
-
-
-
             ],
-
           ),
-
-
-
         ],
-
       ),
-
     );
-
-
   }
 
   Widget _emptyPropBox() {
-
-
     return Container(
-
-      height: 120,
-
-      width: 95,
-
-
+      height: 88,
+      width: 80,
       decoration: BoxDecoration(
-
-        color:
-        Colors.black.withOpacity(.25),
-
-
-        borderRadius:
-        BorderRadius.circular(15),
-
-
+        color: Colors.black.withOpacity(.25),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-
-          color:
-          Colors.purpleAccent
-              .withOpacity(.6),
-
+          color: Colors.purpleAccent.withOpacity(.55),
         ),
-
       ),
-
-
-
       child: Column(
-
-        mainAxisAlignment:
-        MainAxisAlignment.center,
-
-
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-
-
           Container(
-
-            height: 55,
-
-            width: 55,
-
-
-            decoration:
-            BoxDecoration(
-
-              shape:
-              BoxShape.circle,
-
-
-              color:
-              Colors.grey.shade700,
-
-
+            height: 38,
+            width: 38,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.grey.shade700,
             ),
-
           ),
-
-
-
-          const SizedBox(height: 10),
-
-
-
+          const SizedBox(height: 7),
           Container(
-
-            height: 25,
-
-            width: 70,
-
-
-            decoration:
-            BoxDecoration(
-
-              borderRadius:
-              BorderRadius.circular(20),
-
-
+            height: 20,
+            width: 53,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
               border: Border.all(
-
-                color:
-                Colors.purpleAccent,
-
+                color: Colors.purpleAccent,
               ),
-
             ),
-
-
-            child:
-            const Icon(
-
+            child: const Icon(
               Icons.add,
-
-              color:
-              Colors.white70,
-
-              size: 18,
-
+              color: Colors.white70,
+              size: 14,
             ),
-
-
           ),
-
-
-
         ],
-
       ),
-
-
     );
-
-
   }
 
   Widget _medalSection() {
-
     return Padding(
-
-      padding: const EdgeInsets.symmetric(
-        horizontal: 25,
-      ),
-
-
+      padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Column(
-
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
-
-
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
-
-
           Text(
-
             "Medal",
-
-            style:
-            GoogleFonts.poppins(
-
-              color: Colors.white,
-
-              fontSize: 22,
-
-              fontWeight:
-              FontWeight.bold,
-
-            ),
-
+            style: _sectionTitleStyle(),
           ),
-
-
-
-          const SizedBox(height: 15),
-
-
-
-
+          const SizedBox(height: 10),
           Container(
-
-            padding:
-            const EdgeInsets.all(18),
-
-
+            padding: const EdgeInsets.all(13),
             decoration: BoxDecoration(
-
-              color:
-              Colors.black.withOpacity(.25),
-
-
-              borderRadius:
-              BorderRadius.circular(18),
-
-
+              color: Colors.black.withOpacity(.25),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
-
-                color:
-                Colors.purpleAccent
-                    .withOpacity(.5),
-
+                color: Colors.purpleAccent.withOpacity(.45),
               ),
-
             ),
-
-
-
             child: Column(
-
               children: [
-
-
-
                 Row(
-
-                  mainAxisAlignment:
-                  MainAxisAlignment.spaceAround,
-
-
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-
-
-
-                    _medalInfo(
-
-                      "0",
-
-                      "Medal Score",
-
-                    ),
-
-
-
-
+                    _medalInfo("0", "Medal Score"),
                     Container(
-
-                      height: 45,
-
+                      height: 35,
                       width: 1,
-
-
-                      color:
-                      Colors.white24,
-
-
+                      color: Colors.white24,
                     ),
-
-
-
-
-                    _medalInfo(
-
-                      "0",
-
-                      "Rank",
-
-                    ),
-
-
-
+                    _medalInfo("0", "Rank"),
                   ],
-
                 ),
-
-
-
-
-
-                const SizedBox(height: 20),
-
-
-
-
-
+                const SizedBox(height: 12),
                 Container(
-
-                  height: 80,
-
+                  height: 58,
                   width: double.infinity,
-
-
-                  alignment:
-                  Alignment.center,
-
-
-                  decoration:
-                  BoxDecoration(
-
-                    color:
-                    Colors.white.withOpacity(.05),
-
-
-                    borderRadius:
-                    BorderRadius.circular(14),
-
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(.05),
+                    borderRadius: BorderRadius.circular(11),
                   ),
-
-
-
                   child: Text(
-
                     "Haven't got a medal yet~",
-
-                    style:
-                    GoogleFonts.poppins(
-
-                      color:
-                      Colors.white54,
-
-                      fontSize: 15,
-
+                    style: GoogleFonts.poppins(
+                      color: Colors.white54,
+                      fontSize: 13,
                     ),
-
                   ),
-
                 ),
-
-
-
               ],
-
             ),
-
           ),
-
-
-
         ],
-
       ),
-
     );
-
   }
 
   Widget _medalInfo(
-
       String number,
-
       String title,
-
       ) {
-
-
     return Column(
-
       children: [
-
-
-
         Text(
-
           number,
-
-          style:
-          const TextStyle(
-
-            color:
-            Colors.amber,
-
-            fontSize: 24,
-
-            fontWeight:
-            FontWeight.bold,
-
+          style: const TextStyle(
+            color: Colors.amber,
+            fontSize: 19,
+            fontWeight: FontWeight.bold,
           ),
-
         ),
-
-
-
-
-        const SizedBox(height: 5),
-
-
-
-
+        const SizedBox(height: 2),
         Text(
-
           title,
-
-          style:
-          const TextStyle(
-
-            color:
-            Colors.white70,
-
-            fontSize: 13,
-
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 11,
           ),
-
         ),
-
-
-
       ],
-
     );
-
-
   }
 
+  TextStyle _sectionTitleStyle() {
+    return GoogleFonts.poppins(
+      color: Colors.white,
+      fontSize: 18,
+      fontWeight: FontWeight.w700,
+    );
+  }
 }

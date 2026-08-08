@@ -31,7 +31,7 @@ class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           Positioned.fill(
@@ -94,29 +94,56 @@ class _EditProfileScreenState extends State<EditProfileDetailsScreen> {
 
   Widget _buildTopBar() {
     return SizedBox(
-      height: 58,
+      height: 85,
       child: Stack(
-        alignment: Alignment.center,
         children: [
-          const Text(
-            'Profile',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
+
+          // Title
+          Align(
+            alignment: Alignment.center,
+            child: const Text(
+              'Profile',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
 
+
+          // Back Button
           Positioned(
-            left: 6,
-            child: IconButton(
-              onPressed: () {
+            left: 18,
+            top: 18,
+            child: GestureDetector(
+              onTap: () {
                 Navigator.pop(context);
               },
-              icon: const Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: Colors.white,
-                size: 24,
+              child: Container(
+                width: 46,
+                height: 46,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.35),
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(
+                    color: const Color(0xff9B5CFF),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xff9B5CFF)
+                          .withOpacity(.45),
+                      blurRadius: 12,
+                    )
+                  ],
+                ),
+                child: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: Colors.white,
+                  size: 22,
+                ),
               ),
             ),
           ),

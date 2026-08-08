@@ -1,9 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:junaya_voicechat_app/routes/app_routes.dart';
 import 'package:junaya_voicechat_app/screens/home/profile/edit_profile_screen.dart';
+import 'package:junaya_voicechat_app/screens/settings/settings_screen.dart';
 import 'package:junaya_voicechat_app/widgets/space_background.dart';
 import 'package:junaya_voicechat_app/screens/home/profile/edit_profile_details_screen.dart';
 
@@ -70,14 +70,12 @@ class ProfileScreen extends StatelessWidget {
                           ),
                           onPressed: () => _handleBack(context),
                         ),
-
                         IconButton(
                           icon: const Icon(
                             Icons.edit_square,
                             color: Colors.white,
                             size: 30,
                           ),
-
                           onPressed: () {
                             Navigator.push(
                               context,
@@ -86,9 +84,7 @@ class ProfileScreen extends StatelessWidget {
                               ),
                             );
                           },
-
                         ),
-
                       ],
                     ),
                   ),
@@ -105,8 +101,6 @@ class ProfileScreen extends StatelessWidget {
                           const SizedBox(height: 20),
                           _menuList(context),
                           const SizedBox(height: 25),
-                          _logoutButton(context),
-                          const SizedBox(height: 25),
                         ],
                       ),
                     ),
@@ -120,292 +114,122 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-// PROFILE HEADER
-
+  // PROFILE HEADER
   Widget _profileHeader() {
-
     return Padding(
-
       padding: const EdgeInsets.symmetric(
         horizontal: 20,
       ),
-
       child: Row(
-
         children: [
-
-
           // PROFILE IMAGE
-
           Container(
-
             padding: const EdgeInsets.all(3),
-
             decoration: BoxDecoration(
-
               shape: BoxShape.circle,
-
               border: Border.all(
-
                 color: Colors.purpleAccent,
-
                 width: 3,
-
               ),
-
             ),
-
-
             child: const CircleAvatar(
-
               radius: 62,
-
               backgroundImage: AssetImage(
                 "assets/users/profile.png",
               ),
-
             ),
-
           ),
-
-
-
           const SizedBox(width: 20),
-
-
-
           Expanded(
-
             child: Column(
-
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
-
-
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
-
                 // NAME
-
                 Row(
-
                   children: [
-
-
                     Text(
-
                       "MR. ALEX",
-
-                      style:
-                      GoogleFonts.poppins(
-
+                      style: GoogleFonts.poppins(
                         color: Colors.white,
-
                         fontSize: 25,
-
-                        fontWeight:
-                        FontWeight.bold,
-
+                        fontWeight: FontWeight.bold,
                       ),
-
                     ),
-
-
-
                     const SizedBox(width: 5),
-
-
-
                     const Icon(
-
                       Icons.male,
-
-                      color:
-                      Colors.blueAccent,
-
+                      color: Colors.blueAccent,
                       size: 26,
-
                     ),
-
-
                   ],
-
                 ),
-
-
-
                 const SizedBox(height: 8),
 
-
-
-
                 // BADGES
-
                 Row(
-
                   children: [
-
-
                     Container(
-
-                      padding:
-                      const EdgeInsets.symmetric(
-
+                      padding: const EdgeInsets.symmetric(
                         horizontal: 14,
-
                         vertical: 5,
-
                       ),
-
-
-                      decoration:
-                      BoxDecoration(
-
-                        color:
-                        Colors.orange,
-
-                        borderRadius:
-                        BorderRadius.circular(20),
-
+                      decoration: BoxDecoration(
+                        color: Colors.orange,
+                        borderRadius: BorderRadius.circular(20),
                       ),
-
-
-                      child:
-                      const Row(
-
+                      child: const Row(
                         children: [
-
                           Icon(
-
                             Icons.workspace_premium,
-
                             size: 15,
-
                             color: Colors.white,
-
                           ),
-
-
                           SizedBox(width: 5),
-
-
                           Text(
-
                             "0",
-
-                            style:
-                            TextStyle(
-
-                              color:
-                              Colors.white,
-
-                              fontWeight:
-                              FontWeight.bold,
-
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
                             ),
-
                           ),
-
                         ],
-
                       ),
-
                     ),
-
-
-
-
                     const SizedBox(width: 8),
-
-
-
-
                     Container(
-
-                      padding:
-                      const EdgeInsets.symmetric(
-
+                      padding: const EdgeInsets.symmetric(
                         horizontal: 14,
-
                         vertical: 5,
-
                       ),
-
-
-                      decoration:
-                      BoxDecoration(
-
-                        color:
-                        Colors.pinkAccent,
-
-                        borderRadius:
-                        BorderRadius.circular(20),
-
+                      decoration: BoxDecoration(
+                        color: Colors.pinkAccent,
+                        borderRadius: BorderRadius.circular(20),
                       ),
-
-
-                      child:
-                      const Row(
-
+                      child: const Row(
                         children: [
-
-
                           Icon(
-
                             Icons.diamond,
-
                             size: 15,
-
                             color: Colors.white,
-
                           ),
-
-
                           SizedBox(width: 5),
-
-
                           Text(
-
                             "0",
-
-                            style:
-                            TextStyle(
-
-                              color:
-                              Colors.white,
-
-                              fontWeight:
-                              FontWeight.bold,
-
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
                             ),
-
                           ),
-
-
                         ],
-
                       ),
-
                     ),
-
-
                   ],
-
                 ),
-
-
-
-
                 const SizedBox(height: 6),
 
-
-
-
                 // ID
-
                 Row(
                   children: [
-
                     Text(
                       "ID :137804327",
                       style: GoogleFonts.poppins(
@@ -413,718 +237,303 @@ class ProfileScreen extends StatelessWidget {
                         fontSize: 14,
                       ),
                     ),
-
                     const SizedBox(width: 8),
-
                     const Icon(
                       Icons.copy,
                       color: Colors.white70,
                       size: 16,
                     ),
-
                   ],
                 ),
-
                 const SizedBox(height: 8),
-
                 Row(
-
                   children: [
-
                     _headerMoneyCard(
                       Icons.monetization_on,
                       "128,540",
                       "Coins",
                       Colors.orange,
                     ),
-
                     const SizedBox(width: 8),
-
                     _headerMoneyCard(
                       Icons.diamond,
                       "12,900",
                       "Diamonds",
                       Colors.purpleAccent,
                     ),
-
                   ],
-
                 ),
-
-
               ],
-
             ),
-
           ),
-
-
         ],
-
       ),
-
     );
-
   }
 
-
-
-// STATS SECTION
-
+  // STATS SECTION
   Widget _statsSection() {
-
-
     return Container(
-
-      margin:
-      const EdgeInsets.symmetric(
+      margin: const EdgeInsets.symmetric(
         horizontal: 15,
       ),
-
-
-      padding:
-      const EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         vertical: 18,
       ),
-
-
-
       decoration: BoxDecoration(
-
-        borderRadius:
-        BorderRadius.circular(18),
-
-
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-
-          color:
-          Colors.purpleAccent
-              .withOpacity(.6),
-
+          color: Colors.purpleAccent.withOpacity(.6),
         ),
-
-
       ),
-
-
-
       child: Row(
-
-        mainAxisAlignment:
-        MainAxisAlignment.spaceAround,
-
-
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-
-
           _statItem(
             Icons.person,
             "124",
             "Friends",
           ),
-
-
-
           _statItem(
             Icons.person_add,
             "124",
             "Following",
           ),
-
-
-
           _statItem(
             Icons.groups,
             "124",
             "Followers",
           ),
-
-
-
           _statItem(
             Icons.remove_red_eye,
             "124",
             "Visitors",
           ),
-
-
         ],
-
       ),
-
     );
-
   }
-
-
-
-
 
   Widget _statItem(
-
       IconData icon,
-
       String number,
-
       String title,
-
       ) {
-
-
     return Column(
-
       children: [
-
-
         Icon(
-
           icon,
-
           color: Colors.amber,
-
           size: 25,
-
         ),
-
-
-
         const SizedBox(height: 5),
-
-
-
         Text(
-
           number,
-
           style: const TextStyle(
-
             color: Colors.white,
-
-            fontWeight:
-            FontWeight.bold,
-
+            fontWeight: FontWeight.bold,
             fontSize: 16,
-
           ),
-
         ),
-
-
-
         Text(
-
           title,
-
           style: const TextStyle(
-
             color: Colors.white70,
-
             fontSize: 11,
-
           ),
-
         ),
-
       ],
-
     );
-
   }
 
-// EDIT PROFILE BUTTON
-
+  // EDIT PROFILE BUTTON
   Widget _editButton(BuildContext context) {
-
     return Container(
-
-      margin:
-      const EdgeInsets.symmetric(
+      margin: const EdgeInsets.symmetric(
         horizontal: 15,
       ),
-
-
       height: 58,
-
-
       decoration: BoxDecoration(
-
-        borderRadius:
-        BorderRadius.circular(16),
-
-
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-
-          color:
-          Colors.purpleAccent,
-
+          color: Colors.purpleAccent,
         ),
-
       ),
-
-
-
       child: InkWell(
-
-        splashColor: Colors.purpleAccent.withOpacity(.3),
-        highlightColor: Colors.purpleAccent.withOpacity(.15),
-
-        borderRadius:
-        BorderRadius.circular(16),
-
-
+        borderRadius: BorderRadius.circular(16),
         onTap: () {
-
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => const EditProfileDetailsScreen(),
             ),
           );
-
         },
-
-
         child: const Row(
-
-          mainAxisAlignment:
-          MainAxisAlignment.center,
-
-
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-
-
             Icon(
-
               Icons.edit,
-
               color: Colors.amber,
-
             ),
-
-
-
             SizedBox(width: 10),
-
-
-
             Text(
-
               "Edit Profile",
-
               style: TextStyle(
-
                 color: Colors.white,
-
                 fontSize: 17,
-
               ),
-
             ),
-
-
           ],
-
         ),
-
       ),
-
     );
-
   }
 
-
-
-
-
-// MENU LIST
-
+  // MENU LIST
   Widget _menuList(BuildContext context) {
-
-
     return Column(
-
       children: [
-
-
         _menuTile(
           Icons.account_balance_wallet,
           "Wallet",
-          onTap: () => Navigator.pushNamed(context, AppRoutes.wallet),
         ),
-
         _menuTile(
           Icons.shopping_bag,
           "Store",
-          onTap: () => Navigator.pushNamed(context, AppRoutes.store),
         ),
-
         _menuTile(
           Icons.person_add,
           "Invite Friend",
-          onTap: () => Navigator.pushNamed(context, AppRoutes.inviteFriends),
         ),
-
         _menuTile(
           Icons.handshake,
           "Join Agency",
-          onTap: () => Navigator.pushNamed(context, AppRoutes.joinAgency),
         ),
-
         _menuTile(
           Icons.bar_chart,
           "Level",
-          onTap: () => Navigator.pushNamed(context, AppRoutes.level),
         ),
-
         _menuTile(
           Icons.emoji_events,
           "Medal",
-          onTap: () => Navigator.pushNamed(context, AppRoutes.medal),
         ),
-
         _menuTile(
           Icons.shield,
           "CP Zone",
-          onTap: () => Navigator.pushNamed(context, AppRoutes.cpZone),
         ),
-
         _menuTile(
           Icons.settings,
           "Setting",
-          onTap: () => Navigator.pushNamed(context, AppRoutes.settings),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const SettingsScreen(),
+              ),
+            );
+          },
         ),
-
         _menuTile(
           Icons.language,
           "Language",
-          onTap: () => Navigator.pushNamed(context, AppRoutes.language),
         ),
-
         _menuTile(
           Icons.headset_mic,
           "Help Center",
-          onTap: () => Navigator.pushNamed(context, AppRoutes.helpCenter),
         ),
-
-
       ],
-
     );
-
   }
-
-
-
-
 
   Widget _menuTile(
-
       IconData icon,
-
-      String title,
-
-      {
-
+      String title, {
         VoidCallback? onTap,
-
-      }
-
-      ) {
-
-
+      }) {
     return Container(
-
-      margin:
-      const EdgeInsets.symmetric(
-
+      margin: const EdgeInsets.symmetric(
         horizontal: 15,
-
         vertical: 5,
-
       ),
-
-
       decoration: BoxDecoration(
-
-        color:
-        const Color(0xff12071F),
-
-
-        borderRadius:
-        BorderRadius.circular(15),
-
-
+        color: const Color(0xff12071F),
+        borderRadius: BorderRadius.circular(15),
         border: Border.all(
-
-          color:
-          Colors.purpleAccent
-              .withOpacity(.45),
-
+          color: Colors.purpleAccent.withOpacity(.45),
         ),
-
       ),
-
-
-
       child: ListTile(
-
-
         leading: Icon(
-
           icon,
-
           color: Colors.amber,
-
         ),
-
-
-
         title: Text(
-
           title,
-
           style: GoogleFonts.poppins(
-
             color: Colors.white,
-
             fontSize: 15,
-
           ),
-
         ),
-
-
-
         trailing: const Icon(
-
           Icons.arrow_forward_ios,
-
           color: Colors.white54,
-
           size: 16,
-
         ),
-
         onTap: onTap,
-
       ),
-
-    );
-
-  }
-
-
-
-
-
-// LOGOUT BUTTON
-
-  Widget _logoutButton(BuildContext context) {
-    return Padding(
-
-      padding:
-      const EdgeInsets.symmetric(
-        horizontal: 15,
-      ),
-
-
-      child: SizedBox(
-
-        width: double.infinity,
-
-
-        child: ElevatedButton.icon(
-
-
-          style:
-          ElevatedButton.styleFrom(
-
-            backgroundColor:
-            Colors.redAccent,
-
-
-            padding:
-            const EdgeInsets.all(16),
-
-
-            shape:
-            RoundedRectangleBorder(
-
-              borderRadius:
-              BorderRadius.circular(15),
-
-            ),
-
-          ),
-
-
-          onPressed: () async {
-            await FirebaseAuth
-                .instance
-                .signOut();
-
-
-            if (context.mounted) {
-              Navigator.pushNamedAndRemoveUntil(
-
-                context,
-
-                AppRoutes.login,
-
-                    (route) => false,
-
-              );
-            }
-          },
-
-
-          icon: const Icon(
-
-            Icons.logout,
-
-            color: Colors.white,
-
-          ),
-
-
-          label: const Text(
-
-            "Logout",
-
-            style: TextStyle(
-
-              color: Colors.white,
-
-              fontSize: 16,
-
-            ),
-
-          ),
-
-        ),
-
-      ),
-
     );
   }
 
   Widget _headerMoneyCard(
-
       IconData icon,
-
       String value,
-
       String title,
-
       Color color,
-
       ) {
-
     return Container(
-
       width: 92,
-
       height: 38,
-
-
       decoration: BoxDecoration(
-
         color: Colors.black.withOpacity(.35),
-
-        borderRadius:
-        BorderRadius.circular(10),
-
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
-
-          color:
-          Colors.purpleAccent.withOpacity(.5),
-
+          color: Colors.purpleAccent.withOpacity(.5),
           width: 1,
-
         ),
-
       ),
-
-
       child: Row(
-
-        mainAxisAlignment:
-        MainAxisAlignment.center,
-
-
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-
-
           Icon(
-
             icon,
-
             color: color,
-
             size: 18,
-
           ),
-
-
           const SizedBox(width: 4),
-
-
-
           Column(
-
-            mainAxisAlignment:
-            MainAxisAlignment.center,
-
-
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
-
-
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
-
               Text(
-
                 value,
-
                 style: const TextStyle(
-
                   color: Colors.white,
-
                   fontSize: 10,
-
                   fontWeight: FontWeight.bold,
-
                 ),
-
               ),
-
-
-
               Text(
-
                 title,
-
                 style: const TextStyle(
-
                   color: Colors.white70,
-
                   fontSize: 8,
-
                 ),
-
               ),
-
             ],
-
           ),
-
         ],
-
       ),
-
     );
-
   }
-
 }

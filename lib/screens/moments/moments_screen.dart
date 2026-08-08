@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import 'create_moment_screen.dart';
-
 import '../../services/moment_storage.dart';
 
 enum MomentMediaType {
@@ -16,7 +15,6 @@ class MomentMedia {
   final MomentMediaType type;
 
   const MomentMedia.asset(this.path) : type = MomentMediaType.asset;
-
   const MomentMedia.file(this.path) : type = MomentMediaType.file;
 }
 
@@ -30,7 +28,6 @@ class MomentItem {
   final int likes;
   final bool isLive;
   final List<MomentMedia> media;
-
   final LocalMomentData? localData;
 
   const MomentItem({
@@ -55,8 +52,50 @@ class MomentsScreen extends StatefulWidget {
 }
 
 class _MomentsScreenState extends State<MomentsScreen> {
-
   final MomentStorage _momentStorage = MomentStorage();
+
+  int _selectedTab = 1;
+
+  final List<MomentItem> _moments = [
+    const MomentItem(
+      username: '🇨🇦 Ms Pinky 👑',
+      avatarAsset: 'assets/images/moments/pinky_avatar.jpg',
+      message: 'I’m not interested your coins i need true love 💘❤️\n💋💛',
+      time: '3 days ago',
+      badge: 'Q 45',
+      comments: 19,
+      likes: 39,
+      isLive: true,
+      media: [
+        MomentMedia.asset('assets/images/moments/pinky_post_1.jpg'),
+        MomentMedia.asset('assets/images/moments/pinky_post_2.jpg'),
+      ],
+    ),
+    const MomentItem(
+      username: '➳ MR Ali',
+      avatarAsset: 'assets/images/moments/ali_avatar.jpg',
+      message: '',
+      time: '13 hours ago',
+      badge: 'SVIP2',
+      comments: 16,
+      likes: 14,
+      isLive: true,
+      media: [
+        MomentMedia.asset('assets/images/moments/ali_birthday.jpg'),
+      ],
+    ),
+    const MomentItem(
+      username: '♬ Zyni Malik 🌻💔',
+      avatarAsset: 'assets/images/moments/zyni_avatar.jpg',
+      message: 'Enjoy every beautiful moment ✨',
+      time: '1 day ago',
+      badge: 'Q',
+      comments: 11,
+      likes: 28,
+      isLive: false,
+      media: [],
+    ),
+  ];
 
   @override
   void initState() {
@@ -80,19 +119,14 @@ class _MomentsScreenState extends State<MomentsScreen> {
     } catch (_) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Saved moments could not be loaded.',
-          ),
-        ),
+      _showMomentMessage(
+        'Saved moments could not be loaded.',
+        isError: true,
       );
     }
   }
 
-  MomentItem _convertSavedMoment(
-      LocalMomentData savedMoment,
-      ) {
+  MomentItem _convertSavedMoment(LocalMomentData savedMoment) {
     return MomentItem(
       username: 'You',
       avatarAsset: '',
@@ -103,18 +137,14 @@ class _MomentsScreenState extends State<MomentsScreen> {
       likes: 0,
       isLive: false,
       media: savedMoment.imagePaths
-          .map(
-            (path) => MomentMedia.file(path),
-      )
+          .map((path) => MomentMedia.file(path))
           .toList(),
-
       localData: savedMoment,
     );
   }
 
   String _formatMomentTime(DateTime createdAt) {
-    final Duration difference =
-    DateTime.now().difference(createdAt);
+    final Duration difference = DateTime.now().difference(createdAt);
 
     if (difference.inMinutes < 1) {
       return 'Just now';
@@ -135,9 +165,45 @@ class _MomentsScreenState extends State<MomentsScreen> {
     return '${difference.inDays} days ago';
   }
 
-  Future<void> _editMoment(
-      MomentItem moment,
-      ) async {
+  Future<void> _openCreateMomentScreen() async {
+    final CreatedMoment? createdMoment =
+    await Navigator.push<CreatedMoment>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CreateMomentScreen(),
+      ),
+    );
+
+    if (createdMoment == null || !mounted) {
+      return;
+    }
+
+    try {
+      final LocalMomentData savedMoment =
+      await _momentStorage.createMoment(
+        text: createdMoment.text,
+        sourceImagePaths: createdMoment.imagePaths,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _selectedTab = 1;
+        _moments.insert(0, _convertSavedMoment(savedMoment));
+      });
+
+      _showMomentMessage('Moment posted successfully.');
+    } catch (_) {
+      if (!mounted) return;
+
+      _showMomentMessage(
+        'Moment could not be saved.',
+        isError: true,
+      );
+    }
+  }
+
+  Future<void> _editMoment(MomentItem moment) async {
     final LocalMomentData? localMoment = moment.localData;
 
     if (localMoment == null) {
@@ -145,9 +211,7 @@ class _MomentsScreenState extends State<MomentsScreen> {
     }
 
     final TextEditingController controller =
-    TextEditingController(
-      text: moment.message,
-    );
+    TextEditingController(text: moment.message);
 
     int characterCount = controller.text.length;
 
@@ -159,145 +223,116 @@ class _MomentsScreenState extends State<MomentsScreen> {
           builder: (context, setDialogState) {
             return AlertDialog(
               backgroundColor: const Color(0xFF13001F),
+              insetPadding: const EdgeInsets.symmetric(horizontal: 22),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(22),
+                borderRadius: BorderRadius.circular(18),
                 side: BorderSide(
-                  color: const Color(0xFFA440F2)
-                      .withValues(alpha: 0.75),
+                  color: const Color(0xFFA440F2).withOpacity(.55),
                 ),
               ),
-              titlePadding: const EdgeInsets.fromLTRB(
-                22,
-                20,
-                22,
-                0,
-              ),
-              contentPadding: const EdgeInsets.fromLTRB(
-                22,
-                18,
-                22,
-                8,
-              ),
-              actionsPadding: const EdgeInsets.fromLTRB(
-                14,
-                8,
-                14,
-                14,
-              ),
+              titlePadding: const EdgeInsets.fromLTRB(18, 17, 18, 0),
+              contentPadding: const EdgeInsets.fromLTRB(18, 13, 18, 5),
+              actionsPadding: const EdgeInsets.fromLTRB(10, 4, 10, 10),
               title: const Row(
                 children: [
                   Icon(
                     Icons.edit_rounded,
                     color: Color(0xFFFFD36A),
+                    size: 21,
                   ),
-                  SizedBox(width: 10),
+                  SizedBox(width: 8),
                   Text(
                     'Edit Moment',
                     style: TextStyle(
                       color: Color(0xFFFFE5B2),
+                      fontSize: 17,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
               ),
-              content: SizedBox(
-                width: double.maxFinite,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      height: 180,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF090010),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: const Color(0xFF9435CD),
-                        ),
-                      ),
-                      child: TextField(
-                        controller: controller,
-                        maxLength: 1000,
-                        maxLines: null,
-                        expands: true,
-                        cursorColor: const Color(0xFFFFD36A),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          height: 1.4,
-                        ),
-                        textAlignVertical: TextAlignVertical.top,
-                        onChanged: (value) {
-                          setDialogState(() {
-                            characterCount = value.length;
-                          });
-                        },
-                        decoration: const InputDecoration(
-                          hintText: 'Say something',
-                          hintStyle: TextStyle(
-                            color: Colors.white38,
-                          ),
-                          counterText: '',
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.all(15),
-                        ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    height: 135,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF090010),
+                      borderRadius: BorderRadius.circular(13),
+                      border: Border.all(
+                        color: const Color(0xFF9435CD).withOpacity(.7),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        '$characterCount/1000',
-                        style: const TextStyle(
-                          color: Color(0xFFB45BEE),
-                          fontSize: 13,
-                        ),
+                    child: TextField(
+                      controller: controller,
+                      maxLength: 1000,
+                      maxLines: null,
+                      expands: true,
+                      cursorColor: const Color(0xFFFFD36A),
+                      textAlignVertical: TextAlignVertical.top,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        height: 1.35,
+                      ),
+                      onChanged: (value) {
+                        setDialogState(() {
+                          characterCount = value.length;
+                        });
+                      },
+                      decoration: const InputDecoration(
+                        hintText: 'Say something',
+                        hintStyle: TextStyle(color: Colors.white38),
+                        counterText: '',
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.all(12),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 6),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      '$characterCount/1000',
+                      style: const TextStyle(
+                        color: Color(0xFFB45BEE),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               actions: [
                 TextButton(
-                  onPressed: () {
-                    Navigator.pop(dialogContext);
-                  },
+                  onPressed: () => Navigator.pop(dialogContext),
                   child: const Text(
                     'Cancel',
-                    style: TextStyle(
-                      color: Colors.white60,
-                    ),
+                    style: TextStyle(color: Colors.white60),
                   ),
                 ),
-                ElevatedButton.icon(
+                ElevatedButton(
                   onPressed: () {
-                    final String text =
-                    controller.text.trim();
+                    final String text = controller.text.trim();
 
-                    if (text.isEmpty &&
-                        localMoment.imagePaths.isEmpty) {
+                    if (text.isEmpty && localMoment.imagePaths.isEmpty) {
                       return;
                     }
 
-                    Navigator.pop(
-                      dialogContext,
-                      text,
-                    );
+                    Navigator.pop(dialogContext, text);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                    const Color(0xFF7620A9),
-                    foregroundColor:
-                    const Color(0xFFFFE5A1),
+                    backgroundColor: const Color(0xFF7620A9),
+                    foregroundColor: const Color(0xFFFFE5A1),
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 17,
+                      vertical: 9,
+                    ),
                     shape: RoundedRectangleBorder(
-                      borderRadius:
-                      BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  icon: const Icon(
-                    Icons.check_rounded,
-                    size: 19,
-                  ),
-                  label: const Text('Save'),
+                  child: const Text('Save'),
                 ),
               ],
             );
@@ -323,19 +358,15 @@ class _MomentsScreenState extends State<MomentsScreen> {
 
       setState(() {
         final int momentIndex = _moments.indexWhere(
-              (item) =>
-          item.localData?.id == localMoment.id,
+              (item) => item.localData?.id == localMoment.id,
         );
 
         if (momentIndex != -1) {
-          _moments[momentIndex] =
-              _convertSavedMoment(updatedMoment);
+          _moments[momentIndex] = _convertSavedMoment(updatedMoment);
         }
       });
 
-      _showMomentMessage(
-        'Moment updated successfully.',
-      );
+      _showMomentMessage('Moment updated successfully.');
     } catch (_) {
       if (!mounted) return;
 
@@ -346,9 +377,7 @@ class _MomentsScreenState extends State<MomentsScreen> {
     }
   }
 
-  Future<void> _deleteMoment(
-      MomentItem moment,
-      ) async {
+  Future<void> _deleteMoment(MomentItem moment) async {
     final LocalMomentData? localMoment = moment.localData;
 
     if (localMoment == null) {
@@ -360,14 +389,12 @@ class _MomentsScreenState extends State<MomentsScreen> {
           context: context,
           builder: (dialogContext) {
             return AlertDialog(
-              backgroundColor:
-              const Color(0xFF13001F),
+              backgroundColor: const Color(0xFF13001F),
+              insetPadding: const EdgeInsets.symmetric(horizontal: 24),
               shape: RoundedRectangleBorder(
-                borderRadius:
-                BorderRadius.circular(22),
+                borderRadius: BorderRadius.circular(18),
                 side: BorderSide(
-                  color: const Color(0xFFFF4E80)
-                      .withOpacity(0.65),
+                  color: const Color(0xFFFF4E80).withOpacity(.50),
                 ),
               ),
               title: const Row(
@@ -375,12 +402,14 @@ class _MomentsScreenState extends State<MomentsScreen> {
                   Icon(
                     Icons.delete_outline_rounded,
                     color: Color(0xFFFF5E88),
+                    size: 21,
                   ),
-                  SizedBox(width: 10),
+                  SizedBox(width: 8),
                   Text(
                     'Delete Moment?',
                     style: TextStyle(
                       color: Color(0xFFFFE5B2),
+                      fontSize: 17,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -390,45 +419,33 @@ class _MomentsScreenState extends State<MomentsScreen> {
                 'This moment and its saved images will be permanently deleted.',
                 style: TextStyle(
                   color: Colors.white70,
-                  height: 1.4,
+                  fontSize: 13,
+                  height: 1.35,
                 ),
               ),
               actions: [
                 TextButton(
                   onPressed: () {
-                    Navigator.pop(
-                      dialogContext,
-                      false,
-                    );
+                    Navigator.pop(dialogContext, false);
                   },
                   child: const Text(
                     'Cancel',
-                    style: TextStyle(
-                      color: Colors.white60,
-                    ),
+                    style: TextStyle(color: Colors.white60),
                   ),
                 ),
-                ElevatedButton.icon(
+                ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(
-                      dialogContext,
-                      true,
-                    );
+                    Navigator.pop(dialogContext, true);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                    const Color(0xFFB8234E),
+                    backgroundColor: const Color(0xFFB8234E),
                     foregroundColor: Colors.white,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius:
-                      BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  icon: const Icon(
-                    Icons.delete_rounded,
-                    size: 19,
-                  ),
-                  label: const Text('Delete'),
+                  child: const Text('Delete'),
                 ),
               ],
             );
@@ -441,22 +458,17 @@ class _MomentsScreenState extends State<MomentsScreen> {
     }
 
     try {
-      await _momentStorage.deleteMoment(
-        localMoment,
-      );
+      await _momentStorage.deleteMoment(localMoment);
 
       if (!mounted) return;
 
       setState(() {
         _moments.removeWhere(
-              (item) =>
-          item.localData?.id == localMoment.id,
+              (item) => item.localData?.id == localMoment.id,
         );
       });
 
-      _showMomentMessage(
-        'Moment deleted successfully.',
-      );
+      _showMomentMessage('Moment deleted successfully.');
     } catch (_) {
       if (!mounted) return;
 
@@ -484,149 +496,31 @@ class _MomentsScreenState extends State<MomentsScreen> {
       );
   }
 
-  int _selectedTab = 1;
-
-  final List<MomentItem> _moments = [
-    const MomentItem(
-      username: '🇨🇦 Ms Pinky 👑',
-      avatarAsset: 'assets/images/moments/pinky_avatar.jpg',
-      message:
-      'I’m not interested your coins i need true love 💘❤️\n💋💛',
-      time: '3 days ago',
-      badge: 'Q 45',
-      comments: 19,
-      likes: 39,
-      isLive: true,
-      media: [
-        MomentMedia.asset(
-          'assets/images/moments/pinky_post_1.jpg',
-        ),
-        MomentMedia.asset(
-          'assets/images/moments/pinky_post_2.jpg',
-        ),
-      ],
-    ),
-    const MomentItem(
-      username: '➳ MR Ali',
-      avatarAsset: 'assets/images/moments/ali_avatar.jpg',
-      message: '',
-      time: '13 hours ago',
-      badge: 'SVIP2',
-      comments: 16,
-      likes: 14,
-      isLive: true,
-      media: [
-        MomentMedia.asset(
-          'assets/images/moments/ali_birthday.jpg',
-        ),
-      ],
-    ),
-    const MomentItem(
-      username: '♬ Zyni Malik 🌻💔',
-      avatarAsset: 'assets/images/moments/zyni_avatar.jpg',
-      message: 'Enjoy every beautiful moment ✨',
-      time: '1 day ago',
-      badge: 'Q',
-      comments: 11,
-      likes: 28,
-      isLive: false,
-      media: [],
-    ),
-  ];
-
-  Future<void> _openCreateMomentScreen() async {
-    final CreatedMoment? createdMoment =
-    await Navigator.push<CreatedMoment>(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-        const CreateMomentScreen(),
-      ),
-    );
-
-    if (createdMoment == null || !mounted) {
-      return;
-    }
-
-    try {
-      final LocalMomentData savedMoment =
-      await _momentStorage.createMoment(
-        text: createdMoment.text,
-        sourceImagePaths:
-        createdMoment.imagePaths,
-      );
-
-      if (!mounted) return;
-
-      setState(() {
-        _selectedTab = 1;
-
-        _moments.insert(
-          0,
-          _convertSavedMoment(savedMoment),
-        );
-      });
-
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Moment posted successfully.',
-            ),
-            backgroundColor: Color(0xFF361050),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-    } catch (_) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Moment could not be saved.',
-            ),
-            backgroundColor: Color(0xFF7A1835),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-
-      floatingActionButtonLocation:
-      FloatingActionButtonLocation.endFloat,
-
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 60),
+        padding: const EdgeInsets.only(bottom: 58),
         child: _CreateMomentButton(
           onTap: _openCreateMomentScreen,
         ),
       ),
-
       body: Stack(
         children: [
           const Positioned.fill(
             child: _MomentsBackground(),
           ),
-
           SafeArea(
             bottom: false,
             child: Column(
               children: [
                 _buildTabHeader(),
-
-                const SizedBox(height: 8),
-
+                const SizedBox(height: 2),
                 Expanded(
                   child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 250),
+                    duration: const Duration(milliseconds: 220),
                     child: _selectedTab == 1
                         ? _buildMomentsFeed()
                         : _buildFollowFeed(),
@@ -642,51 +536,39 @@ class _MomentsScreenState extends State<MomentsScreen> {
 
   Widget _buildTabHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _TopTab(
-            text: 'Follow',
-            selected: _selectedTab == 0,
-            onTap: () {
-              setState(() {
-                _selectedTab = 0;
-              });
-            },
-          ),
-
-          const SizedBox(width: 25),
-
-          _TopTab(
-            text: 'Moments',
-            selected: _selectedTab == 1,
-            onTap: () {
-              setState(() {
-                _selectedTab = 1;
-              });
-            },
-          ),
-
-          const Spacer(),
-
-          ShaderMask(
-            shaderCallback: (bounds) {
-              return const LinearGradient(
-                colors: [
-                  Color(0xFFFFE49A),
-                  Color(0xFFD99122),
-                  Color(0xFFFFD36A),
-                ],
-              ).createShader(bounds);
-            },
-            child: const Icon(
-              Icons.workspace_premium_rounded,
-              size: 52,
-              color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(14, 7, 14, 2),
+      child: SizedBox(
+        height: 44,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _TopTab(
+              text: 'Follow',
+              selected: _selectedTab == 0,
+              onTap: () {
+                setState(() {
+                  _selectedTab = 0;
+                });
+              },
             ),
-          ),
-        ],
+            const SizedBox(width: 22),
+            _TopTab(
+              text: 'Moments',
+              selected: _selectedTab == 1,
+              onTap: () {
+                setState(() {
+                  _selectedTab = 1;
+                });
+              },
+            ),
+            const Spacer(),
+            const Icon(
+              Icons.workspace_premium_outlined,
+              color: Color(0xFFFFC95C),
+              size: 27,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -694,22 +576,15 @@ class _MomentsScreenState extends State<MomentsScreen> {
   Widget _buildMomentsFeed() {
     return ListView.separated(
       key: const ValueKey('moments-feed'),
-      padding: const EdgeInsets.fromLTRB(
-        10,
-        4,
-        10,
-        150,
-      ),
+      padding: const EdgeInsets.fromLTRB(9, 4, 9, 125),
       itemCount: _moments.length,
-      separatorBuilder: (_, __) =>
-      const SizedBox(height: 12),
+      separatorBuilder: (_, __) => const SizedBox(height: 9),
       itemBuilder: (context, index) {
         final MomentItem moment = _moments[index];
 
         return MomentCard(
           key: ValueKey(
-            moment.localData?.id ??
-                'moment-sample-$index',
+            moment.localData?.id ?? 'moment-sample-$index',
           ),
           moment: moment,
           onEdit: moment.localData == null
@@ -726,22 +601,15 @@ class _MomentsScreenState extends State<MomentsScreen> {
   Widget _buildFollowFeed() {
     return ListView.separated(
       key: const ValueKey('follow-feed'),
-      padding: const EdgeInsets.fromLTRB(
-        10,
-        4,
-        10,
-        150,
-      ),
+      padding: const EdgeInsets.fromLTRB(9, 4, 9, 125),
       itemCount: _moments.length,
-      separatorBuilder: (_, __) =>
-      const SizedBox(height: 12),
+      separatorBuilder: (_, __) => const SizedBox(height: 9),
       itemBuilder: (context, index) {
         final MomentItem moment = _moments[index];
 
         return MomentCard(
           key: ValueKey(
-            moment.localData?.id ??
-                'follow-sample-$index',
+            moment.localData?.id ?? 'follow-sample-$index',
           ),
           moment: moment,
           onEdit: moment.localData == null
@@ -776,11 +644,12 @@ class _TopTab extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         child: Padding(
           padding: const EdgeInsets.symmetric(
-            horizontal: 3,
-            vertical: 4,
+            horizontal: 2,
+            vertical: 5,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 text,
@@ -788,66 +657,21 @@ class _TopTab extends StatelessWidget {
                   color: selected
                       ? const Color(0xFFFFD36A)
                       : Colors.white54,
-                  fontSize: 27,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  fontWeight:
+                  selected ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),
-
-              const SizedBox(height: 5),
-
+              const SizedBox(height: 4),
               AnimatedContainer(
-                duration: const Duration(milliseconds: 220),
+                duration: const Duration(milliseconds: 200),
                 height: 2,
-                width: selected ? 115 : 0,
+                width: selected ? 28 : 0,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [
-                      Colors.transparent,
-                      Color(0xFFFFD36A),
-                      Colors.transparent,
-                    ],
-                  ),
-                  boxShadow: selected
-                      ? [
-                    BoxShadow(
-                      color: const Color(0xFFFFC34A)
-                          .withOpacity(0.6),
-                      blurRadius: 6,
-                    ),
-                  ]
-                      : null,
+                  color: const Color(0xFFFFD36A),
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-
-              if (selected)
-                Transform.translate(
-                  offset: const Offset(0, -5),
-                  child: Transform.rotate(
-                    angle: 0.785398,
-                    child: Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            Color(0xFFFFD36A),
-                            Color(0xFFA72CFF),
-                          ],
-                        ),
-                        border: Border.all(
-                          color: const Color(0xFFFFE495),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFFA72CFF)
-                                .withOpacity(0.8),
-                            blurRadius: 8,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
             ],
           ),
         ),
@@ -856,15 +680,7 @@ class _TopTab extends StatelessWidget {
   }
 }
 
-enum _MomentMenuAction {
-  edit,
-  delete,
-}
-
-
 class MomentCard extends StatefulWidget {
-
-
   final MomentItem moment;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
@@ -877,14 +693,10 @@ class MomentCard extends StatefulWidget {
   });
 
   @override
-  State<MomentCard> createState() =>
-      _MomentCardState();
+  State<MomentCard> createState() => _MomentCardState();
 }
 
 class _MomentCardState extends State<MomentCard> {
-
-
-
   bool _liked = false;
   bool _followed = false;
 
@@ -893,21 +705,14 @@ class _MomentCardState extends State<MomentCard> {
     final MomentItem moment = widget.moment;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 8),
       decoration: BoxDecoration(
-        color: const Color(0xE60B0015),
-        borderRadius: BorderRadius.circular(22),
+        color: const Color(0xD90B0015),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFF8D36BD).withOpacity(0.72),
-          width: 1.1,
+          color: const Color(0xFF8D36BD).withOpacity(.38),
+          width: .8,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF7D1FB0).withOpacity(0.11),
-            blurRadius: 18,
-            spreadRadius: 1,
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -915,34 +720,24 @@ class _MomentCardState extends State<MomentCard> {
           _buildHeader(moment),
 
           if (moment.message.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.only(left: 78, right: 6),
-              child: Text(
-                moment.message,
-                style: const TextStyle(
-                  color: Color(0xFFF1EDF5),
-                  fontSize: 16,
-                  height: 1.35,
-                ),
+            const SizedBox(height: 8),
+            Text(
+              moment.message,
+              style: const TextStyle(
+                color: Color(0xFFF1EDF5),
+                fontSize: 14,
+                height: 1.32,
               ),
             ),
           ],
 
           if (moment.media.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.only(left: 78),
-              child: _buildMedia(moment.media),
-            ),
+            const SizedBox(height: 9),
+            _buildMedia(moment.media),
           ],
 
-          const SizedBox(height: 13),
-
-          Padding(
-            padding: const EdgeInsets.only(left: 78),
-            child: _buildFooter(moment),
-          ),
+          const SizedBox(height: 8),
+          _buildFooter(moment),
         ],
       ),
     );
@@ -950,15 +745,13 @@ class _MomentCardState extends State<MomentCard> {
 
   Widget _buildHeader(MomentItem moment) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         _ProfileAvatar(
           assetPath: moment.avatarAsset,
           isLive: moment.isLive,
         ),
-
-        const SizedBox(width: 12),
-
+        const SizedBox(width: 9),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -969,34 +762,26 @@ class _MomentCardState extends State<MomentCard> {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: Color(0xFFFFE5B2),
-                  fontSize: 21,
+                  fontSize: 15.5,
                   fontWeight: FontWeight.w700,
                 ),
               ),
-
-              const SizedBox(height: 7),
-
-              Wrap(
-                spacing: 8,
-                runSpacing: 5,
-                crossAxisAlignment: WrapCrossAlignment.center,
+              const SizedBox(height: 4),
+              Row(
                 children: [
-                  _SmallBadge(
-                    text: moment.badge,
-                  ),
+                  _SmallBadge(text: moment.badge),
+                  const SizedBox(width: 6),
                   const Icon(
                     Icons.military_tech_rounded,
                     color: Color(0xFFD89832),
-                    size: 25,
+                    size: 17,
                   ),
                 ],
               ),
             ],
           ),
         ),
-
         const SizedBox(width: 8),
-
         GestureDetector(
           onTap: () {
             setState(() {
@@ -1004,40 +789,24 @@ class _MomentCardState extends State<MomentCard> {
             });
           },
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 220),
-            width: 54,
-            height: 48,
+            duration: const Duration(milliseconds: 180),
+            width: 38,
+            height: 34,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(17),
-              gradient: _followed
-                  ? const LinearGradient(
-                colors: [
-                  Color(0xFF6E1AA0),
-                  Color(0xFFA739E5),
-                ],
-              )
-                  : const LinearGradient(
-                colors: [
-                  Color(0xFF21102D),
-                  Color(0xFF38134A),
-                ],
-              ),
+              color: _followed
+                  ? const Color(0xFF7420A5)
+                  : const Color(0xFF21102D),
+              borderRadius: BorderRadius.circular(11),
               border: Border.all(
-                color: const Color(0xFFFFC95C),
+                color: const Color(0xFFFFC95C).withOpacity(.75),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFFFC95C).withOpacity(0.2),
-                  blurRadius: 10,
-                ),
-              ],
             ),
             child: Icon(
               _followed
                   ? Icons.check_rounded
                   : Icons.add_rounded,
               color: const Color(0xFFFFD36A),
-              size: 34,
+              size: 23,
             ),
           ),
         ),
@@ -1047,46 +816,59 @@ class _MomentCardState extends State<MomentCard> {
 
   Widget _buildMedia(List<MomentMedia> media) {
     if (media.length == 1) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(13),
-        child: AspectRatio(
-          aspectRatio: 1.02,
-          child: _MomentImage(
-            media: media.first,
-          ),
-        ),
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final double mediaHeight =
+          (constraints.maxWidth * .60).clamp(170.0, 245.0);
+
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: SizedBox(
+              width: double.infinity,
+              height: mediaHeight,
+              child: _MomentImage(
+                media: media.first,
+                fit: BoxFit.cover,
+              ),
+            ),
+          );
+        },
       );
     }
 
     if (media.length == 2) {
-      return Row(
-        children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: AspectRatio(
-                aspectRatio: 0.78,
-                child: _MomentImage(
-                  media: media[0],
-                ),
-              ),
-            ),
-          ),
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final double mediaHeight =
+          (constraints.maxWidth * .52).clamp(155.0, 215.0);
 
-          const SizedBox(width: 8),
-
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: AspectRatio(
-                aspectRatio: 0.78,
-                child: _MomentImage(
-                  media: media[1],
+          return SizedBox(
+            height: mediaHeight,
+            child: Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(11),
+                    child: _MomentImage(
+                      media: media[0],
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(11),
+                    child: _MomentImage(
+                      media: media[1],
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+          );
+        },
       );
     }
 
@@ -1097,113 +879,19 @@ class _MomentCardState extends State<MomentCard> {
       gridDelegate:
       const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        crossAxisSpacing: 7,
-        mainAxisSpacing: 7,
+        crossAxisSpacing: 6,
+        mainAxisSpacing: 6,
+        childAspectRatio: 1.35,
       ),
       itemBuilder: (context, index) {
         return ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: _MomentImage(
             media: media[index],
+            fit: BoxFit.cover,
           ),
         );
       },
-    );
-  }
-
-  Widget _buildMomentOptions() {
-    final bool hasOwnerActions =
-        widget.onEdit != null ||
-            widget.onDelete != null;
-
-    if (!hasOwnerActions) {
-      return const Icon(
-        Icons.more_horiz_rounded,
-        color: Color(0xFFB75CF0),
-        size: 28,
-      );
-    }
-
-    return PopupMenuButton<_MomentMenuAction>(
-      tooltip: 'Moment options',
-      padding: EdgeInsets.zero,
-      color: const Color(0xFF190024),
-      elevation: 12,
-      offset: const Offset(0, 34),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: const Color(0xFFA440F2)
-              .withOpacity(0.65),
-        ),
-      ),
-      onSelected: (action) {
-        switch (action) {
-          case _MomentMenuAction.edit:
-            widget.onEdit?.call();
-            break;
-
-          case _MomentMenuAction.delete:
-            widget.onDelete?.call();
-            break;
-        }
-      },
-      itemBuilder: (context) {
-        return [
-          if (widget.onEdit != null)
-            const PopupMenuItem<_MomentMenuAction>(
-              value: _MomentMenuAction.edit,
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.edit_rounded,
-                    color: Color(0xFFFFD36A),
-                    size: 21,
-                  ),
-                  SizedBox(width: 12),
-                  Text(
-                    'Edit moment',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          if (widget.onDelete != null)
-            const PopupMenuItem<_MomentMenuAction>(
-              value: _MomentMenuAction.delete,
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.delete_outline_rounded,
-                    color: Color(0xFFFF5D87),
-                    size: 22,
-                  ),
-                  SizedBox(width: 12),
-                  Text(
-                    'Delete moment',
-                    style: TextStyle(
-                      color: Color(0xFFFF8BA8),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ];
-      },
-      child: const Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: 3,
-          vertical: 4,
-        ),
-        child: Icon(
-          Icons.more_horiz_rounded,
-          color: Color(0xFFB75CF0),
-          size: 28,
-        ),
-      ),
     );
   }
 
@@ -1214,30 +902,25 @@ class _MomentCardState extends State<MomentCard> {
           child: Text(
             moment.time,
             style: const TextStyle(
-              color: Color(0xFFB45BEE),
-              fontSize: 15,
+              color: Colors.white,
+              fontSize: 11.5,
             ),
           ),
         ),
-
         const Icon(
           Icons.chat_bubble_outline_rounded,
           color: Color(0xFFFFD36A),
-          size: 23,
+          size: 18,
         ),
-
-        const SizedBox(width: 6),
-
+        const SizedBox(width: 4),
         Text(
           '${moment.comments}',
           style: const TextStyle(
-            color: Color(0xFFFFD36A),
-            fontSize: 15,
+            color: Colors.white60,
+            fontSize: 12,
           ),
         ),
-
-        const SizedBox(width: 22),
-
+        const SizedBox(width: 17),
         GestureDetector(
           onTap: () {
             setState(() {
@@ -1251,27 +934,117 @@ class _MomentCardState extends State<MomentCard> {
             color: _liked
                 ? const Color(0xFFFF4E80)
                 : const Color(0xFFFFD36A),
-            size: 28,
+            size: 20,
           ),
         ),
-
-        const SizedBox(width: 6),
-
+        const SizedBox(width: 4),
         Text(
           '${moment.likes + (_liked ? 1 : 0)}',
           style: const TextStyle(
-            color: Color(0xFFFFD36A),
-            fontSize: 15,
+            color: Colors.white60,
+            fontSize: 12,
           ),
         ),
-
-        const SizedBox(width: 20),
-
+        const SizedBox(width: 13),
         _buildMomentOptions(),
-
       ],
     );
   }
+
+  Widget _buildMomentOptions() {
+    final bool hasOwnerActions =
+        widget.onEdit != null || widget.onDelete != null;
+
+    if (!hasOwnerActions) {
+      return const Icon(
+        Icons.more_horiz_rounded,
+        color: Colors.white38,
+        size: 21,
+      );
+    }
+
+    return PopupMenuButton<_MomentMenuAction>(
+      tooltip: 'Moment options',
+      padding: EdgeInsets.zero,
+      color: const Color(0xFF190024),
+      elevation: 10,
+      offset: const Offset(0, 28),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(13),
+        side: BorderSide(
+          color: const Color(0xFFA440F2).withOpacity(.45),
+        ),
+      ),
+      onSelected: (action) {
+        switch (action) {
+          case _MomentMenuAction.edit:
+            widget.onEdit?.call();
+            break;
+          case _MomentMenuAction.delete:
+            widget.onDelete?.call();
+            break;
+        }
+      },
+      itemBuilder: (context) {
+        return [
+          if (widget.onEdit != null)
+            const PopupMenuItem<_MomentMenuAction>(
+              value: _MomentMenuAction.edit,
+              height: 42,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.edit_rounded,
+                    color: Color(0xFFFFD36A),
+                    size: 18,
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    'Edit moment',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (widget.onDelete != null)
+            const PopupMenuItem<_MomentMenuAction>(
+              value: _MomentMenuAction.delete,
+              height: 42,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.delete_outline_rounded,
+                    color: Color(0xFFFF5D87),
+                    size: 19,
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    'Delete moment',
+                    style: TextStyle(
+                      color: Color(0xFFFF8BA8),
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ];
+      },
+      child: const Icon(
+        Icons.more_horiz_rounded,
+        color: Colors.white38,
+        size: 21,
+      ),
+    );
+  }
+}
+
+enum _MomentMenuAction {
+  edit,
+  delete,
 }
 
 class _ProfileAvatar extends StatelessWidget {
@@ -1286,30 +1059,23 @@ class _ProfileAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 66,
-      height: 76,
+      width: 48,
+      height: 53,
       child: Stack(
         alignment: Alignment.topCenter,
         children: [
           Container(
-            width: 64,
-            height: 64,
-            padding: const EdgeInsets.all(3),
-            decoration: BoxDecoration(
+            width: 46,
+            height: 46,
+            padding: const EdgeInsets.all(2),
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 colors: [
                   Color(0xFFFFD36A),
                   Color(0xFFB635FF),
-                  Color(0xFF52156F),
                 ],
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFB635FF).withOpacity(0.45),
-                  blurRadius: 12,
-                ),
-              ],
             ),
             child: ClipOval(
               child: assetPath.isEmpty
@@ -1318,7 +1084,7 @@ class _ProfileAvatar extends StatelessWidget {
                 child: const Icon(
                   Icons.person_rounded,
                   color: Color(0xFFFFD36A),
-                  size: 38,
+                  size: 27,
                 ),
               )
                   : Image.asset(
@@ -1330,44 +1096,31 @@ class _ProfileAvatar extends StatelessWidget {
                     child: const Icon(
                       Icons.person_rounded,
                       color: Color(0xFFFFD36A),
-                      size: 38,
+                      size: 27,
                     ),
                   );
                 },
               ),
             ),
           ),
-
           if (isLive)
             Positioned(
               bottom: 0,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 3,
+                  horizontal: 7,
+                  vertical: 1.5,
                 ),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(13),
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFFFF20A9),
-                      Color(0xFFB719E4),
-                    ],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                      const Color(0xFFFF20A9).withOpacity(0.45),
-                      blurRadius: 7,
-                    ),
-                  ],
+                  borderRadius: BorderRadius.circular(9),
+                  color: const Color(0xFFE61B9B),
                 ),
                 child: const Text(
                   'Live',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
-                    fontSize: 12,
+                    fontSize: 9,
                   ),
                 ),
               ),
@@ -1389,29 +1142,23 @@ class _SmallBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 4,
+        horizontal: 8,
+        vertical: 2.5,
       ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(10),
         gradient: const LinearGradient(
           colors: [
             Color(0xFFF02B9B),
             Color(0xFFAF44F2),
           ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFEC2DAB).withOpacity(0.25),
-            blurRadius: 7,
-          ),
-        ],
       ),
       child: Text(
         text,
         style: const TextStyle(
           color: Colors.white,
-          fontSize: 13,
+          fontSize: 10,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -1421,9 +1168,11 @@ class _SmallBadge extends StatelessWidget {
 
 class _MomentImage extends StatelessWidget {
   final MomentMedia media;
+  final BoxFit fit;
 
   const _MomentImage({
     required this.media,
+    this.fit = BoxFit.cover,
   });
 
   @override
@@ -1431,14 +1180,18 @@ class _MomentImage extends StatelessWidget {
     if (media.type == MomentMediaType.file) {
       return Image.file(
         File(media.path),
-        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        fit: fit,
         errorBuilder: (_, __, ___) => _fallback(),
       );
     }
 
     return Image.asset(
       media.path,
-      fit: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
+      fit: fit,
       errorBuilder: (_, __, ___) => _fallback(),
     );
   }
@@ -1450,7 +1203,7 @@ class _MomentImage extends StatelessWidget {
         child: Icon(
           Icons.image_outlined,
           color: Color(0xFFB86AE3),
-          size: 44,
+          size: 34,
         ),
       ),
     );
@@ -1472,60 +1225,33 @@ class _CreateMomentButton extends StatelessWidget {
         onTap: onTap,
         customBorder: const CircleBorder(),
         child: Ink(
-          width: 66,
-          height: 66,
+          width: 50,
+          height: 50,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color(0xFFA02DE8),
-                Color(0xFF6816A5),
-                Color(0xFF321047),
+                Color(0xFF8D27D0),
+                Color(0xFF511278),
               ],
             ),
             border: Border.all(
-              color: const Color(0xFFFFD36A),
-              width: 1.4,
+              color: const Color(0xFFFFD36A).withOpacity(.85),
+              width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF9C32EA).withOpacity(0.65),
-                blurRadius: 18,
+                color: const Color(0xFF7B24B5).withOpacity(.32),
+                blurRadius: 10,
               ),
             ],
           ),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              const Icon(
-                Icons.send_rounded,
-                color: Color(0xFFFFD36A),
-                size: 36,
-              ),
-
-              Positioned(
-                right: 6,
-                bottom: 5,
-                child: Container(
-                  width: 19,
-                  height: 19,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: const Color(0xFF341047),
-                    border: Border.all(
-                      color: const Color(0xFFFFD36A),
-                    ),
-                  ),
-                  child: const Icon(
-                    Icons.add_rounded,
-                    size: 15,
-                    color: Color(0xFFFFD36A),
-                  ),
-                ),
-              ),
-            ],
+          child: const Icon(
+            Icons.add_rounded,
+            color: Color(0xFFFFD36A),
+            size: 29,
           ),
         ),
       ),
