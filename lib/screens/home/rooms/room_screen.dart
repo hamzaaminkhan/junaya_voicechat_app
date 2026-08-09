@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:junaya_voicechat_app/screens/home/rooms/room_socket_service.dart';
 
 import 'room_profile_screen.dart';
-
+import 'room_socket_service.dart';
+import 'agora_voice_service.dart';
 
 enum RoomSeatStatus {
   empty,
@@ -491,14 +491,39 @@ class _RoomScreenState extends State<RoomScreen> {
   int _tab = 0;
   late final RoomController _roomController;
   late final RoomSocketService _socketService;
+  late final AgoraVoiceService _agoraVoiceService;
 
   bool _socketConnected = false;
   String? _socketError;
+
+  bool _agoraConnected = false;
+  String? _agoraError;
 
   final List<String> _activityMessages = [
     'Welcome to Junaya Voice Room 👋',
     'StoneBoy sent 20 treasures 🎁',
     'Ayesha joined the room',
+  ];
+
+  final TextEditingController _chatController =
+  TextEditingController();
+
+  final List<_RoomChatEntry> _chatMessages = [
+    const _RoomChatEntry(
+      name: 'System',
+      message: 'Welcome to Junaya Voice Room.',
+      badge: 'ROOM',
+      isSystem: true,
+    ),
+    const _RoomChatEntry(
+      name: 'Ayesha',
+      message: 'Nice room ❤️',
+    ),
+    const _RoomChatEntry(
+      name: 'StoneBoy',
+      message: 'Hello everyone 👋',
+      badge: 'VIP 3',
+    ),
   ];
 
   @override
@@ -514,6 +539,27 @@ class _RoomScreenState extends State<RoomScreen> {
     _roomController.addListener(_roomUpdated);
 
     _socketService = RoomSocketService();
+
+    _agoraVoiceService = AgoraVoiceService(
+      onTokenWillExpire: _refreshAgoraToken,
+      onRemoteUserJoined: (uid) {
+        debugPrint('Agora remote user joined: $uid');
+      },
+      onRemoteUserLeft: (uid) {
+        debugPrint('Agora remote user left: $uid');
+      },
+      onError: (message) {
+        if (!mounted) return;
+
+        setState(() {
+          _agoraError = message;
+        });
+
+        _showMessage(message);
+      },
+    );
+
+    _agoraVoiceService.addListener(_agoraUpdated);
 
     if (widget.enableRealtime) {
       _connectRealtimeRoom();
@@ -539,9 +585,14 @@ class _RoomScreenState extends State<RoomScreen> {
           onResult: (ok, error) {
             if (!mounted) return;
 
-            if (!ok && error != null) {
-              setState(() => _socketError = error);
+            if (!ok) {
+              if (error != null) {
+                setState(() => _socketError = error);
+              }
+              return;
             }
+
+            _startAgoraAudience();
           },
         );
       },
@@ -565,26 +616,238 @@ class _RoomScreenState extends State<RoomScreen> {
       },
       onUserJoined: (data) {
         final name = data['name']?.toString() ?? 'A user';
+
         _addActivity('$name joined the room');
+
+        _addChatEntry(
+          _RoomChatEntry(
+            name: 'System',
+            message: '$name joined the room',
+            badge: 'ROOM',
+            isSystem: true,
+          ),
+        );
       },
       onUserLeft: (data) {
         final name = data['name']?.toString() ?? 'A user';
+
         _addActivity('$name left the room');
+
+        _addChatEntry(
+          _RoomChatEntry(
+            name: 'System',
+            message: '$name left the room',
+            badge: 'ROOM',
+            isSystem: true,
+          ),
+        );
       },
       onChatMessage: (data) {
-        final user = data['user'];
+        final rawUser = data['user'];
 
+        String userId = '';
         String name = 'User';
+        String? avatar;
 
-        if (user is Map) {
-          name = user['name']?.toString() ?? 'User';
+        if (rawUser is Map) {
+          userId = rawUser['id']?.toString() ?? '';
+          name = rawUser['name']?.toString() ?? 'User';
+          avatar = rawUser['avatar']?.toString();
         }
 
-        final message = data['message']?.toString() ?? '';
+        final message = data['message']?.toString().trim() ?? '';
 
-        if (message.isNotEmpty) {
-          _addActivity('$name: $message');
+        if (message.isEmpty) return;
+
+        _addChatEntry(
+          _RoomChatEntry(
+            userId: userId,
+            name: name,
+            avatar: avatar,
+            message: message,
+            isMe: userId == _roomController.currentUserId,
+          ),
+        );
+
+        _addActivity('$name: $message');
+      },
+    );
+  }
+
+  void _agoraUpdated() {
+    if (!mounted) return;
+
+    setState(() {
+      _agoraConnected = _agoraVoiceService.joined;
+    });
+  }
+
+  void _requestAgoraToken({
+    required String role,
+    required void Function(Map<String, dynamic> agora) onSuccess,
+    bool showErrors = true,
+  }) {
+    if (!_socketConnected) {
+      if (showErrors) {
+        _showMessage('Socket connection is required for voice.');
+      }
+      return;
+    }
+
+    _socketService.requestAgoraToken(
+      roomId: _room.id,
+      role: role,
+      onResult: (ok, agora, error) {
+        if (!mounted) return;
+
+        if (!ok || agora == null) {
+          final message =
+              error ?? 'Unable to obtain secure voice token.';
+
+          setState(() {
+            _agoraError = message;
+          });
+
+          if (showErrors) {
+            _showMessage(message);
+          }
+          return;
         }
+
+        setState(() {
+          _agoraError = null;
+        });
+
+        onSuccess(agora);
+      },
+    );
+  }
+
+  void _startAgoraAudience() {
+    if (_agoraVoiceService.joined) {
+      return;
+    }
+
+    _requestAgoraToken(
+      role: 'subscriber',
+      onSuccess: (agora) async {
+        final appId = agora['appId']?.toString() ?? '';
+        final token = agora['token']?.toString() ?? '';
+        final channelId =
+            agora['channelId']?.toString() ?? _room.id;
+        final rawUid = agora['uid'];
+
+        final uid = rawUid is int
+            ? rawUid
+            : int.tryParse(rawUid?.toString() ?? '');
+
+        if (appId.isEmpty || token.isEmpty || uid == null) {
+          _showMessage('Invalid Agora voice configuration.');
+          return;
+        }
+
+        try {
+          await _agoraVoiceService.initializeAndJoinAsAudience(
+            appId: appId,
+            token: token,
+            channelId: channelId,
+            uid: uid,
+          );
+
+          if (!mounted) return;
+
+          setState(() {
+            _agoraConnected = true;
+            _agoraError = null;
+          });
+        } catch (_) {
+          if (!mounted) return;
+
+          setState(() {
+            _agoraConnected = false;
+          });
+        }
+      },
+    );
+  }
+
+  void _refreshAgoraToken() {
+    final role =
+    _agoraVoiceService.publishing ? 'publisher' : 'subscriber';
+
+    _requestAgoraToken(
+      role: role,
+      showErrors: false,
+      onSuccess: (agora) {
+        final token = agora['token']?.toString() ?? '';
+
+        if (token.isNotEmpty) {
+          _agoraVoiceService.renewToken(token);
+        }
+      },
+    );
+  }
+
+  void _enableAgoraPublishingAfterSeatJoin({
+    required int seatIndex,
+  }) {
+    _requestAgoraToken(
+      role: 'publisher',
+      onSuccess: (agora) async {
+        final token = agora['token']?.toString() ?? '';
+
+        if (token.isEmpty) {
+          _showMessage('Publisher voice token is missing.');
+          _rollbackMicSeat(seatIndex);
+          return;
+        }
+
+        final enabled =
+        await _agoraVoiceService.becomeBroadcaster(
+          publisherToken: token,
+        );
+
+        if (!mounted) return;
+
+        if (!enabled) {
+          _rollbackMicSeat(seatIndex);
+          return;
+        }
+
+        _addActivity(
+          'Your microphone is now live on Mic ${seatIndex + 1} 🎙️',
+        );
+        _showMessage('Microphone is live');
+      },
+    );
+  }
+
+  void _rollbackMicSeat(int seatIndex) {
+    if (!_socketConnected) return;
+
+    _socketService.leaveSeat(
+      roomId: _room.id,
+      userId: _roomController.currentUserId,
+      onResult: (_, __) {},
+    );
+
+    _agoraVoiceService.becomeAudience();
+
+    _showMessage(
+      'Mic ${seatIndex + 1} was released because voice could not start.',
+    );
+  }
+
+  void _renewSubscriberTokenAfterLeavingMic() {
+    _requestAgoraToken(
+      role: 'subscriber',
+      showErrors: false,
+      onSuccess: (agora) {
+        final token = agora['token']?.toString() ?? '';
+
+        _agoraVoiceService.becomeAudience(
+          subscriberToken: token.isEmpty ? null : token,
+        );
       },
     );
   }
@@ -606,8 +869,12 @@ class _RoomScreenState extends State<RoomScreen> {
 
     _socketService.dispose();
 
+    _agoraVoiceService.removeListener(_agoraUpdated);
+    _agoraVoiceService.disposeVoice();
+
     _roomController.removeListener(_roomUpdated);
     _roomController.dispose();
+    _chatController.dispose();
 
     super.dispose();
   }
@@ -656,6 +923,179 @@ class _RoomScreenState extends State<RoomScreen> {
     });
   }
 
+  void _addChatEntry(_RoomChatEntry entry) {
+    if (!mounted) return;
+
+    setState(() {
+      _chatMessages.insert(0, entry);
+
+      if (_chatMessages.length > 100) {
+        _chatMessages.removeLast();
+      }
+
+      _tab = 1;
+    });
+  }
+
+  void _sendChatMessage() {
+    final message = _chatController.text.trim();
+
+    if (message.isEmpty) return;
+
+    if (!_socketConnected) {
+      _chatController.clear();
+
+      _addChatEntry(
+        _RoomChatEntry(
+          userId: _roomController.currentUserId,
+          name: _roomController.currentUserName,
+          avatar: _roomController.currentUserAvatar,
+          message: message,
+          isMe: true,
+        ),
+      );
+
+      _showMessage('Offline demo message added');
+      return;
+    }
+
+    _socketService.sendChatMessage(
+      roomId: _room.id,
+      userId: _roomController.currentUserId,
+      name: _roomController.currentUserName,
+      message: message,
+      onResult: (ok, error) {
+        if (!mounted) return;
+
+        if (ok) {
+          _chatController.clear();
+          setState(() => _tab = 1);
+        } else {
+          _showMessage(error ?? 'Unable to send message');
+        }
+      },
+    );
+  }
+
+  void _showChatComposer() {
+    setState(() => _tab = 1);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+          ),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+            decoration: const BoxDecoration(
+              color: Color(0xFF160633),
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(22),
+              ),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _chatController,
+                      autofocus: true,
+                      textInputAction: TextInputAction.send,
+                      maxLength: 250,
+                      onSubmitted: (_) {
+                        _sendChatMessage();
+                        if (_chatController.text.trim().isEmpty &&
+                            Navigator.canPop(sheetContext)) {
+                          Navigator.pop(sheetContext);
+                        }
+                      },
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 13,
+                      ),
+                      decoration: InputDecoration(
+                        counterText: '',
+                        hintText: 'Say something...',
+                        hintStyle: GoogleFonts.poppins(
+                          color: Colors.white38,
+                          fontSize: 12,
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.chat_bubble_outline_rounded,
+                          color: Color(0xFFFFD76A),
+                          size: 19,
+                        ),
+                        filled: true,
+                        fillColor: const Color(0xFF250D49),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 11,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(22),
+                          borderSide: BorderSide(
+                            color: _pink.withOpacity(.25),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(22),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFFFD76A),
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        final hadText =
+                            _chatController.text.trim().isNotEmpty;
+
+                        _sendChatMessage();
+
+                        if (hadText && Navigator.canPop(sheetContext)) {
+                          Navigator.pop(sheetContext);
+                        }
+                      },
+                      customBorder: const CircleBorder(),
+                      child: Container(
+                        width: 46,
+                        height: 46,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              Color(0xFFFFD76A),
+                              Color(0xFFFFA61E),
+                            ],
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.send_rounded,
+                          color: Color(0xFF2B0D3E),
+                          size: 21,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _joinMicRealtime(int index) {
     if (!_socketConnected) {
       final joined = _roomController.joinMic(index);
@@ -684,6 +1124,10 @@ class _RoomScreenState extends State<RoomScreen> {
         if (ok) {
           _addActivity('You joined Mic ${index + 1} 🎙️');
           _showMessage('You joined Mic ${index + 1}');
+
+          _enableAgoraPublishingAfterSeatJoin(
+            seatIndex: index,
+          );
         } else {
           _showMessage(error ?? 'Unable to join mic');
         }
@@ -692,6 +1136,8 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 
   void _leaveMicRealtime() {
+    _agoraVoiceService.becomeAudience();
+
     if (!_socketConnected) {
       final left = _roomController.leaveMic();
 
@@ -712,6 +1158,8 @@ class _RoomScreenState extends State<RoomScreen> {
         if (ok) {
           _addActivity('You left the mic seat.');
           _showMessage('You left the mic');
+
+          _renewSubscriberTokenAfterLeavingMic();
         } else {
           _showMessage(error ?? 'Unable to leave mic');
         }
@@ -720,11 +1168,19 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 
   void _toggleMicRealtime() {
+    if (!_roomController.isOnMic ||
+        !_agoraVoiceService.publishing) {
+      _showMessage('Take a mic seat first.');
+      return;
+    }
+
     _roomController.toggleMicrophone();
 
     final muted = !_roomController.microphoneEnabled;
 
-    if (_socketConnected && _roomController.isOnMic) {
+    _agoraVoiceService.setMuted(muted);
+
+    if (_socketConnected) {
       _socketService.setMicMuted(
         roomId: _room.id,
         userId: _roomController.currentUserId,
@@ -740,9 +1196,7 @@ class _RoomScreenState extends State<RoomScreen> {
     }
 
     _showMessage(
-      _roomController.microphoneEnabled
-          ? 'Microphone enabled'
-          : 'Microphone muted',
+      muted ? 'Microphone muted' : 'Microphone enabled',
     );
   }
 
@@ -959,6 +1413,17 @@ class _RoomScreenState extends State<RoomScreen> {
                                 color: _socketConnected
                                     ? const Color(0xFF53E68A)
                                     : const Color(0xFFFFD76A),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Container(
+                              width: 7,
+                              height: 7,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: _agoraConnected
+                                    ? const Color(0xFF31E8F7)
+                                    : Colors.white24,
                               ),
                             ),
                             const SizedBox(width: 6),
@@ -1530,29 +1995,66 @@ class _RoomScreenState extends State<RoomScreen> {
                 ),
                 const SizedBox(height: 18),
                 if (isMe)
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(context);
-
-                        _leaveMicRealtime();
-                      },
-                      icon: const Icon(
-                        Icons.logout_rounded,
-                        size: 18,
-                      ),
-                      label: const Text('Leave Mic'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFDA345B),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        minimumSize: const Size.fromHeight(44),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _toggleMicRealtime();
+                          },
+                          icon: Icon(
+                            _roomController.microphoneEnabled
+                                ? Icons.mic_off_rounded
+                                : Icons.mic_rounded,
+                            size: 18,
+                          ),
+                          label: Text(
+                            _roomController.microphoneEnabled
+                                ? 'Mute'
+                                : 'Unmute',
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            minimumSize:
+                            const Size.fromHeight(44),
+                            side: BorderSide(
+                              color: _pink.withOpacity(.35),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                              BorderRadius.circular(14),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _leaveMicRealtime();
+                          },
+                          icon: const Icon(
+                            Icons.logout_rounded,
+                            size: 18,
+                          ),
+                          label: const Text('Leave Mic'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                            const Color(0xFFDA345B),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            minimumSize:
+                            const Size.fromHeight(44),
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                              BorderRadius.circular(14),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   )
                 else
                   Row(
@@ -2108,71 +2610,117 @@ class _RoomScreenState extends State<RoomScreen> {
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
       child: Column(
         children: [
-          _chatMessage(
-            name: 'StoneBoy',
-            message: 'Hello everyone 👋',
-            badge: 'VIP 3',
-          ),
-          _chatMessage(
-            name: 'Ayesha',
-            message: 'Nice room ❤️',
-          ),
-          _chatMessage(
-            name: 'System',
-            message: 'Welcome to Junaya Voice Room.',
-            badge: 'ROOM',
+          if (_chatMessages.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              child: Text(
+                'No messages yet.',
+                style: GoogleFonts.poppins(
+                  color: Colors.white38,
+                  fontSize: 11,
+                ),
+              ),
+            )
+          else
+            ..._chatMessages
+                .take(30)
+                .map((entry) => _chatMessage(entry)),
+          const SizedBox(height: 4),
+          InkWell(
+            onTap: _showChatComposer,
+            borderRadius: BorderRadius.circular(22),
+            child: Ink(
+              height: 42,
+              padding: const EdgeInsets.symmetric(horizontal: 13),
+              decoration: BoxDecoration(
+                color: const Color(0xFF210941),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                  color: _pink.withOpacity(.20),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.chat_bubble_outline_rounded,
+                    color: Color(0xFFFFD76A),
+                    size: 17,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Say something...',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white38,
+                        fontSize: 10.5,
+                      ),
+                    ),
+                  ),
+                  const Icon(
+                    Icons.send_rounded,
+                    color: Colors.white54,
+                    size: 17,
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _chatMessage({
-    required String name,
-    required String message,
-    String? badge,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+  Widget _chatMessage(_RoomChatEntry entry) {
+    final Color nameColor = entry.isSystem
+        ? const Color(0xFFFFD76A)
+        : entry.isMe
+        ? const Color(0xFF53E68A)
+        : const Color(0xFFE890FF);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 9),
+      padding: const EdgeInsets.fromLTRB(9, 8, 10, 8),
+      decoration: entry.isSystem
+          ? BoxDecoration(
+        color: const Color(0xFFFFD76A).withOpacity(.06),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0xFFFFD76A).withOpacity(.16),
+        ),
+      )
+          : null,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CircleAvatar(
-            radius: 14,
-            backgroundColor: Color(0xFF45217B),
-            child: Icon(
-              Icons.person,
-              color: Colors.white70,
-              size: 15,
-            ),
-          ),
-          const SizedBox(width: 9),
+          _chatAvatar(entry),
+          const SizedBox(width: 8),
           Expanded(
             child: RichText(
               text: TextSpan(
                 children: [
-                  if (badge != null)
+                  if (entry.badge != null)
                     TextSpan(
-                      text: '[$badge] ',
+                      text: '[${entry.badge}] ',
                       style: GoogleFonts.poppins(
-                        color: const Color(0xFFFFC657),
+                        color: const Color(0xFFFFD76A),
                         fontSize: 10,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   TextSpan(
-                    text: '$name: ',
+                    text: entry.isMe ? 'You: ' : '${entry.name}: ',
                     style: GoogleFonts.poppins(
-                      color: const Color(0xFFE890FF),
+                      color: nameColor,
                       fontSize: 10.5,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   TextSpan(
-                    text: message,
+                    text: entry.message,
                     style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontSize: 10.5,
+                      height: 1.35,
                     ),
                   ),
                 ],
@@ -2180,6 +2728,65 @@ class _RoomScreenState extends State<RoomScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _chatAvatar(_RoomChatEntry entry) {
+    if (entry.isSystem) {
+      return Container(
+        width: 28,
+        height: 28,
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFD76A).withOpacity(.14),
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(
+          Icons.notifications_rounded,
+          color: Color(0xFFFFD76A),
+          size: 15,
+        ),
+      );
+    }
+
+    if (entry.avatar != null && entry.avatar!.isNotEmpty) {
+      return ClipOval(
+        child: Image.asset(
+          entry.avatar!,
+          width: 28,
+          height: 28,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) {
+            return _chatAvatarFallback(entry.name);
+          },
+        ),
+      );
+    }
+
+    return _chatAvatarFallback(entry.name);
+  }
+
+  Widget _chatAvatarFallback(String name) {
+    return Container(
+      width: 28,
+      height: 28,
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          colors: [
+            Color(0xFF6E2AB0),
+            Color(0xFF314AA7),
+          ],
+        ),
+      ),
+      child: Text(
+        name.isEmpty ? 'U' : name[0].toUpperCase(),
+        style: GoogleFonts.poppins(
+          color: Colors.white,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -2197,6 +2804,10 @@ class _RoomScreenState extends State<RoomScreen> {
         onTap: () {
           _roomController.toggleSpeaker();
 
+          _agoraVoiceService.setSpeakerEnabled(
+            _roomController.speakerEnabled,
+          );
+
           _showMessage(
             _roomController.speakerEnabled
                 ? 'Room sound enabled'
@@ -2206,9 +2817,7 @@ class _RoomScreenState extends State<RoomScreen> {
       ),
       _RoomBottomItem(
         icon: Icons.chat_bubble_rounded,
-        onTap: () {
-          setState(() => _tab = 1);
-        },
+        onTap: _showChatComposer,
       ),
       _RoomBottomItem(
         icon: Icons.mail_rounded,
@@ -2718,6 +3327,26 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 }
 
+
+class _RoomChatEntry {
+  final String userId;
+  final String name;
+  final String? avatar;
+  final String message;
+  final String? badge;
+  final bool isSystem;
+  final bool isMe;
+
+  const _RoomChatEntry({
+    this.userId = '',
+    required this.name,
+    this.avatar,
+    required this.message,
+    this.badge,
+    this.isSystem = false,
+    this.isMe = false,
+  });
+}
 
 class _RoomBottomItem {
   final IconData icon;

@@ -249,6 +249,76 @@ class RoomSocketService {
     );
   }
 
+  void requestAgoraToken({
+    required String roomId,
+    required String role,
+    required void Function(
+        bool ok,
+        Map<String, dynamic>? agora,
+        String? error,
+        ) onResult,
+  }) {
+    final socket = _socket;
+
+    if (socket == null || !socket.connected) {
+      onResult(
+        false,
+        null,
+        'Socket is not connected.',
+      );
+      return;
+    }
+
+    socket.emitWithAck(
+      'agora:token',
+      {
+        'roomId': roomId,
+        'role': role,
+      },
+      ack: (data) {
+        final result = _toMap(data);
+
+        if (result == null) {
+          onResult(
+            false,
+            null,
+            'Invalid Agora token response.',
+          );
+          return;
+        }
+
+        final ok = result['ok'] == true;
+
+        if (!ok) {
+          onResult(
+            false,
+            null,
+            result['error']?.toString() ??
+                'Unable to get Agora token.',
+          );
+          return;
+        }
+
+        final rawAgora = result['agora'];
+
+        if (rawAgora is! Map) {
+          onResult(
+            false,
+            null,
+            'Agora token payload is missing.',
+          );
+          return;
+        }
+
+        onResult(
+          true,
+          Map<String, dynamic>.from(rawAgora),
+          null,
+        );
+      },
+    );
+  }
+
   void sendChatMessage({
     required String roomId,
     required String userId,
