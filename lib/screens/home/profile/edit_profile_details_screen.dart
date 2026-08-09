@@ -921,12 +921,14 @@ class _ProfileTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Flexible(
+
+              // VALUE COLUMN — shifted to the far right
+              SizedBox(
+                width: 118,
                 child: Text(
                   value,
                   maxLines: 1,
-                  overflow:
-                  TextOverflow.ellipsis,
+                  overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.right,
                   style: GoogleFonts.poppins(
                     color: unset
@@ -936,7 +938,9 @@ class _ProfileTile extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 5),
+
+              const SizedBox(width: 3),
+
               const Icon(
                 Icons.chevron_right_rounded,
                 color: Colors.white30,

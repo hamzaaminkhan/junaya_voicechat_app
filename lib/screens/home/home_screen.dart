@@ -124,11 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       extendBody: true,
       backgroundColor: Colors.transparent,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 72, right: 2),
-        child: createRoomButton(),
-      ),
+
       body: SpaceBackground(
         child: SafeArea(
           bottom: false,
@@ -459,31 +455,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget createRoomButton() {
-    return SizedBox(
-      width: 50,
-      height: 50,
-      child: FloatingActionButton(
-        heroTag: 'home-create-room',
-        elevation: 4,
-        highlightElevation: 2,
-        backgroundColor: const Color(0xE62A0E3B),
-        foregroundColor: const Color(0xFFFFD266),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            color: const Color(0xFFFFD266).withOpacity(.65),
-          ),
-        ),
-        onPressed: () {},
-        child: const Icon(
-          Icons.mic_none_rounded,
-          size: 25,
-        ),
       ),
     );
   }
