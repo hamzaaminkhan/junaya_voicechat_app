@@ -48,9 +48,7 @@ class AgoraVoiceService extends ChangeNotifier {
     required String channelId,
     required int uid,
   }) async {
-    if (_joined &&
-        _channelId == channelId &&
-        _localUid == uid) {
+    if (_joined && _channelId == channelId && _localUid == uid) {
       await renewToken(token);
       return;
     }
@@ -66,8 +64,7 @@ class AgoraVoiceService extends ChangeNotifier {
       await engine.initialize(
         RtcEngineContext(
           appId: appId,
-          channelProfile:
-          ChannelProfileType.channelProfileLiveBroadcasting,
+          channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
         ),
       );
 
@@ -77,38 +74,36 @@ class AgoraVoiceService extends ChangeNotifier {
 
       engine.registerEventHandler(
         RtcEngineEventHandler(
-          onJoinChannelSuccess:
-              (RtcConnection connection, int elapsed) {
+          onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
             _joined = true;
             _localUid = connection.localUid ?? uid;
             notifyListeners();
           },
-          onLeaveChannel:
-              (RtcConnection connection, RtcStats stats) {
+          onLeaveChannel: (RtcConnection connection, RtcStats stats) {
             _joined = false;
             _publishing = false;
             _remoteUids.clear();
             notifyListeners();
           },
-          onUserJoined:
-              (RtcConnection connection, int remoteUid, int elapsed) {
+          onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
             _remoteUids.add(remoteUid);
             onRemoteUserJoined?.call(remoteUid);
             notifyListeners();
           },
-          onUserOffline: (
-              RtcConnection connection,
-              int remoteUid,
-              UserOfflineReasonType reason,
+          onUserOffline:
+              (
+                RtcConnection connection,
+                int remoteUid,
+                UserOfflineReasonType reason,
               ) {
-            _remoteUids.remove(remoteUid);
-            onRemoteUserLeft?.call(remoteUid);
-            notifyListeners();
-          },
+                _remoteUids.remove(remoteUid);
+                onRemoteUserLeft?.call(remoteUid);
+                notifyListeners();
+              },
           onTokenPrivilegeWillExpire:
               (RtcConnection connection, String oldToken) {
-            onTokenWillExpire?.call();
-          },
+                onTokenWillExpire?.call();
+              },
         ),
       );
 
@@ -141,9 +136,7 @@ class AgoraVoiceService extends ChangeNotifier {
     }
   }
 
-  Future<bool> becomeBroadcaster({
-    required String publisherToken,
-  }) async {
+  Future<bool> becomeBroadcaster({required String publisherToken}) async {
     final engine = _engine;
 
     if (engine == null || !_initialized) {
@@ -154,9 +147,7 @@ class AgoraVoiceService extends ChangeNotifier {
     final permission = await Permission.microphone.request();
 
     if (!permission.isGranted) {
-      onError?.call(
-        'Microphone permission is required to take a mic seat.',
-      );
+      onError?.call('Microphone permission is required to take a mic seat.');
       return false;
     }
 
@@ -165,14 +156,11 @@ class AgoraVoiceService extends ChangeNotifier {
 
       await engine.enableLocalAudio(true);
 
-      await engine.setClientRole(
-        role: ClientRoleType.clientRoleBroadcaster,
-      );
+      await engine.setClientRole(role: ClientRoleType.clientRoleBroadcaster);
 
       await engine.updateChannelMediaOptions(
         const ChannelMediaOptions(
-          clientRoleType:
-          ClientRoleType.clientRoleBroadcaster,
+          clientRoleType: ClientRoleType.clientRoleBroadcaster,
           autoSubscribeAudio: true,
           autoSubscribeVideo: false,
           publishMicrophoneTrack: true,
@@ -192,9 +180,7 @@ class AgoraVoiceService extends ChangeNotifier {
     }
   }
 
-  Future<void> becomeAudience({
-    String? subscriberToken,
-  }) async {
+  Future<void> becomeAudience({String? subscriberToken}) async {
     final engine = _engine;
 
     if (engine == null || !_initialized) {
@@ -215,14 +201,11 @@ class AgoraVoiceService extends ChangeNotifier {
         ),
       );
 
-      await engine.setClientRole(
-        role: ClientRoleType.clientRoleAudience,
-      );
+      await engine.setClientRole(role: ClientRoleType.clientRoleAudience);
 
       await engine.enableLocalAudio(false);
 
-      if (subscriberToken != null &&
-          subscriberToken.trim().isNotEmpty) {
+      if (subscriberToken != null && subscriberToken.trim().isNotEmpty) {
         await engine.renewToken(subscriberToken);
       }
 

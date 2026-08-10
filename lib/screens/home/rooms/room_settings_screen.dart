@@ -249,7 +249,7 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
             width: 48,
             height: 48,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Container(
+            errorBuilder: (_, _, _) => Container(
               width: 48,
               height: 48,
               color: const Color(0xFF3A185F),
@@ -270,7 +270,7 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(13, 12, 13, 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF140039).withOpacity(.38),
+        color: const Color(0xFF140039).withValues(alpha: .38),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: _border),
       ),
@@ -279,11 +279,7 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
         children: [
           const Padding(
             padding: EdgeInsets.only(top: 1),
-            child: Icon(
-              Icons.info_rounded,
-              color: Color(0xFFB267FF),
-              size: 19,
-            ),
+            child: Icon(Icons.info_rounded, color: Color(0xFFB267FF), size: 19),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -318,7 +314,7 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
           height: 58,
           padding: const EdgeInsets.symmetric(horizontal: 13),
           decoration: BoxDecoration(
-            color: _tileBg.withOpacity(.74),
+            color: _tileBg.withValues(alpha: .74),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: _border),
           ),
@@ -341,9 +337,7 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
               if (value != null) ...[
                 const SizedBox(width: 8),
                 ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: valueMaxWidth ?? 105,
-                  ),
+                  constraints: BoxConstraints(maxWidth: valueMaxWidth ?? 105),
                   child: Text(
                     value,
                     maxLines: 1,
@@ -380,7 +374,7 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
       height: 58,
       padding: const EdgeInsets.symmetric(horizontal: 13),
       decoration: BoxDecoration(
-        color: _tileBg.withOpacity(.74),
+        color: _tileBg.withValues(alpha: .74),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: _border),
       ),
@@ -410,12 +404,12 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
               child: Switch(
                 value: value,
                 onChanged: onChanged,
-                activeColor: Colors.white,
+                activeThumbColor: Colors.white,
                 activeTrackColor: _purple,
                 inactiveThumbColor: Colors.white,
                 inactiveTrackColor: const Color(0xFF2A0A4C),
                 trackOutlineColor: WidgetStatePropertyAll(
-                  _purple.withOpacity(.24),
+                  _purple.withValues(alpha: .24),
                 ),
               ),
             ),
@@ -432,19 +426,12 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         gradient: const LinearGradient(
-          colors: [
-            Color(0xFF4A116E),
-            Color(0xFF28105A),
-          ],
+          colors: [Color(0xFF4A116E), Color(0xFF28105A)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
       ),
-      child: Icon(
-        icon,
-        color: const Color(0xFFE4A7FF),
-        size: 21,
-      ),
+      child: Icon(icon, color: const Color(0xFFE4A7FF), size: 21),
     );
   }
 
@@ -460,9 +447,7 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF220546),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           title,
           style: GoogleFonts.poppins(
@@ -475,22 +460,17 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
           controller: controller,
           obscureText: obscure,
           autofocus: true,
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontSize: 13,
-          ),
+          style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.black.withOpacity(.15),
+            fillColor: Colors.black.withValues(alpha: .15),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 12,
               vertical: 11,
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(
-                color: _purple.withOpacity(.4),
-              ),
+              borderSide: BorderSide(color: _purple.withValues(alpha: .4)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
@@ -557,7 +537,7 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
                     selectedColor: _purple,
                     backgroundColor: const Color(0xFF32105A),
                     labelStyle: const TextStyle(color: Colors.white),
-                    side: BorderSide(color: _purple.withOpacity(.35)),
+                    side: BorderSide(color: _purple.withValues(alpha: .35)),
                   );
                 }).toList(),
               ),
@@ -577,10 +557,7 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(
-            text,
-            style: GoogleFonts.poppins(fontSize: 12.5),
-          ),
+          content: Text(text, style: GoogleFonts.poppins(fontSize: 12.5)),
           behavior: SnackBarBehavior.floating,
           backgroundColor: const Color(0xFF32105A),
           shape: RoundedRectangleBorder(

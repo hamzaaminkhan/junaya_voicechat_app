@@ -3,19 +3,14 @@ import 'package:flutter/material.dart';
 class BannerSlider extends StatefulWidget {
   final List<String> banners;
 
-  const BannerSlider({
-    super.key,
-    required this.banners,
-  });
+  const BannerSlider({super.key, required this.banners});
 
   @override
-  State<BannerSlider> createState() =>
-      _BannerSliderState();
+  State<BannerSlider> createState() => _BannerSliderState();
 }
 
 class _BannerSliderState extends State<BannerSlider> {
-  final PageController _controller =
-  PageController();
+  final PageController _controller = PageController();
 
   int currentIndex = 0;
 
@@ -40,15 +35,11 @@ class _BannerSliderState extends State<BannerSlider> {
             },
             itemBuilder: (context, index) {
               return Container(
-                margin:
-                const EdgeInsets.symmetric(horizontal: 12),
+                margin: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
-                  borderRadius:
-                  BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(20),
                   image: DecorationImage(
-                    image: NetworkImage(
-                      widget.banners[index],
-                    ),
+                    image: NetworkImage(widget.banners[index]),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -60,33 +51,21 @@ class _BannerSliderState extends State<BannerSlider> {
         const SizedBox(height: 12),
 
         Row(
-          mainAxisAlignment:
-          MainAxisAlignment.center,
-          children: List.generate(
-            widget.banners.length,
-                (index) {
-              return AnimatedContainer(
-                duration:
-                const Duration(milliseconds: 300),
-                margin:
-                const EdgeInsets.symmetric(
-                  horizontal: 4,
-                ),
-                width: currentIndex == index
-                    ? 22
-                    : 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: currentIndex == index
-                      ? const Color(0xFFFFC107)
-                      : Colors.white
-                      .withOpacity(.35),
-                  borderRadius:
-                  BorderRadius.circular(10),
-                ),
-              );
-            },
-          ),
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(widget.banners.length, (index) {
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              width: currentIndex == index ? 22 : 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: currentIndex == index
+                    ? const Color(0xFFFFC107)
+                    : Colors.white.withValues(alpha: .35),
+                borderRadius: BorderRadius.circular(10),
+              ),
+            );
+          }),
         ),
       ],
     );

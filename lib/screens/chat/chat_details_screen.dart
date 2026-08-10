@@ -42,12 +42,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   List<ChatModel> get _filteredChats {
     return chats.where((chat) {
-      final matchesFilter =
-          selectedFilter == 0 || chat.unread > 0;
+      final matchesFilter = selectedFilter == 0 || chat.unread > 0;
 
       final query = _searchQuery.trim().toLowerCase();
 
-      final matchesSearch = query.isEmpty ||
+      final matchesSearch =
+          query.isEmpty ||
           chat.name.toLowerCase().contains(query) ||
           chat.lastMessage.toLowerCase().contains(query);
 
@@ -62,13 +62,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBody: true,
-      floatingActionButtonLocation:
-      FloatingActionButtonLocation.endFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: SafeArea(
-        minimum: const EdgeInsets.only(
-          right: 4,
-          bottom: 78,
-        ),
+        minimum: const EdgeInsets.only(right: 4, bottom: 78),
         child: _NewChatButton(
           onTap: () {
             // TODO: New Chat
@@ -100,39 +96,32 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 child: filteredChats.isEmpty
                     ? _buildEmptyState()
                     : ListView.separated(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(
-                    14,
-                    0,
-                    14,
-                    145,
-                  ),
-                  itemCount: filteredChats.length,
-                  separatorBuilder: (_, __) =>
-                  const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final chat = filteredChats[index];
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(14, 0, 14, 145),
+                        itemCount: filteredChats.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final chat = filteredChats[index];
 
-                    return _ChatRow(
-                      chat: chat,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ChatScreen(
-                              currentUserId:
-                              'current_user_id',
-                              receiverId: chat.name,
-                              receiverName: chat.name,
-                              receiverImage: '',
-                              isOnline: chat.online,
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
+                          return _ChatRow(
+                            chat: chat,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ChatScreen(
+                                    currentUserId: 'current_user_id',
+                                    receiverId: chat.name,
+                                    receiverName: chat.name,
+                                    receiverImage: '',
+                                    isOnline: chat.online,
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
               ),
             ],
           ),
@@ -195,10 +184,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
               _searchQuery = value;
             });
           },
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontSize: 12.5,
-          ),
+          style: GoogleFonts.poppins(color: Colors.white, fontSize: 12.5),
           decoration: InputDecoration(
             hintText: 'Search conversations',
             hintStyle: GoogleFonts.poppins(
@@ -211,18 +197,18 @@ class _ChatListScreenState extends State<ChatListScreen> {
               size: 20,
             ),
             filled: true,
-            fillColor: Colors.black.withOpacity(.14),
+            fillColor: Colors.black.withValues(alpha: .14),
             contentPadding: EdgeInsets.zero,
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide(
-                color: Colors.white.withOpacity(.08),
+                color: Colors.white.withValues(alpha: .08),
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide(
-                color: const Color(0xFFFFC94D).withOpacity(.50),
+                color: const Color(0xFFFFC94D).withValues(alpha: .50),
               ),
             ),
           ),
@@ -268,9 +254,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
       child: Row(
         children: [
           Text(
-            selectedFilter == 0
-                ? 'Recent conversations'
-                : 'Unread messages',
+            selectedFilter == 0 ? 'Recent conversations' : 'Unread messages',
             style: GoogleFonts.poppins(
               color: Colors.white,
               fontSize: 13.5,
@@ -280,10 +264,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           const Spacer(),
           Text(
             '$count chats',
-            style: GoogleFonts.poppins(
-              color: Colors.white38,
-              fontSize: 9.8,
-            ),
+            style: GoogleFonts.poppins(color: Colors.white38, fontSize: 9.8),
           ),
         ],
       ),
@@ -301,11 +282,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
               width: 58,
               height: 58,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(.04),
+                color: Colors.white.withValues(alpha: .04),
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: Colors.white.withOpacity(.07),
-                ),
+                border: Border.all(color: Colors.white.withValues(alpha: .07)),
               ),
               child: const Icon(
                 Icons.chat_bubble_outline_rounded,
@@ -325,10 +304,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
             const SizedBox(height: 3),
             Text(
               'Try changing the filter or search.',
-              style: GoogleFonts.poppins(
-                color: Colors.white30,
-                fontSize: 10.5,
-              ),
+              style: GoogleFonts.poppins(color: Colors.white30, fontSize: 10.5),
             ),
           ],
         ),
@@ -341,10 +317,7 @@ class _ChatRow extends StatelessWidget {
   final ChatModel chat;
   final VoidCallback onTap;
 
-  const _ChatRow({
-    required this.chat,
-    required this.onTap,
-  });
+  const _ChatRow({required this.chat, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -356,19 +329,14 @@ class _ChatRow extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(17),
         child: Container(
-          padding: const EdgeInsets.fromLTRB(
-            11,
-            10,
-            11,
-            10,
-          ),
+          padding: const EdgeInsets.fromLTRB(11, 10, 11, 10),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(.15),
+            color: Colors.black.withValues(alpha: .15),
             borderRadius: BorderRadius.circular(17),
             border: Border.all(
               color: hasUnread
-                  ? const Color(0xFFFFC94D).withOpacity(.14)
-                  : Colors.white.withOpacity(.07),
+                  ? const Color(0xFFFFC94D).withValues(alpha: .14)
+                  : Colors.white.withValues(alpha: .07),
             ),
           ),
           child: Row(
@@ -380,10 +348,10 @@ class _ChatRow extends StatelessWidget {
                     width: 46,
                     height: 46,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF7A43DD).withOpacity(.22),
+                      color: const Color(0xFF7A43DD).withValues(alpha: .22),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: Colors.white.withOpacity(.07),
+                        color: Colors.white.withValues(alpha: .07),
                       ),
                     ),
                     child: const Icon(
@@ -436,9 +404,7 @@ class _ChatRow extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                        color: hasUnread
-                            ? Colors.white60
-                            : Colors.white38,
+                        color: hasUnread ? Colors.white60 : Colors.white38,
                         fontSize: 10.8,
                         fontWeight: hasUnread
                             ? FontWeight.w500
@@ -468,9 +434,7 @@ class _ChatRow extends StatelessWidget {
                         minWidth: 20,
                         minHeight: 20,
                       ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 5,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
                       alignment: Alignment.center,
                       decoration: const BoxDecoration(
                         color: Color(0xFFFFC83D),
@@ -520,18 +484,16 @@ class _FilterChip extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           height: 32,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 11,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 11),
           decoration: BoxDecoration(
             color: selected
                 ? const Color(0xFFFFC83D)
-                : Colors.black.withOpacity(.13),
+                : Colors.black.withValues(alpha: .13),
             borderRadius: BorderRadius.circular(11),
             border: Border.all(
               color: selected
                   ? const Color(0xFFFFC83D)
-                  : Colors.white.withOpacity(.08),
+                  : Colors.white.withValues(alpha: .08),
             ),
           ),
           child: Row(
@@ -539,22 +501,16 @@ class _FilterChip extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                color: selected
-                    ? const Color(0xFF170D18)
-                    : Colors.white54,
+                color: selected ? const Color(0xFF170D18) : Colors.white54,
                 size: 14,
               ),
               const SizedBox(width: 5),
               Text(
                 label,
                 style: GoogleFonts.poppins(
-                  color: selected
-                      ? const Color(0xFF170D18)
-                      : Colors.white70,
+                  color: selected ? const Color(0xFF170D18) : Colors.white70,
                   fontSize: 10.5,
-                  fontWeight: selected
-                      ? FontWeight.w700
-                      : FontWeight.w500,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),
             ],
@@ -568,9 +524,7 @@ class _FilterChip extends StatelessWidget {
 class _NewChatButton extends StatelessWidget {
   final VoidCallback onTap;
 
-  const _NewChatButton({
-    required this.onTap,
-  });
+  const _NewChatButton({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -585,22 +539,16 @@ class _NewChatButton extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: const Color(0xFF7C3CE8),
-            border: Border.all(
-              color: Colors.white.withOpacity(.11),
-            ),
+            border: Border.all(color: Colors.white.withValues(alpha: .11)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(.18),
+                color: Colors.black.withValues(alpha: .18),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
             ],
           ),
-          child: const Icon(
-            Icons.edit_rounded,
-            color: Colors.white,
-            size: 22,
-          ),
+          child: const Icon(Icons.edit_rounded, color: Colors.white, size: 22),
         ),
       ),
     );

@@ -64,25 +64,17 @@ class _ChatListScreenState extends State<ChatListScreen> {
         ),
       ),
 
-      floatingActionButtonLocation:
-      FloatingActionButtonLocation.endFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
 
       floatingActionButton: SafeArea(
-        minimum: const EdgeInsets.only(
-          right: 4,
-          bottom: 78,
-        ),
+        minimum: const EdgeInsets.only(right: 4, bottom: 78),
         child: FloatingActionButton(
           backgroundColor: const Color(0xFF6C3BFF),
           elevation: 6,
           onPressed: () {
             // TODO: New Chat
           },
-          child: const Icon(
-            Icons.chat_rounded,
-            color: Colors.white,
-            size: 24,
-          ),
+          child: const Icon(Icons.chat_rounded, color: Colors.white, size: 24),
         ),
       ),
 
@@ -91,18 +83,14 @@ class _ChatListScreenState extends State<ChatListScreen> {
           const SizedBox(height: 16),
 
           const Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 16,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: 16),
             child: ChatSearchBar(),
           ),
 
           const SizedBox(height: 16),
 
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
                 ChoiceChip(
@@ -133,55 +121,51 @@ class _ChatListScreenState extends State<ChatListScreen> {
           Expanded(
             child: filteredChats.isEmpty
                 ? Center(
-              child: Column(
-                mainAxisAlignment:
-                MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.chat_bubble_outline,
-                    size: 60,
-                    color: Colors.white24,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'No chats found',
-                    style: GoogleFonts.poppins(
-                      color: Colors.white54,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            )
-                : ListView.builder(
-              padding: const EdgeInsets.only(
-                bottom: 145,
-              ),
-              itemCount: filteredChats.length,
-              itemBuilder: (context, index) {
-                final chat = filteredChats[index];
-
-                return ChatTile(
-                  chat: chat,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ChatScreen(
-                          currentUserId:
-                          'current_user_id',
-                          receiverId: chat.name,
-                          receiverName: chat.name,
-                          receiverImage: '',
-                          isOnline: chat.online,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.chat_bubble_outline,
+                          size: 60,
+                          color: Colors.white24,
                         ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No chats found',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white54,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.only(bottom: 145),
+                    itemCount: filteredChats.length,
+                    itemBuilder: (context, index) {
+                      final chat = filteredChats[index];
+
+                      return ChatTile(
+                        chat: chat,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ChatScreen(
+                                currentUserId: 'current_user_id',
+                                receiverId: chat.name,
+                                receiverName: chat.name,
+                                receiverImage: '',
+                                isOnline: chat.online,
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
           ),
         ],
       ),

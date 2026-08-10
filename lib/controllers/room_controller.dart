@@ -49,16 +49,10 @@ class RoomController extends ChangeNotifier {
 
   bool get isOnMic => mySeatIndex != null;
 
-  bool get isRoomOwner =>
-      _room?.ownerId == currentUserId;
+  bool get isRoomOwner => _room?.ownerId == currentUserId;
 
   void _createTemporaryRoom() {
-    final seats = List.generate(
-      15,
-          (index) => RoomSeat(
-        number: index + 1,
-      ),
-    );
+    final seats = List.generate(15, (index) => RoomSeat(number: index + 1));
 
     //
     // Temporary demo HOST
@@ -81,26 +75,19 @@ class RoomController extends ChangeNotifier {
     seats[1] = const RoomSeat(
       number: 2,
       status: RoomSeatStatus.occupied,
-      user: RoomUser(
-        id: 'user_ayesha',
-        name: 'Ayesha',
-      ),
+      user: RoomUser(id: 'user_ayesha', name: 'Ayesha'),
     );
 
     //
     // Locked seat
     //
-    seats[14] = const RoomSeat(
-      number: 15,
-      status: RoomSeatStatus.locked,
-    );
+    seats[14] = const RoomSeat(number: 15, status: RoomSeatStatus.locked);
 
     _room = VoiceRoom(
       id: '87012534',
       name: 'Junaya Official Room',
       ownerId: 'owner_001',
-      announcement:
-      'Welcome! Be respectful and enjoy the room.',
+      announcement: 'Welcome! Be respectful and enjoy the room.',
       onlineUsers: 128,
       roomRank: 8,
       seats: seats,
@@ -114,22 +101,19 @@ class RoomController extends ChangeNotifier {
   bool joinMic(int seatIndex) {
     if (_room == null) return false;
 
-    if (seatIndex < 0 ||
-        seatIndex >= _room!.seats.length) {
+    if (seatIndex < 0 || seatIndex >= _room!.seats.length) {
       return false;
     }
 
     final targetSeat = _room!.seats[seatIndex];
 
-    if (targetSeat.status ==
-        RoomSeatStatus.locked) {
+    if (targetSeat.status == RoomSeatStatus.locked) {
       _error = 'This seat is locked.';
       notifyListeners();
       return false;
     }
 
-    if (targetSeat.status ==
-        RoomSeatStatus.occupied) {
+    if (targetSeat.status == RoomSeatStatus.occupied) {
       _error = 'This seat is already occupied.';
       notifyListeners();
       return false;
@@ -141,8 +125,7 @@ class RoomController extends ChangeNotifier {
       return false;
     }
 
-    final seats =
-    List<RoomSeat>.from(_room!.seats);
+    final seats = List<RoomSeat>.from(_room!.seats);
 
     final currentUser = RoomUser(
       id: currentUserId,
@@ -157,9 +140,7 @@ class RoomController extends ChangeNotifier {
       user: currentUser,
     );
 
-    _room = _room!.copyWith(
-      seats: seats,
-    );
+    _room = _room!.copyWith(seats: seats);
 
     _error = null;
 
@@ -179,16 +160,11 @@ class RoomController extends ChangeNotifier {
       return false;
     }
 
-    final seats =
-    List<RoomSeat>.from(_room!.seats);
+    final seats = List<RoomSeat>.from(_room!.seats);
 
-    seats[index] = RoomSeat(
-      number: seats[index].number,
-    );
+    seats[index] = RoomSeat(number: seats[index].number);
 
-    _room = _room!.copyWith(
-      seats: seats,
-    );
+    _room = _room!.copyWith(seats: seats);
 
     notifyListeners();
 
@@ -200,27 +176,21 @@ class RoomController extends ChangeNotifier {
   // ============================================================
 
   void toggleMicrophone() {
-    _microphoneEnabled =
-    !_microphoneEnabled;
+    _microphoneEnabled = !_microphoneEnabled;
 
     final index = mySeatIndex;
 
     if (_room != null && index != null) {
-      final seats =
-      List<RoomSeat>.from(_room!.seats);
+      final seats = List<RoomSeat>.from(_room!.seats);
 
       final seat = seats[index];
 
       if (seat.user != null) {
         seats[index] = seat.copyWith(
-          user: seat.user!.copyWith(
-            isMuted: !_microphoneEnabled,
-          ),
+          user: seat.user!.copyWith(isMuted: !_microphoneEnabled),
         );
 
-        _room = _room!.copyWith(
-          seats: seats,
-        );
+        _room = _room!.copyWith(seats: seats);
       }
     }
 
@@ -232,8 +202,7 @@ class RoomController extends ChangeNotifier {
   // ============================================================
 
   void toggleSpeaker() {
-    _speakerEnabled =
-    !_speakerEnabled;
+    _speakerEnabled = !_speakerEnabled;
 
     notifyListeners();
   }
@@ -245,18 +214,15 @@ class RoomController extends ChangeNotifier {
   void lockSeat(int seatIndex) {
     if (_room == null) return;
 
-    if (seatIndex < 0 ||
-        seatIndex >= _room!.seats.length) {
+    if (seatIndex < 0 || seatIndex >= _room!.seats.length) {
       return;
     }
 
-    final seats =
-    List<RoomSeat>.from(_room!.seats);
+    final seats = List<RoomSeat>.from(_room!.seats);
 
     final seat = seats[seatIndex];
 
-    if (seat.status ==
-        RoomSeatStatus.occupied) {
+    if (seat.status == RoomSeatStatus.occupied) {
       return;
     }
 
@@ -265,9 +231,7 @@ class RoomController extends ChangeNotifier {
       status: RoomSeatStatus.locked,
     );
 
-    _room = _room!.copyWith(
-      seats: seats,
-    );
+    _room = _room!.copyWith(seats: seats);
 
     notifyListeners();
   }
@@ -275,28 +239,21 @@ class RoomController extends ChangeNotifier {
   void unlockSeat(int seatIndex) {
     if (_room == null) return;
 
-    if (seatIndex < 0 ||
-        seatIndex >= _room!.seats.length) {
+    if (seatIndex < 0 || seatIndex >= _room!.seats.length) {
       return;
     }
 
-    final seats =
-    List<RoomSeat>.from(_room!.seats);
+    final seats = List<RoomSeat>.from(_room!.seats);
 
     final seat = seats[seatIndex];
 
-    if (seat.status !=
-        RoomSeatStatus.locked) {
+    if (seat.status != RoomSeatStatus.locked) {
       return;
     }
 
-    seats[seatIndex] = RoomSeat(
-      number: seat.number,
-    );
+    seats[seatIndex] = RoomSeat(number: seat.number);
 
-    _room = _room!.copyWith(
-      seats: seats,
-    );
+    _room = _room!.copyWith(seats: seats);
 
     notifyListeners();
   }
@@ -307,9 +264,7 @@ class RoomController extends ChangeNotifier {
   // Socket.IO will later call this when server sends room:update.
   // ============================================================
 
-  void updateRoomFromServer(
-      Map<String, dynamic> json,
-      ) {
+  void updateRoomFromServer(Map<String, dynamic> json) {
     _room = VoiceRoom.fromJson(json);
 
     notifyListeners();

@@ -57,10 +57,7 @@ class GiftsScreen extends StatelessWidget {
     },
   ];
 
-  void _showGiftAction(
-      BuildContext context,
-      String giftName,
-      ) {
+  void _showGiftAction(BuildContext context, String giftName) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -74,9 +71,7 @@ class GiftsScreen extends StatelessWidget {
   void _showPurchaseHistory(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text(
-          'Purchase history is ready for backend integration.',
-        ),
+        content: Text('Purchase history is ready for backend integration.'),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -85,9 +80,7 @@ class GiftsScreen extends StatelessWidget {
   void _showRecharge(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text(
-          'Recharge flow can be connected to Wallet.',
-        ),
+        content: Text('Recharge flow can be connected to Wallet.'),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -107,9 +100,7 @@ class GiftsScreen extends StatelessWidget {
                   children: [
                     _buildBalanceCard(context),
                     _buildSectionHeader(),
-                    Expanded(
-                      child: _buildGiftGrid(),
-                    ),
+                    Expanded(child: _buildGiftGrid()),
                   ],
                 ),
               ),
@@ -164,16 +155,11 @@ class GiftsScreen extends StatelessWidget {
   Widget _buildBalanceCard(BuildContext context) {
     return Container(
       margin: const EdgeInsets.fromLTRB(14, 8, 14, 14),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 13,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(.18),
+        color: Colors.black.withValues(alpha: .18),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: Colors.white.withOpacity(.09),
-        ),
+        border: Border.all(color: Colors.white.withValues(alpha: .09)),
       ),
       child: Row(
         children: [
@@ -181,10 +167,10 @@ class GiftsScreen extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: const Color(0xFFFFC83D).withOpacity(.14),
+              color: const Color(0xFFFFC83D).withValues(alpha: .14),
               borderRadius: BorderRadius.circular(13),
               border: Border.all(
-                color: const Color(0xFFFFC83D).withOpacity(.24),
+                color: const Color(0xFFFFC83D).withValues(alpha: .24),
               ),
             ),
             child: const Icon(
@@ -224,11 +210,9 @@ class GiftsScreen extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 foregroundColor: const Color(0xFFFFC83D),
                 side: BorderSide(
-                  color: const Color(0xFFFFC83D).withOpacity(.55),
+                  color: const Color(0xFFFFC83D).withValues(alpha: .55),
                 ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 13,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 13),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(11),
                 ),
@@ -263,10 +247,7 @@ class GiftsScreen extends StatelessWidget {
           const Spacer(),
           Text(
             '${gifts.length} gifts',
-            style: GoogleFonts.poppins(
-              color: Colors.white38,
-              fontSize: 10.5,
-            ),
+            style: GoogleFonts.poppins(color: Colors.white38, fontSize: 10.5),
           ),
         ],
       ),
@@ -276,20 +257,13 @@ class GiftsScreen extends StatelessWidget {
   Widget _buildGiftGrid() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final int columns =
-        constraints.maxWidth < 300 ? 1 : 2;
+        final int columns = constraints.maxWidth < 300 ? 1 : 2;
 
         return GridView.builder(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(
-            14,
-            0,
-            14,
-            26,
-          ),
+          padding: const EdgeInsets.fromLTRB(14, 0, 14, 26),
           itemCount: gifts.length,
-          gridDelegate:
-          SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
@@ -305,10 +279,7 @@ class GiftsScreen extends StatelessWidget {
               icon: gift['icon'] as IconData,
               price: gift['price'] as int,
               color: gift['color'] as Color,
-              onSend: () => _showGiftAction(
-                context,
-                gift['name'] as String,
-              ),
+              onSend: () => _showGiftAction(context, gift['name'] as String),
             );
           },
         );
@@ -340,18 +311,11 @@ class _GiftCard extends StatelessWidget {
         onTap: onSend,
         borderRadius: BorderRadius.circular(17),
         child: Container(
-          padding: const EdgeInsets.fromLTRB(
-            11,
-            11,
-            11,
-            10,
-          ),
+          padding: const EdgeInsets.fromLTRB(11, 11, 11, 10),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(.16),
+            color: Colors.black.withValues(alpha: .16),
             borderRadius: BorderRadius.circular(17),
-            border: Border.all(
-              color: Colors.white.withOpacity(.08),
-            ),
+            border: Border.all(color: Colors.white.withValues(alpha: .08)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -362,17 +326,11 @@ class _GiftCard extends StatelessWidget {
                     width: 43,
                     height: 43,
                     decoration: BoxDecoration(
-                      color: color.withOpacity(.11),
+                      color: color.withValues(alpha: .11),
                       borderRadius: BorderRadius.circular(13),
-                      border: Border.all(
-                        color: color.withOpacity(.26),
-                      ),
+                      border: Border.all(color: color.withValues(alpha: .26)),
                     ),
-                    child: Icon(
-                      icon,
-                      color: color,
-                      size: 23,
-                    ),
+                    child: Icon(icon, color: color, size: 23),
                   ),
                   const Spacer(),
                   Container(
@@ -381,7 +339,7 @@ class _GiftCard extends StatelessWidget {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(.045),
+                      color: Colors.white.withValues(alpha: .045),
                       borderRadius: BorderRadius.circular(9),
                     ),
                     child: Row(
@@ -442,8 +400,7 @@ class _GiftCard extends StatelessWidget {
                     foregroundColor: const Color(0xFFFFC83D),
                     padding: EdgeInsets.zero,
                     side: BorderSide(
-                      color:
-                      const Color(0xFFFFC83D).withOpacity(.34),
+                      color: const Color(0xFFFFC83D).withValues(alpha: .34),
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),

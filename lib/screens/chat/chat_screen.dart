@@ -27,11 +27,9 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final ChatService _chatService = ChatService.instance;
 
-  final TextEditingController _messageController =
-  TextEditingController();
+  final TextEditingController _messageController = TextEditingController();
 
-  final ScrollController _scrollController =
-  ScrollController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -69,13 +67,9 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Failed to send message: $e',
-          ),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
     }
   }
 
@@ -92,10 +86,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
         title: Row(
           children: [
-
             Stack(
               children: [
-
                 CircleAvatar(
                   radius: 22,
                   backgroundColor: Colors.grey.shade800,
@@ -103,10 +95,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       ? NetworkImage(widget.receiverImage)
                       : null,
                   child: widget.receiverImage.isEmpty
-                      ? const Icon(
-                    Icons.person,
-                    color: Colors.white,
-                  )
+                      ? const Icon(Icons.person, color: Colors.white)
                       : null,
                 ),
 
@@ -140,9 +129,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (snapshot.hasError) {
@@ -150,9 +137,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       child: Text(
                         "Something went wrong.\n${snapshot.error}",
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                        ),
+                        style: const TextStyle(color: Colors.white70),
                       ),
                     );
                   }
@@ -164,10 +149,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       child: Text(
                         "No messages yet.\nStart the conversation 👋",
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white54,
-                          fontSize: 16,
-                        ),
+                        style: TextStyle(color: Colors.white54, fontSize: 16),
                       ),
                     );
                   }
@@ -204,8 +186,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             msg.timestamp.toDate(),
                           ).format(context),
 
-                          isMe:
-                          msg.senderId == widget.currentUserId,
+                          isMe: msg.senderId == widget.currentUserId,
 
                           isSeen: msg.seen,
                         ),
@@ -219,7 +200,6 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
 
         actions: [
-
           IconButton(
             onPressed: () {
               // TODO: Voice Call
@@ -251,23 +231,12 @@ class _ChatScreenState extends State<ChatScreen> {
               }
             },
 
-            itemBuilder: (context) =>
-            const [
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: "profile", child: Text("View Profile")),
 
-              PopupMenuItem(
-                value: "profile",
-                child: Text("View Profile"),
-              ),
+              PopupMenuItem(value: "clear", child: Text("Clear Chat")),
 
-              PopupMenuItem(
-                value: "clear",
-                child: Text("Clear Chat"),
-              ),
-
-              PopupMenuItem(
-                value: "block",
-                child: Text("Block User"),
-              ),
+              PopupMenuItem(value: "block", child: Text("Block User")),
             ],
           ),
         ],
@@ -276,10 +245,7 @@ class _ChatScreenState extends State<ChatScreen> {
       body: SafeArea(
         child: Column(
           children: [
-
-            Expanded(
-              child: Container(),
-            ),
+            Expanded(child: Container()),
 
             MessageInput(
               controller: _messageController,

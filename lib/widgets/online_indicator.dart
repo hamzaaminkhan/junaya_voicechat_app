@@ -11,10 +11,7 @@ class OnlineIndicator extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.green,
         shape: BoxShape.circle,
-        border: Border.all(
-          color: const Color(0xff0B0E21),
-          width: 2,
-        ),
+        border: Border.all(color: const Color(0xff0B0E21), width: 2),
       ),
     );
   }

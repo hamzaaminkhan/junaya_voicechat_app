@@ -6,25 +6,13 @@ class GiftOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gifts = [
-      "🌹",
-      "💎",
-      "🚗",
-      "👑",
-      "🎁",
-      "❤️",
-      "⭐",
-      "🚀",
-    ];
+    final gifts = ["🌹", "💎", "🚗", "👑", "🎁", "❤️", "⭐", "🚀"];
 
     return IgnorePointer(
       child: Stack(
         children: List.generate(
           gifts.length,
-              (index) => FloatingGift(
-            emoji: gifts[index],
-            delay: index * 400,
-          ),
+          (index) => FloatingGift(emoji: gifts[index], delay: index * 400),
         ),
       ),
     );
@@ -35,11 +23,7 @@ class FloatingGift extends StatefulWidget {
   final String emoji;
   final int delay;
 
-  const FloatingGift({
-    super.key,
-    required this.emoji,
-    required this.delay,
-  });
+  const FloatingGift({super.key, required this.emoji, required this.delay});
 
   @override
   State<FloatingGift> createState() => _FloatingGiftState();
@@ -47,7 +31,6 @@ class FloatingGift extends StatefulWidget {
 
 class _FloatingGiftState extends State<FloatingGift>
     with SingleTickerProviderStateMixin {
-
   late AnimationController controller;
 
   final random = Random();
@@ -83,7 +66,6 @@ class _FloatingGiftState extends State<FloatingGift>
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
-
         return Positioned(
           left: left,
           bottom: controller.value * 500,
@@ -91,10 +73,7 @@ class _FloatingGiftState extends State<FloatingGift>
             opacity: 1 - controller.value,
             child: Transform.scale(
               scale: 0.8 + controller.value * .5,
-              child: Text(
-                widget.emoji,
-                style: const TextStyle(fontSize: 28),
-              ),
+              child: Text(widget.emoji, style: const TextStyle(fontSize: 28)),
             ),
           ),
         );

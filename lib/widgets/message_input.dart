@@ -24,12 +24,7 @@ class MessageInput extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
         decoration: const BoxDecoration(
           color: Color(0xFF121530),
-          border: Border(
-            top: BorderSide(
-              color: Color(0xFF23284A),
-              width: 0.5,
-            ),
-          ),
+          border: Border(top: BorderSide(color: Color(0xFF23284A), width: 0.5)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -54,8 +49,7 @@ class MessageInput extends StatelessWidget {
                       child: TextField(
                         controller: controller,
                         keyboardType: TextInputType.multiline,
-                        textCapitalization:
-                        TextCapitalization.sentences,
+                        textCapitalization: TextCapitalization.sentences,
                         minLines: 1,
                         maxLines: 5,
                         style: const TextStyle(
@@ -64,9 +58,7 @@ class MessageInput extends StatelessWidget {
                         ),
                         decoration: const InputDecoration(
                           hintText: "Type a message...",
-                          hintStyle: TextStyle(
-                            color: Colors.white54,
-                          ),
+                          hintStyle: TextStyle(color: Colors.white54),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(
                             horizontal: 16,

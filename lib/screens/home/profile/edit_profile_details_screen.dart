@@ -6,18 +6,14 @@ import '../../../widgets/space_background.dart';
 class EditProfileDetailsScreen extends StatefulWidget {
   final String? backgroundAsset;
 
-  const EditProfileDetailsScreen({
-    super.key,
-    this.backgroundAsset,
-  });
+  const EditProfileDetailsScreen({super.key, this.backgroundAsset});
 
   @override
   State<EditProfileDetailsScreen> createState() =>
       _EditProfileDetailsScreenState();
 }
 
-class _EditProfileDetailsScreenState
-    extends State<EditProfileDetailsScreen> {
+class _EditProfileDetailsScreenState extends State<EditProfileDetailsScreen> {
   String username = 'MR.ALEX';
   String gender = 'Male';
   String birthday = '2002-01-20';
@@ -43,12 +39,7 @@ class _EditProfileDetailsScreenState
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(
-                    16,
-                    4,
-                    16,
-                    28,
-                  ),
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -72,9 +63,7 @@ class _EditProfileDetailsScreenState
     );
   }
 
-  Widget _buildBackground({
-    required Widget child,
-  }) {
+  Widget _buildBackground({required Widget child}) {
     final asset = widget.backgroundAsset?.trim();
 
     if (asset != null && asset.isNotEmpty) {
@@ -84,31 +73,22 @@ class _EditProfileDetailsScreenState
           Image.asset(
             asset,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) {
+            errorBuilder: (_, _, _) {
               return SpaceBackground(child: child);
             },
           ),
-          Container(
-            color: Colors.black.withOpacity(.18),
-          ),
+          Container(color: Colors.black.withValues(alpha: .18)),
           child,
         ],
       );
     }
 
-    return SpaceBackground(
-      child: child,
-    );
+    return SpaceBackground(child: child);
   }
 
   Widget _buildTopBar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        8,
-        4,
-        12,
-        4,
-      ),
+      padding: const EdgeInsets.fromLTRB(8, 4, 12, 4),
       child: SizedBox(
         height: 46,
         child: Row(
@@ -156,7 +136,7 @@ class _EditProfileDetailsScreenState
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: purple.withOpacity(.85),
+                    color: purple.withValues(alpha: .85),
                     width: 2,
                   ),
                 ),
@@ -258,20 +238,14 @@ class _EditProfileDetailsScreenState
           Container(
             padding: const EdgeInsets.all(11),
             decoration: BoxDecoration(
-              color: gold.withOpacity(.06),
+              color: gold.withValues(alpha: .06),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: gold.withOpacity(.14),
-              ),
+              border: Border.all(color: gold.withValues(alpha: .14)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(
-                  Icons.shield_outlined,
-                  color: gold,
-                  size: 18,
-                ),
+                const Icon(Icons.shield_outlined, color: gold, size: 18),
                 const SizedBox(width: 9),
                 Expanded(
                   child: Text(
@@ -327,10 +301,7 @@ class _EditProfileDetailsScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionHeader(
-            icon: Icons.graphic_eq_rounded,
-            title: 'Voice card',
-          ),
+          _sectionHeader(icon: Icons.graphic_eq_rounded, title: 'Voice card'),
           const SizedBox(height: 11),
           _ActionButton(
             icon: Icons.mic_none_rounded,
@@ -339,9 +310,7 @@ class _EditProfileDetailsScreenState
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text(
-                    'Voice recording will be connected next.',
-                  ),
+                  content: Text('Voice recording will be connected next.'),
                 ),
               );
             },
@@ -478,9 +447,7 @@ class _EditProfileDetailsScreenState
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text(
-                    'Title management will be added next.',
-                  ),
+                  content: Text('Title management will be added next.'),
                 ),
               );
             },
@@ -490,24 +457,17 @@ class _EditProfileDetailsScreenState
     );
   }
 
-  Widget _sectionHeader({
-    required IconData icon,
-    required String title,
-  }) {
+  Widget _sectionHeader({required IconData icon, required String title}) {
     return Row(
       children: [
         Container(
           width: 30,
           height: 30,
           decoration: BoxDecoration(
-            color: purple.withOpacity(.10),
+            color: purple.withValues(alpha: .10),
             borderRadius: BorderRadius.circular(9),
           ),
-          child: Icon(
-            icon,
-            color: purple,
-            size: 18,
-          ),
+          child: Icon(icon, color: purple, size: 18),
         ),
         const SizedBox(width: 9),
         Text(
@@ -524,20 +484,16 @@ class _EditProfileDetailsScreenState
 
   BoxDecoration _cardDecoration() {
     return BoxDecoration(
-      color: Colors.black.withOpacity(.14),
+      color: Colors.black.withValues(alpha: .14),
       borderRadius: BorderRadius.circular(16),
-      border: Border.all(
-        color: Colors.white.withOpacity(.08),
-      ),
+      border: Border.all(color: Colors.white.withValues(alpha: .08)),
     );
   }
 
   void _showPhotoMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text(
-          'Profile image picker will be connected next.',
-        ),
+        content: Text('Profile image picker will be connected next.'),
       ),
     );
   }
@@ -547,19 +503,12 @@ class _EditProfileDetailsScreenState
       context: context,
       backgroundColor: const Color(0xFF0E0714),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              16,
-              14,
-              16,
-              16,
-            ),
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -581,14 +530,8 @@ class _EditProfileDetailsScreenState
                   ),
                 ),
                 const SizedBox(height: 8),
-                _genderOption(
-                  icon: Icons.male_rounded,
-                  label: 'Male',
-                ),
-                _genderOption(
-                  icon: Icons.female_rounded,
-                  label: 'Female',
-                ),
+                _genderOption(icon: Icons.male_rounded, label: 'Male'),
+                _genderOption(icon: Icons.female_rounded, label: 'Female'),
                 _genderOption(
                   icon: Icons.person_outline_rounded,
                   label: 'Prefer not to say',
@@ -607,40 +550,23 @@ class _EditProfileDetailsScreenState
     }
   }
 
-  Widget _genderOption({
-    required IconData icon,
-    required String label,
-  }) {
+  Widget _genderOption({required IconData icon, required String label}) {
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 4,
-      ),
-      leading: Icon(
-        icon,
-        color: purple,
-        size: 21,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+      leading: Icon(icon, color: purple, size: 21),
       title: Text(
         label,
-        style: GoogleFonts.poppins(
-          color: Colors.white,
-          fontSize: 13,
-        ),
+        style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
       ),
-      onTap: () => Navigator.pop(
-        context,
-        label,
-      ),
+      onTap: () => Navigator.pop(context, label),
     );
   }
 
   Future<void> _selectBirthday() async {
     final DateTime initialDate =
-        DateTime.tryParse(birthday) ??
-            DateTime(2002, 1, 20);
+        DateTime.tryParse(birthday) ?? DateTime(2002, 1, 20);
 
-    final DateTime? selectedDate =
-    await showDatePicker(
+    final DateTime? selectedDate = await showDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: DateTime(1940),
@@ -661,7 +587,7 @@ class _EditProfileDetailsScreenState
     if (selectedDate != null) {
       setState(() {
         birthday =
-        '${selectedDate.year.toString().padLeft(4, '0')}-'
+            '${selectedDate.year.toString().padLeft(4, '0')}-'
             '${selectedDate.month.toString().padLeft(2, '0')}-'
             '${selectedDate.day.toString().padLeft(2, '0')}';
       });
@@ -675,16 +601,13 @@ class _EditProfileDetailsScreenState
     String? hintText,
     int maxLines = 1,
   }) async {
-    final bool isEmptyValue =
-        currentValue == 'Click to set';
+    final bool isEmptyValue = currentValue == 'Click to set';
 
-    final TextEditingController controller =
-    TextEditingController(
+    final TextEditingController controller = TextEditingController(
       text: isEmptyValue ? '' : currentValue,
     );
 
-    final String? result =
-    await showDialog<String>(
+    final String? result = await showDialog<String>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
@@ -704,10 +627,7 @@ class _EditProfileDetailsScreenState
             controller: controller,
             maxLines: maxLines,
             autofocus: true,
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 13,
-            ),
+            style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
             decoration: InputDecoration(
               hintText: hintText ?? 'Enter $title',
               hintStyle: GoogleFonts.poppins(
@@ -715,49 +635,32 @@ class _EditProfileDetailsScreenState
                 fontSize: 12,
               ),
               filled: true,
-              fillColor: Colors.white.withOpacity(.04),
+              fillColor: Colors.white.withValues(alpha: .04),
               enabledBorder: OutlineInputBorder(
-                borderRadius:
-                BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
-                  color:
-                  Colors.white.withOpacity(.10),
+                  color: Colors.white.withValues(alpha: .10),
                 ),
               ),
-              focusedBorder:
-              OutlineInputBorder(
-                borderRadius:
-                BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                  color: gold,
-                ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: gold),
               ),
             ),
           ),
           actions: [
             TextButton(
-              onPressed: () =>
-                  Navigator.pop(dialogContext),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text(
                 'Cancel',
-                style: TextStyle(
-                  color: Colors.white54,
-                ),
+                style: TextStyle(color: Colors.white54),
               ),
             ),
             TextButton(
               onPressed: () {
-                Navigator.pop(
-                  dialogContext,
-                  controller.text.trim(),
-                );
+                Navigator.pop(dialogContext, controller.text.trim());
               },
-              child: const Text(
-                'Save',
-                style: TextStyle(
-                  color: gold,
-                ),
-              ),
+              child: const Text('Save', style: TextStyle(color: gold)),
             ),
           ],
         );
@@ -766,8 +669,7 @@ class _EditProfileDetailsScreenState
 
     controller.dispose();
 
-    if (result != null &&
-        result.trim().isNotEmpty) {
+    if (result != null && result.trim().isNotEmpty) {
       setState(() {
         onSaved(result.trim());
       });
@@ -799,26 +701,19 @@ class _ActionButton extends StatelessWidget {
           width: double.infinity,
           height: 44,
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(.10),
+            color: Colors.black.withValues(alpha: .10),
             borderRadius: BorderRadius.circular(13),
-            border: Border.all(
-              color: color.withOpacity(.24),
-            ),
+            border: Border.all(color: color.withValues(alpha: .24)),
           ),
           child: Row(
-            mainAxisAlignment:
-            MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                color: color,
-                size: 19,
-              ),
+              Icon(icon, color: color, size: 19),
               const SizedBox(width: 8),
               Text(
                 label,
                 style: GoogleFonts.poppins(
-                  color: Colors.white.withOpacity(.86),
+                  color: Colors.white.withValues(alpha: .86),
                   fontSize: 12.5,
                   fontWeight: FontWeight.w500,
                 ),
@@ -858,18 +753,14 @@ class _ProfileTile extends StatelessWidget {
         onTap: onTap,
         child: Container(
           height: subtitle == null ? 54 : 62,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 13,
-            vertical: 10,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
           decoration: BoxDecoration(
             border: showBottomBorder
                 ? Border(
-              bottom: BorderSide(
-                color:
-                Colors.white.withOpacity(.065),
-              ),
-            )
+                    bottom: BorderSide(
+                      color: Colors.white.withValues(alpha: .065),
+                    ),
+                  )
                 : null,
           ),
           child: Row(
@@ -878,40 +769,30 @@ class _ProfileTile extends StatelessWidget {
                 width: 30,
                 height: 30,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFB25CFF)
-                      .withOpacity(.08),
-                  borderRadius:
-                  BorderRadius.circular(9),
+                  color: const Color(0xFFB25CFF).withValues(alpha: .08),
+                  borderRadius: BorderRadius.circular(9),
                 ),
-                child: Icon(
-                  icon,
-                  color: const Color(0xFFB25CFF),
-                  size: 17,
-                ),
+                child: Icon(icon, color: const Color(0xFFB25CFF), size: 17),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
-                  mainAxisAlignment:
-                  MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       label,
                       style: GoogleFonts.poppins(
                         color: Colors.white,
                         fontSize: 12.7,
-                        fontWeight:
-                        FontWeight.w500,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     if (subtitle != null) ...[
                       const SizedBox(height: 2),
                       Text(
                         subtitle!,
-                        style:
-                        GoogleFonts.poppins(
+                        style: GoogleFonts.poppins(
                           color: Colors.white38,
                           fontSize: 9.5,
                         ),
@@ -931,9 +812,7 @@ class _ProfileTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.right,
                   style: GoogleFonts.poppins(
-                    color: unset
-                        ? Colors.white38
-                        : Colors.white70,
+                    color: unset ? Colors.white38 : Colors.white70,
                     fontSize: 11.5,
                   ),
                 ),

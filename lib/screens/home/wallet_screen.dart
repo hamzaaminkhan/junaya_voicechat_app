@@ -29,23 +29,18 @@ class WalletScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(25),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [
-                    Color(0xff6C3BFF),
-                    Color(0xffB43EFF),
-                  ],
+                  colors: [Color(0xff6C3BFF), Color(0xffB43EFF)],
                 ),
                 borderRadius: BorderRadius.circular(25),
               ),
 
               child: Column(
                 children: [
-
                   const Icon(
                     Icons.account_balance_wallet,
                     size: 55,
@@ -56,9 +51,7 @@ class WalletScreen extends StatelessWidget {
 
                   Text(
                     "Available Balance",
-                    style: GoogleFonts.poppins(
-                      color: Colors.white70,
-                    ),
+                    style: GoogleFonts.poppins(color: Colors.white70),
                   ),
 
                   const SizedBox(height: 8),
@@ -77,11 +70,9 @@ class WalletScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-
                       balanceItem(Icons.monetization_on, "Coins", "25,000"),
 
                       balanceItem(Icons.diamond, "Diamonds", "12,500"),
-
                     ],
                   ),
                 ],
@@ -92,7 +83,6 @@ class WalletScreen extends StatelessWidget {
 
             Row(
               children: [
-
                 Expanded(
                   child: actionButton(
                     Icons.add_circle,
@@ -129,12 +119,7 @@ class WalletScreen extends StatelessWidget {
 
             const SizedBox(height: 15),
 
-            transactionTile(
-              Icons.add,
-              "Recharge",
-              "+ \$20",
-              Colors.green,
-            ),
+            transactionTile(Icons.add, "Recharge", "+ \$20", Colors.green),
 
             transactionTile(
               Icons.card_giftcard,
@@ -175,10 +160,7 @@ class WalletScreen extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        Text(
-          title,
-          style: const TextStyle(color: Colors.white70),
-        ),
+        Text(title, style: const TextStyle(color: Colors.white70)),
       ],
     );
   }
@@ -196,36 +178,25 @@ class WalletScreen extends StatelessWidget {
   }
 
   Widget transactionTile(
-      IconData icon,
-      String title,
-      String amount,
-      Color color,
-      ) {
+    IconData icon,
+    String title,
+    String amount,
+    Color color,
+  ) {
     return Card(
       color: const Color(0xff121530),
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: color,
           child: Icon(icon, color: Colors.white),
         ),
-        title: Text(
-          title,
-          style: const TextStyle(color: Colors.white),
-        ),
-        subtitle: const Text(
-          "Today",
-          style: TextStyle(color: Colors.white54),
-        ),
+        title: Text(title, style: const TextStyle(color: Colors.white)),
+        subtitle: const Text("Today", style: TextStyle(color: Colors.white54)),
         trailing: Text(
           amount,
-          style: TextStyle(
-            color: color,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: color, fontWeight: FontWeight.bold),
         ),
       ),
     );

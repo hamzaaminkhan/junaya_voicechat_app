@@ -14,13 +14,26 @@ class AccountScreen extends StatelessWidget {
         title: const Text('Account'),
       ),
       body: ListView(
-        padding: const EdgeInsets.only(top:100),
+        padding: const EdgeInsets.only(top: 100),
         children: const [
-          ListTile(title: Text('Facebook', style: TextStyle(color: Colors.white))),
-          ListTile(title: Text('Google', style: TextStyle(color: Colors.white))),
-          ListTile(title: Text('Phone', style: TextStyle(color: Colors.white))),
-          ListTile(title: Text('Email', style: TextStyle(color: Colors.white))),
-          ListTile(title: Text('Delete Account', style: TextStyle(color: Colors.white))),
+          ListTile(
+            title: Text('Facebook', style: TextStyle(color: Colors.white)),
+          ),
+          ListTile(
+            title: Text('Google', style: TextStyle(color: Colors.white)),
+          ),
+          ListTile(
+            title: Text('Phone', style: TextStyle(color: Colors.white)),
+          ),
+          ListTile(
+            title: Text('Email', style: TextStyle(color: Colors.white)),
+          ),
+          ListTile(
+            title: Text(
+              'Delete Account',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
         ],
       ),
     );

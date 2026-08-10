@@ -22,22 +22,19 @@ class CountryChip extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: active
-            ? Colors.white.withOpacity(.10)
-            : Colors.black.withOpacity(.10),
+            ? Colors.white.withValues(alpha: .10)
+            : Colors.black.withValues(alpha: .10),
         borderRadius: BorderRadius.circular(11),
         border: Border.all(
           color: active
-              ? const Color(0xFFB86BE8).withOpacity(.70)
-              : Colors.white.withOpacity(.08),
+              ? const Color(0xFFB86BE8).withValues(alpha: .70)
+              : Colors.white.withValues(alpha: .08),
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            flag,
-            style: const TextStyle(fontSize: 12),
-          ),
+          Text(flag, style: const TextStyle(fontSize: 12)),
           const SizedBox(width: 5),
           Text(
             name,

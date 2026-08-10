@@ -34,12 +34,7 @@ class _IntroScreenState extends State<IntroScreen>
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, .035),
       end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOutCubic,
-      ),
-    );
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
     _controller.forward();
   }
@@ -51,10 +46,7 @@ class _IntroScreenState extends State<IntroScreen>
   }
 
   void _goToLogin() {
-    Navigator.pushReplacementNamed(
-      context,
-      AppRoutes.login,
-    );
+    Navigator.pushReplacementNamed(context, AppRoutes.login);
   }
 
   @override
@@ -67,13 +59,9 @@ class _IntroScreenState extends State<IntroScreen>
             builder: (context, constraints) {
               return SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 22,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 22),
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
                   child: FadeTransition(
                     opacity: _fadeAnimation,
                     child: SlideTransition(
@@ -117,17 +105,12 @@ class _IntroScreenState extends State<IntroScreen>
             padding: const EdgeInsets.all(7),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
-              color: Colors.black.withOpacity(.16),
-              border: Border.all(
-                color: Colors.white.withOpacity(.12),
-              ),
+              color: Colors.black.withValues(alpha: .16),
+              border: Border.all(color: Colors.white.withValues(alpha: .12)),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(18),
-              child: Image.asset(
-                'assets/logo.png',
-                fit: BoxFit.contain,
-              ),
+              child: Image.asset('assets/logo.png', fit: BoxFit.contain),
             ),
           ),
         ),
@@ -170,9 +153,7 @@ class _IntroScreenState extends State<IntroScreen>
         ),
         const SizedBox(height: 10),
         ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: 430,
-          ),
+          constraints: const BoxConstraints(maxWidth: 430),
           child: Text(
             'Join live voice rooms, meet new people and enjoy meaningful conversations from anywhere.',
             textAlign: TextAlign.center,
@@ -214,34 +195,25 @@ class _IntroScreenState extends State<IntroScreen>
     );
   }
 
-  Widget _featureChip({
-    required IconData icon,
-    required String label,
-  }) {
+  Widget _featureChip({required IconData icon, required String label}) {
     return Container(
       height: 68,
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(.15),
+        color: Colors.black.withValues(alpha: .15),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.white.withOpacity(.10),
-        ),
+        border: Border.all(color: Colors.white.withValues(alpha: .10)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            color: const Color(0xFFFFC94D),
-            size: 23,
-          ),
+          Icon(icon, color: const Color(0xFFFFC94D), size: 23),
           const SizedBox(height: 5),
           Text(
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.poppins(
-              color: Colors.white.withOpacity(.88),
+              color: Colors.white.withValues(alpha: .88),
               fontSize: 11,
               fontWeight: FontWeight.w500,
             ),
@@ -254,16 +226,11 @@ class _IntroScreenState extends State<IntroScreen>
   Widget _descriptionCard() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 15,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(.12),
+        color: Colors.black.withValues(alpha: .12),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: Colors.white.withOpacity(.09),
-        ),
+        border: Border.all(color: Colors.white.withValues(alpha: .09)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,7 +239,7 @@ class _IntroScreenState extends State<IntroScreen>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: const Color(0xFFFFC94D).withOpacity(.10),
+              color: const Color(0xFFFFC94D).withValues(alpha: .10),
               borderRadius: BorderRadius.circular(11),
             ),
             child: const Icon(
@@ -328,10 +295,7 @@ class _IntroScreenState extends State<IntroScreen>
         ),
         child: Text(
           'Get Started',
-          style: GoogleFonts.poppins(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-          ),
+          style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700),
         ),
       ),
     );
@@ -343,10 +307,7 @@ class _IntroScreenState extends State<IntroScreen>
       children: [
         Text(
           'Already have an account? ',
-          style: GoogleFonts.poppins(
-            color: Colors.white54,
-            fontSize: 12.5,
-          ),
+          style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12.5),
         ),
         GestureDetector(
           onTap: _goToLogin,

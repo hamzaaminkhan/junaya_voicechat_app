@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:junaya_voicechat_app/theme/app_colors.dart';
 
-
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});
 
@@ -46,18 +45,12 @@ class NotificationScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-
-
       appBar: AppBar(
-
         elevation: 0,
         centerTitle: true,
         title: const Text(
           "Notifications",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
 
@@ -79,10 +72,7 @@ class NotificationScreen extends StatelessWidget {
               leading: CircleAvatar(
                 radius: 25,
                 backgroundColor: item["color"] as Color,
-                child: Icon(
-                  item["icon"] as IconData,
-                  color: Colors.white,
-                ),
+                child: Icon(item["icon"] as IconData, color: Colors.white),
               ),
 
               title: Text(
@@ -97,18 +87,13 @@ class NotificationScreen extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 5),
                 child: Text(
                   item["subtitle"] as String,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                  ),
+                  style: const TextStyle(color: Colors.white70),
                 ),
               ),
 
               trailing: Text(
                 item["time"] as String,
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontSize: 12,
-                ),
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ),
           );

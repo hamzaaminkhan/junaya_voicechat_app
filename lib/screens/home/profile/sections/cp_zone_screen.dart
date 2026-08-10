@@ -14,8 +14,13 @@ class CpZoneScreen extends StatelessWidget {
       builder: (dialogContext) {
         return AlertDialog(
           backgroundColor: const Color(0xFF170823),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('Create CP connection', style: TextStyle(color: Colors.white)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text(
+            'Create CP connection',
+            style: TextStyle(color: Colors.white),
+          ),
           content: TextField(
             controller: controller,
             style: const TextStyle(color: Colors.white),
@@ -25,7 +30,9 @@ class CpZoneScreen extends StatelessWidget {
               prefixIcon: const Icon(Icons.person_search, color: Colors.amber),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(color: Colors.purpleAccent.withOpacity(.45)),
+                borderSide: BorderSide(
+                  color: Colors.purpleAccent.withValues(alpha: .45),
+                ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
@@ -71,7 +78,11 @@ class CpZoneScreen extends StatelessWidget {
             ),
             child: Column(
               children: [
-                const Icon(Icons.favorite_rounded, color: Colors.pinkAccent, size: 48),
+                const Icon(
+                  Icons.favorite_rounded,
+                  color: Colors.pinkAccent,
+                  size: 48,
+                ),
                 const SizedBox(height: 12),
                 Text(
                   'Your CP Zone',
@@ -98,9 +109,16 @@ class CpZoneScreen extends StatelessWidget {
                     _PartnerAvatar(label: 'You', icon: Icons.person),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 12),
-                      child: Icon(Icons.favorite, color: Colors.pinkAccent, size: 30),
+                      child: Icon(
+                        Icons.favorite,
+                        color: Colors.pinkAccent,
+                        size: 30,
+                      ),
                     ),
-                    _PartnerAvatar(label: 'Partner', icon: Icons.person_add_alt_1),
+                    _PartnerAvatar(
+                      label: 'Partner',
+                      icon: Icons.person_add_alt_1,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 18),
@@ -122,11 +140,29 @@ class CpZoneScreen extends StatelessWidget {
           const ProfileSectionCard(
             child: Row(
               children: [
-                Expanded(child: _CpMetric(value: '0', label: 'CP Points', icon: Icons.favorite)),
+                Expanded(
+                  child: _CpMetric(
+                    value: '0',
+                    label: 'CP Points',
+                    icon: Icons.favorite,
+                  ),
+                ),
                 _Divider(),
-                Expanded(child: _CpMetric(value: '--', label: 'CP Rank', icon: Icons.leaderboard)),
+                Expanded(
+                  child: _CpMetric(
+                    value: '--',
+                    label: 'CP Rank',
+                    icon: Icons.leaderboard,
+                  ),
+                ),
                 _Divider(),
-                Expanded(child: _CpMetric(value: '0', label: 'Days', icon: Icons.calendar_month)),
+                Expanded(
+                  child: _CpMetric(
+                    value: '0',
+                    label: 'Days',
+                    icon: Icons.calendar_month,
+                  ),
+                ),
               ],
             ),
           ),
@@ -137,14 +173,29 @@ class CpZoneScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _milestone('Make a CP connection', '0 / 1', Icons.favorite_border, 0),
-          _milestone('Earn 1,000 CP points', '0 / 1,000', Icons.bolt_outlined, 0),
-          _milestone('Reach a 7-day streak', '0 / 7 days', Icons.local_fire_department_outlined, 0),
+          _milestone(
+            'Earn 1,000 CP points',
+            '0 / 1,000',
+            Icons.bolt_outlined,
+            0,
+          ),
+          _milestone(
+            'Reach a 7-day streak',
+            '0 / 7 days',
+            Icons.local_fire_department_outlined,
+            0,
+          ),
         ],
       ),
     );
   }
 
-  Widget _milestone(String title, String progressText, IconData icon, double progress) {
+  Widget _milestone(
+    String title,
+    String progressText,
+    IconData icon,
+    double progress,
+  ) {
     return ProfileSectionCard(
       margin: const EdgeInsets.only(bottom: 10),
       child: Row(
@@ -153,7 +204,7 @@ class CpZoneScreen extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: Colors.pinkAccent.withOpacity(.10),
+              color: Colors.pinkAccent.withValues(alpha: .10),
               borderRadius: BorderRadius.circular(13),
             ),
             child: Icon(icon, color: Colors.pinkAccent),
@@ -178,7 +229,9 @@ class CpZoneScreen extends StatelessWidget {
                     value: progress,
                     minHeight: 6,
                     backgroundColor: Colors.white10,
-                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.pinkAccent),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      Colors.pinkAccent,
+                    ),
                   ),
                 ),
               ],
@@ -210,13 +263,16 @@ class _PartnerAvatar extends StatelessWidget {
           height: 58,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.black.withOpacity(.22),
-            border: Border.all(color: Colors.pinkAccent.withOpacity(.6)),
+            color: Colors.black.withValues(alpha: .22),
+            border: Border.all(color: Colors.pinkAccent.withValues(alpha: .6)),
           ),
           child: Icon(icon, color: Colors.white70),
         ),
         const SizedBox(height: 6),
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white70, fontSize: 11),
+        ),
       ],
     );
   }
@@ -227,7 +283,11 @@ class _CpMetric extends StatelessWidget {
   final String label;
   final IconData icon;
 
-  const _CpMetric({required this.value, required this.label, required this.icon});
+  const _CpMetric({
+    required this.value,
+    required this.label,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {

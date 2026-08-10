@@ -16,7 +16,7 @@ class BannerIndicator extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
         total,
-            (index) => AnimatedContainer(
+        (index) => AnimatedContainer(
           duration: const Duration(milliseconds: 220),
           margin: const EdgeInsets.symmetric(horizontal: 3),
           width: index == current ? 16 : 5,
@@ -24,7 +24,7 @@ class BannerIndicator extends StatelessWidget {
           decoration: BoxDecoration(
             color: index == current
                 ? const Color(0xFFFFC857)
-                : Colors.white.withOpacity(.25),
+                : Colors.white.withValues(alpha: .25),
             borderRadius: BorderRadius.circular(20),
           ),
         ),

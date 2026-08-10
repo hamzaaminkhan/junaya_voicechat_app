@@ -17,7 +17,7 @@ class BottomControls extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(.25),
+            color: Colors.black.withValues(alpha: .25),
             blurRadius: 15,
             offset: const Offset(0, -3),
           ),
@@ -36,21 +36,13 @@ class BottomControls extends StatelessWidget {
             label: "Gift",
             color: Colors.pink,
           ),
-          ControlButton(
-            icon: Icons.mic,
-            label: "Mic",
-            color: Colors.green,
-          ),
+          ControlButton(icon: Icons.mic, label: "Mic", color: Colors.green),
           ControlButton(
             icon: Icons.person_add_alt_1,
             label: "Invite",
             color: Colors.blue,
           ),
-          ControlButton(
-            icon: Icons.logout,
-            label: "Leave",
-            color: Colors.red,
-          ),
+          ControlButton(icon: Icons.logout, label: "Leave", color: Colors.red),
         ],
       ),
     );
@@ -109,20 +101,13 @@ class ControlButton extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 23,
-            backgroundColor: color.withOpacity(.18),
-            child: Icon(
-              icon,
-              color: color,
-              size: 26,
-            ),
+            backgroundColor: color.withValues(alpha: .18),
+            child: Icon(icon, color: color, size: 26),
           ),
           const SizedBox(height: 6),
           Text(
             label,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 11,
-            ),
+            style: const TextStyle(color: Colors.white70, fontSize: 11),
           ),
         ],
       ),

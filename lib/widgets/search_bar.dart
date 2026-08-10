@@ -12,10 +12,7 @@ class ChatSearchBar extends StatelessWidget {
         decoration: InputDecoration(
           hintText: "Search chats...",
           hintStyle: const TextStyle(color: Colors.white54),
-          prefixIcon: const Icon(
-            Icons.search,
-            color: Colors.white54,
-          ),
+          prefixIcon: const Icon(Icons.search, color: Colors.white54),
           filled: true,
           fillColor: Colors.white10,
           border: OutlineInputBorder(
@@ -25,8 +22,5 @@ class ChatSearchBar extends StatelessWidget {
         ),
       ),
     );
-
-
   }
-
 }

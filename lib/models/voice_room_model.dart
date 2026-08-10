@@ -1,8 +1,4 @@
-enum RoomSeatStatus {
-  empty,
-  occupied,
-  locked,
-}
+enum RoomSeatStatus { empty, occupied, locked }
 
 class RoomUser {
   final String id;
@@ -46,9 +42,7 @@ class RoomUser {
 
   factory RoomUser.fromJson(Map<String, dynamic> json) {
     return RoomUser(
-      id: json['_id']?.toString() ??
-          json['id']?.toString() ??
-          '',
+      id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? 'User',
       avatar: json['avatar']?.toString(),
       isHost: json['isHost'] == true,
@@ -85,8 +79,7 @@ class RoomSeat {
 
   bool get isEmpty => status == RoomSeatStatus.empty;
 
-  bool get isOccupied =>
-      status == RoomSeatStatus.occupied && user != null;
+  bool get isOccupied => status == RoomSeatStatus.occupied && user != null;
 
   bool get isLocked => status == RoomSeatStatus.locked;
 
@@ -104,8 +97,7 @@ class RoomSeat {
   }
 
   factory RoomSeat.fromJson(Map<String, dynamic> json) {
-    final String statusValue =
-        json['status']?.toString() ?? 'empty';
+    final String statusValue = json['status']?.toString() ?? 'empty';
 
     RoomSeatStatus status;
 
@@ -126,19 +118,13 @@ class RoomSeat {
       number: json['number'] ?? 1,
       status: status,
       user: json['user'] != null
-          ? RoomUser.fromJson(
-        Map<String, dynamic>.from(json['user']),
-      )
+          ? RoomUser.fromJson(Map<String, dynamic>.from(json['user']))
           : null,
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'number': number,
-      'status': status.name,
-      'user': user?.toJson(),
-    };
+    return {'number': number, 'status': status.name, 'user': user?.toJson()};
   }
 }
 
@@ -186,23 +172,14 @@ class VoiceRoom {
 
   factory VoiceRoom.fromJson(Map<String, dynamic> json) {
     return VoiceRoom(
-      id: json['_id']?.toString() ??
-          json['id']?.toString() ??
-          '',
-      name:
-      json['name']?.toString() ?? 'Junaya Voice Room',
+      id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? 'Junaya Voice Room',
       ownerId: json['ownerId']?.toString() ?? '',
-      announcement:
-      json['announcement']?.toString() ??
-          'Welcome to Junaya.',
+      announcement: json['announcement']?.toString() ?? 'Welcome to Junaya.',
       onlineUsers: json['onlineUsers'] ?? 0,
       roomRank: json['roomRank'] ?? 0,
       seats: (json['seats'] as List<dynamic>? ?? [])
-          .map(
-            (item) => RoomSeat.fromJson(
-          Map<String, dynamic>.from(item),
-        ),
-      )
+          .map((item) => RoomSeat.fromJson(Map<String, dynamic>.from(item)))
           .toList(),
     );
   }

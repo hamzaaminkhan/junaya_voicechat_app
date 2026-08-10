@@ -17,23 +17,28 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   static const List<Map<String, String>> _faqs = [
     {
       'question': 'How do I recharge my wallet?',
-      'answer': 'Open Wallet from your profile and choose Recharge. Payment integration can be connected to the recharge action.',
+      'answer':
+          'Open Wallet from your profile and choose Recharge. Payment integration can be connected to the recharge action.',
     },
     {
       'question': 'How do I join an agency?',
-      'answer': 'Open Join Agency, enter the agency ID supplied by the owner, then send your request.',
+      'answer':
+          'Open Join Agency, enter the agency ID supplied by the owner, then send your request.',
     },
     {
       'question': 'How do levels work?',
-      'answer': 'Levels can be increased by earning XP through rooms, gifts and community activity once those backend rules are connected.',
+      'answer':
+          'Levels can be increased by earning XP through rooms, gifts and community activity once those backend rules are connected.',
     },
     {
       'question': 'Where can I change the app language?',
-      'answer': 'Open Language from Profile or Settings and select your preferred language.',
+      'answer':
+          'Open Language from Profile or Settings and select your preferred language.',
     },
     {
       'question': 'How do I report a problem?',
-      'answer': 'Use the support options below. A ticket or live-chat API can be connected to these actions later.',
+      'answer':
+          'Use the support options below. A ticket or live-chat API can be connected to these actions later.',
     },
   ];
 
@@ -45,7 +50,9 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
 
   void _showComingSoon(String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$feature will be connected to the support backend.')),
+      SnackBar(
+        content: Text('$feature will be connected to the support backend.'),
+      ),
     );
   }
 
@@ -69,7 +76,11 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
             ),
             child: Column(
               children: [
-                const Icon(Icons.support_agent_rounded, color: Colors.amber, size: 46),
+                const Icon(
+                  Icons.support_agent_rounded,
+                  color: Colors.amber,
+                  size: 46,
+                ),
                 const SizedBox(height: 10),
                 Text(
                   'How can we help?',
@@ -87,9 +98,12 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                   decoration: InputDecoration(
                     hintText: 'Search help topics',
                     hintStyle: const TextStyle(color: Colors.white54),
-                    prefixIcon: const Icon(Icons.search_rounded, color: Colors.amber),
+                    prefixIcon: const Icon(
+                      Icons.search_rounded,
+                      color: Colors.amber,
+                    ),
                     filled: true,
-                    fillColor: Colors.black.withOpacity(.22),
+                    fillColor: Colors.black.withValues(alpha: .22),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide.none,
@@ -135,17 +149,22 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               child: Center(
                 child: Padding(
                   padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Text('No matching help topics.', style: TextStyle(color: Colors.white60)),
+                  child: Text(
+                    'No matching help topics.',
+                    style: TextStyle(color: Colors.white60),
+                  ),
                 ),
               ),
             )
           else
             ...visibleFaqs.map(
-                  (faq) => ProfileSectionCard(
+              (faq) => ProfileSectionCard(
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: EdgeInsets.zero,
                 child: Theme(
-                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                  data: Theme.of(
+                    context,
+                  ).copyWith(dividerColor: Colors.transparent),
                   child: ExpansionTile(
                     iconColor: Colors.amber,
                     collapsedIconColor: Colors.white54,
@@ -188,7 +207,11 @@ class _SupportAction extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const _SupportAction({required this.icon, required this.label, required this.onTap});
+  const _SupportAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {

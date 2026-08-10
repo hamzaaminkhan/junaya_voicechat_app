@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:junaya_voicechat_app/widgets/auth_guard.dart';
 
 import '../screens/auth/email_verification.dart';
 import '../screens/auth/forgot_password_screen.dart';
@@ -20,13 +21,15 @@ import '../screens/home/rooms/room_screen.dart';
 import '../screens/home/wallet_screen.dart';
 import '../screens/main/main_screen.dart';
 import '../screens/settings/settings_screen.dart';
+import '../screens/splash/splash_screen.dart';
 import '../screens/splash/welcome_screen.dart';
 import '../screens/vip/vip_screen.dart';
 
 class AppRoutes {
   AppRoutes._();
 
-  static const String intro = '/';
+  static const String splash = '/';
+  static const String intro = '/intro';
   static const String login = '/login';
   static const String signup = '/signup';
   static const String forgotPassword = '/forgotPassword';
@@ -54,7 +57,10 @@ class AppRoutes {
   static const String language = '/profile/language';
   static const String helpCenter = '/profile/help-center';
 
+  static Widget _protected(Widget child) => AuthGuard(child: child);
+
   static final Map<String, WidgetBuilder> routes = {
+    splash: (_) => const SplashScreen(),
     intro: (_) => const IntroScreen(),
     login: (_) => const LoginScreen(),
     signup: (_) => const SignupScreen(),
@@ -63,22 +69,22 @@ class AppRoutes {
     otp: (_) => const OtpScreen(),
     emailVerification: (_) => const VerifyEmailScreen(),
 
-    home: (_) => const MainScreen(),
-    room: (_) => const RoomScreen(),
-    chat: (_) => const ChatListScreen(),
-    profile: (_) => const ProfileScreen(),
-    vip: (_) => const VipScreen(),
-    main: (_) => const MainScreen(),
+    home: (_) => _protected(const MainScreen()),
+    room: (_) => _protected(const RoomScreen()),
+    chat: (_) => _protected(const ChatListScreen()),
+    profile: (_) => _protected(const ProfileScreen()),
+    vip: (_) => _protected(const VipScreen()),
+    main: (_) => _protected(const MainScreen()),
 
-    wallet: (_) => const WalletScreen(),
-    store: (_) => const GiftsScreen(),
-    inviteFriends: (_) => const FriendsScreen(),
-    joinAgency: (_) => const JoinAgencyScreen(),
-    level: (_) => const LevelScreen(),
-    medal: (_) => const MedalScreen(),
-    cpZone: (_) => const CpZoneScreen(),
-    settings: (_) => const SettingsScreen(),
-    language: (_) => const LanguageScreen(),
-    helpCenter: (_) => const HelpCenterScreen(),
+    wallet: (_) => _protected(const WalletScreen()),
+    store: (_) => _protected(const GiftsScreen()),
+    inviteFriends: (_) => _protected(const FriendsScreen()),
+    joinAgency: (_) => _protected(const JoinAgencyScreen()),
+    level: (_) => _protected(const LevelScreen()),
+    medal: (_) => _protected(const MedalScreen()),
+    cpZone: (_) => _protected(const CpZoneScreen()),
+    settings: (_) => _protected(const SettingsScreen()),
+    language: (_) => _protected(const LanguageScreen()),
+    helpCenter: (_) => _protected(const HelpCenterScreen()),
   };
 }

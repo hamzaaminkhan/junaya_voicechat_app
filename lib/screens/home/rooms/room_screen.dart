@@ -5,11 +5,7 @@ import 'room_profile_screen.dart';
 import 'room_socket_service.dart';
 import 'agora_voice_service.dart';
 
-enum RoomSeatStatus {
-  empty,
-  occupied,
-  locked,
-}
+enum RoomSeatStatus { empty, occupied, locked }
 
 class RoomUser {
   final String id;
@@ -87,8 +83,7 @@ class RoomSeat {
   });
 
   bool get isEmpty => status == RoomSeatStatus.empty;
-  bool get isOccupied =>
-      status == RoomSeatStatus.occupied && user != null;
+  bool get isOccupied => status == RoomSeatStatus.occupied && user != null;
   bool get isLocked => status == RoomSeatStatus.locked;
 
   RoomSeat copyWith({
@@ -128,19 +123,13 @@ class RoomSeat {
       number: seatNumber,
       status: parsedStatus,
       user: json['user'] is Map
-          ? RoomUser.fromJson(
-        Map<String, dynamic>.from(json['user'] as Map),
-      )
+          ? RoomUser.fromJson(Map<String, dynamic>.from(json['user'] as Map))
           : null,
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'number': number,
-      'status': status.name,
-      'user': user?.toJson(),
-    };
+    return {'number': number, 'status': status.name, 'user': user?.toJson()};
   }
 }
 
@@ -191,8 +180,7 @@ class VoiceRoom {
       id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? 'Junaya Voice Room',
       ownerId: json['ownerId']?.toString() ?? '',
-      announcement: json['announcement']?.toString() ??
-          'Welcome to Junaya.',
+      announcement: json['announcement']?.toString() ?? 'Welcome to Junaya.',
       onlineUsers: rawOnline is int
           ? rawOnline
           : int.tryParse(rawOnline?.toString() ?? '') ?? 0,
@@ -201,11 +189,7 @@ class VoiceRoom {
           : int.tryParse(rawRank?.toString() ?? '') ?? 0,
       seats: (json['seats'] as List<dynamic>? ?? const [])
           .whereType<Map>()
-          .map(
-            (item) => RoomSeat.fromJson(
-          Map<String, dynamic>.from(item),
-        ),
-      )
+          .map((item) => RoomSeat.fromJson(Map<String, dynamic>.from(item)))
           .toList(),
     );
   }
@@ -269,7 +253,7 @@ class RoomController extends ChangeNotifier {
   void _createTemporaryRoom() {
     final seats = List<RoomSeat>.generate(
       15,
-          (index) => RoomSeat(number: index + 1),
+      (index) => RoomSeat(number: index + 1),
     );
 
     seats[0] = const RoomSeat(
@@ -287,16 +271,10 @@ class RoomController extends ChangeNotifier {
     seats[1] = const RoomSeat(
       number: 2,
       status: RoomSeatStatus.occupied,
-      user: RoomUser(
-        id: 'user_ayesha',
-        name: 'Ayesha',
-      ),
+      user: RoomUser(id: 'user_ayesha', name: 'Ayesha'),
     );
 
-    seats[14] = const RoomSeat(
-      number: 15,
-      status: RoomSeatStatus.locked,
-    );
+    seats[14] = const RoomSeat(number: 15, status: RoomSeatStatus.locked);
 
     _room = VoiceRoom(
       id: '87012534',
@@ -389,9 +367,7 @@ class RoomController extends ChangeNotifier {
 
       if (seat.user != null) {
         seats[index] = seat.copyWith(
-          user: seat.user!.copyWith(
-            isMuted: !_microphoneEnabled,
-          ),
+          user: seat.user!.copyWith(isMuted: !_microphoneEnabled),
         );
         _room = currentRoom.copyWith(seats: seats);
       }
@@ -505,8 +481,7 @@ class _RoomScreenState extends State<RoomScreen> {
     'Ayesha joined the room',
   ];
 
-  final TextEditingController _chatController =
-  TextEditingController();
+  final TextEditingController _chatController = TextEditingController();
 
   final List<_RoomChatEntry> _chatMessages = [
     const _RoomChatEntry(
@@ -515,10 +490,7 @@ class _RoomScreenState extends State<RoomScreen> {
       badge: 'ROOM',
       isSystem: true,
     ),
-    const _RoomChatEntry(
-      name: 'Ayesha',
-      message: 'Nice room ❤️',
-    ),
+    const _RoomChatEntry(name: 'Ayesha', message: 'Nice room ❤️'),
     const _RoomChatEntry(
       name: 'StoneBoy',
       message: 'Hello everyone 👋',
@@ -701,8 +673,7 @@ class _RoomScreenState extends State<RoomScreen> {
         if (!mounted) return;
 
         if (!ok || agora == null) {
-          final message =
-              error ?? 'Unable to obtain secure voice token.';
+          final message = error ?? 'Unable to obtain secure voice token.';
 
           setState(() {
             _agoraError = message;
@@ -733,8 +704,7 @@ class _RoomScreenState extends State<RoomScreen> {
       onSuccess: (agora) async {
         final appId = agora['appId']?.toString() ?? '';
         final token = agora['token']?.toString() ?? '';
-        final channelId =
-            agora['channelId']?.toString() ?? _room.id;
+        final channelId = agora['channelId']?.toString() ?? _room.id;
         final rawUid = agora['uid'];
 
         final uid = rawUid is int
@@ -772,8 +742,7 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 
   void _refreshAgoraToken() {
-    final role =
-    _agoraVoiceService.publishing ? 'publisher' : 'subscriber';
+    final role = _agoraVoiceService.publishing ? 'publisher' : 'subscriber';
 
     _requestAgoraToken(
       role: role,
@@ -788,9 +757,7 @@ class _RoomScreenState extends State<RoomScreen> {
     );
   }
 
-  void _enableAgoraPublishingAfterSeatJoin({
-    required int seatIndex,
-  }) {
+  void _enableAgoraPublishingAfterSeatJoin({required int seatIndex}) {
     _requestAgoraToken(
       role: 'publisher',
       onSuccess: (agora) async {
@@ -802,8 +769,7 @@ class _RoomScreenState extends State<RoomScreen> {
           return;
         }
 
-        final enabled =
-        await _agoraVoiceService.becomeBroadcaster(
+        final enabled = await _agoraVoiceService.becomeBroadcaster(
           publisherToken: token,
         );
 
@@ -814,9 +780,7 @@ class _RoomScreenState extends State<RoomScreen> {
           return;
         }
 
-        _addActivity(
-          'Your microphone is now live on Mic ${seatIndex + 1} 🎙️',
-        );
+        _addActivity('Your microphone is now live on Mic ${seatIndex + 1} 🎙️');
         _showMessage('Microphone is live');
       },
     );
@@ -828,7 +792,7 @@ class _RoomScreenState extends State<RoomScreen> {
     _socketService.leaveSeat(
       roomId: _room.id,
       userId: _roomController.currentUserId,
-      onResult: (_, __) {},
+      onResult: (_, _) {},
     );
 
     _agoraVoiceService.becomeAudience();
@@ -884,9 +848,7 @@ class _RoomScreenState extends State<RoomScreen> {
   void _openRoomProfile() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const RoomProfileScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const RoomProfileScreen()),
     );
   }
 
@@ -993,9 +955,7 @@ class _RoomScreenState extends State<RoomScreen> {
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
             decoration: const BoxDecoration(
               color: Color(0xFF160633),
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(22),
-              ),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
             ),
             child: SafeArea(
               top: false,
@@ -1039,7 +999,7 @@ class _RoomScreenState extends State<RoomScreen> {
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(22),
                           borderSide: BorderSide(
-                            color: _pink.withOpacity(.25),
+                            color: _pink.withValues(alpha: .25),
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
@@ -1057,8 +1017,7 @@ class _RoomScreenState extends State<RoomScreen> {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () {
-                        final hadText =
-                            _chatController.text.trim().isNotEmpty;
+                        final hadText = _chatController.text.trim().isNotEmpty;
 
                         _sendChatMessage();
 
@@ -1073,10 +1032,7 @@ class _RoomScreenState extends State<RoomScreen> {
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: LinearGradient(
-                            colors: [
-                              Color(0xFFFFD76A),
-                              Color(0xFFFFA61E),
-                            ],
+                            colors: [Color(0xFFFFD76A), Color(0xFFFFA61E)],
                           ),
                         ),
                         child: const Icon(
@@ -1104,9 +1060,7 @@ class _RoomScreenState extends State<RoomScreen> {
         _addActivity('You joined Mic ${index + 1} 🎙️');
         _showMessage('You joined Mic ${index + 1}');
       } else {
-        _showMessage(
-          _roomController.error ?? 'Unable to join mic',
-        );
+        _showMessage(_roomController.error ?? 'Unable to join mic');
       }
 
       return;
@@ -1125,9 +1079,7 @@ class _RoomScreenState extends State<RoomScreen> {
           _addActivity('You joined Mic ${index + 1} 🎙️');
           _showMessage('You joined Mic ${index + 1}');
 
-          _enableAgoraPublishingAfterSeatJoin(
-            seatIndex: index,
-          );
+          _enableAgoraPublishingAfterSeatJoin(seatIndex: index);
         } else {
           _showMessage(error ?? 'Unable to join mic');
         }
@@ -1168,8 +1120,7 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 
   void _toggleMicRealtime() {
-    if (!_roomController.isOnMic ||
-        !_agoraVoiceService.publishing) {
+    if (!_roomController.isOnMic || !_agoraVoiceService.publishing) {
       _showMessage('Take a mic seat first.');
       return;
     }
@@ -1188,22 +1139,15 @@ class _RoomScreenState extends State<RoomScreen> {
         onResult: (ok, error) {
           if (!mounted || ok) return;
 
-          _showMessage(
-            error ?? 'Unable to update microphone',
-          );
+          _showMessage(error ?? 'Unable to update microphone');
         },
       );
     }
 
-    _showMessage(
-      muted ? 'Microphone muted' : 'Microphone enabled',
-    );
+    _showMessage(muted ? 'Microphone muted' : 'Microphone enabled');
   }
 
-  void _setSeatLockRealtime(
-      int index, {
-        required bool lock,
-      }) {
+  void _setSeatLockRealtime(int index, {required bool lock}) {
     final seat = _room.seats[index];
 
     if (!_socketConnected) {
@@ -1213,9 +1157,7 @@ class _RoomScreenState extends State<RoomScreen> {
 
       if (changed) {
         _showMessage(
-          lock
-              ? 'Mic ${seat.number} locked'
-              : 'Mic ${seat.number} unlocked',
+          lock ? 'Mic ${seat.number} locked' : 'Mic ${seat.number} unlocked',
         );
       } else if (_roomController.error != null) {
         _showMessage(_roomController.error!);
@@ -1229,14 +1171,10 @@ class _RoomScreenState extends State<RoomScreen> {
 
       if (ok) {
         _showMessage(
-          lock
-              ? 'Mic ${seat.number} locked'
-              : 'Mic ${seat.number} unlocked',
+          lock ? 'Mic ${seat.number} locked' : 'Mic ${seat.number} unlocked',
         );
       } else {
-        _showMessage(
-          error ?? 'Unable to update seat',
-        );
+        _showMessage(error ?? 'Unable to update seat');
       }
     }
 
@@ -1265,8 +1203,9 @@ class _RoomScreenState extends State<RoomScreen> {
         bottom: false,
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final double screenWidth =
-            constraints.maxWidth > 430 ? 400 : constraints.maxWidth;
+            final double screenWidth = constraints.maxWidth > 430
+                ? 400
+                : constraints.maxWidth;
 
             return Center(
               child: SizedBox(
@@ -1307,7 +1246,7 @@ class _RoomScreenState extends State<RoomScreen> {
           Image.asset(
             'assets/backgrounds/space_bg.jpeg',
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) {
+            errorBuilder: (_, _, _) {
               return const DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -1328,9 +1267,9 @@ class _RoomScreenState extends State<RoomScreen> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.black.withOpacity(.03),
+                    Colors.black.withValues(alpha: .03),
                     Colors.transparent,
-                    _bg.withOpacity(.48),
+                    _bg.withValues(alpha: .48),
                     _bg,
                   ],
                   begin: Alignment.topCenter,
@@ -1361,7 +1300,7 @@ class _RoomScreenState extends State<RoomScreen> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFEB3DFF).withOpacity(.20),
+                          color: const Color(0xFFEB3DFF).withValues(alpha: .20),
                           blurRadius: 8,
                         ),
                       ],
@@ -1371,7 +1310,7 @@ class _RoomScreenState extends State<RoomScreen> {
                       child: Image.asset(
                         'assets/users/profile.png',
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const ColoredBox(
+                        errorBuilder: (_, _, _) => const ColoredBox(
                           color: Color(0xFF32115B),
                           child: Icon(
                             Icons.person_rounded,
@@ -1433,7 +1372,7 @@ class _RoomScreenState extends State<RoomScreen> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.poppins(
-                                  color: Colors.white.withOpacity(.94),
+                                  color: Colors.white.withValues(alpha: .94),
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -1484,14 +1423,12 @@ class _RoomScreenState extends State<RoomScreen> {
               height: 32,
               padding: const EdgeInsets.only(left: 19, right: 11),
               decoration: BoxDecoration(
-                color: const Color(0xFF160037).withOpacity(.72),
+                color: const Color(0xFF160037).withValues(alpha: .72),
                 borderRadius: const BorderRadius.only(
                   topRight: Radius.circular(22),
                   bottomRight: Radius.circular(22),
                 ),
-                border: Border.all(
-                  color: _pink.withOpacity(.30),
-                ),
+                border: Border.all(color: _pink.withValues(alpha: .30)),
               ),
               child: Row(
                 children: [
@@ -1529,7 +1466,7 @@ class _RoomScreenState extends State<RoomScreen> {
                       child: Image.asset(
                         'assets/users/profile.png',
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const ColoredBox(
+                        errorBuilder: (_, _, _) => const ColoredBox(
                           color: Color(0xFF32115B),
                           child: Icon(
                             Icons.person_rounded,
@@ -1547,10 +1484,8 @@ class _RoomScreenState extends State<RoomScreen> {
                   height: 40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFF21154F).withOpacity(.90),
-                    border: Border.all(
-                      color: _pink.withOpacity(.45),
-                    ),
+                    color: const Color(0xFF21154F).withValues(alpha: .90),
+                    border: Border.all(color: _pink.withValues(alpha: .45)),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -1592,11 +1527,7 @@ class _RoomScreenState extends State<RoomScreen> {
         child: SizedBox(
           width: 36,
           height: 40,
-          child: Icon(
-            icon,
-            color: Colors.white,
-            size: 27,
-          ),
+          child: Icon(icon, color: Colors.white, size: 27),
         ),
       ),
     );
@@ -1649,37 +1580,34 @@ class _RoomScreenState extends State<RoomScreen> {
                   shape: BoxShape.circle,
                   gradient: user?.isSpeaking == true
                       ? const LinearGradient(
-                    colors: [
-                      Color(0xFFFF48ED),
-                      Color(0xFF7E54FF),
-                      Color(0xFF18C5C7),
-                    ],
-                  )
+                          colors: [
+                            Color(0xFFFF48ED),
+                            Color(0xFF7E54FF),
+                            Color(0xFF18C5C7),
+                          ],
+                        )
                       : null,
                   color: user?.isSpeaking == true
                       ? null
-                      : const Color(0xFF251149).withOpacity(.72),
+                      : const Color(0xFF251149).withValues(alpha: .72),
                   border: user?.isSpeaking == true
                       ? null
                       : Border.all(
-                    color: seat.isLocked
-                        ? Colors.white24
-                        : _pink.withOpacity(.46),
-                    width: 1,
-                  ),
+                          color: seat.isLocked
+                              ? Colors.white24
+                              : _pink.withValues(alpha: .46),
+                          width: 1,
+                        ),
                   boxShadow: [
                     BoxShadow(
                       color: user?.isSpeaking == true
-                          ? _pink.withOpacity(.35)
-                          : _pink.withOpacity(.07),
-                      blurRadius:
-                      user?.isSpeaking == true ? 12 : 7,
+                          ? _pink.withValues(alpha: .35)
+                          : _pink.withValues(alpha: .07),
+                      blurRadius: user?.isSpeaking == true ? 12 : 7,
                     ),
                   ],
                 ),
-                child: ClipOval(
-                  child: _seatContent(seat),
-                ),
+                child: ClipOval(child: _seatContent(seat)),
               ),
               if (user?.isHost == true)
                 Positioned(
@@ -1733,13 +1661,10 @@ class _RoomScreenState extends State<RoomScreen> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.poppins(
-              color: isMe
-                  ? const Color(0xFFFFA0F5)
-                  : const Color(0xFFE38BEA),
+              color: isMe ? const Color(0xFFFFA0F5) : const Color(0xFFE38BEA),
               fontSize: 9.5,
               height: 1,
-              fontWeight:
-              isMe ? FontWeight.w700 : FontWeight.w500,
+              fontWeight: isMe ? FontWeight.w700 : FontWeight.w500,
             ),
           ),
         ],
@@ -1755,22 +1680,17 @@ class _RoomScreenState extends State<RoomScreen> {
         return Image.asset(
           user.avatar!,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) =>
-              _avatarFallback(user.name),
+          errorBuilder: (_, _, _) => _avatarFallback(user.name),
         );
       }
       return _avatarFallback(user.name);
     }
 
     return ColoredBox(
-      color: const Color(0xFF251149).withOpacity(.72),
+      color: const Color(0xFF251149).withValues(alpha: .72),
       child: Icon(
-        seat.isLocked
-            ? Icons.lock_rounded
-            : Icons.mic_rounded,
-        color: seat.isLocked
-            ? Colors.white30
-            : const Color(0xFFF18FFF),
+        seat.isLocked ? Icons.lock_rounded : Icons.mic_rounded,
+        color: seat.isLocked ? Colors.white30 : const Color(0xFFF18FFF),
         size: 23,
       ),
     );
@@ -1781,10 +1701,7 @@ class _RoomScreenState extends State<RoomScreen> {
       alignment: Alignment.center,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Color(0xFF7A35CE),
-            Color(0xFF3E65CC),
-          ],
+          colors: [Color(0xFF7A35CE), Color(0xFF3E65CC)],
         ),
       ),
       child: Text(
@@ -1835,9 +1752,7 @@ class _RoomScreenState extends State<RoomScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFF1A0839),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: _pink.withOpacity(.22),
-              ),
+              border: Border.all(color: _pink.withValues(alpha: .22)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1851,11 +1766,7 @@ class _RoomScreenState extends State<RoomScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Icon(
-                  Icons.mic_rounded,
-                  color: _pink,
-                  size: 34,
-                ),
+                const Icon(Icons.mic_rounded, color: _pink, size: 34),
                 const SizedBox(height: 12),
                 Text(
                   'Mic ${seat.number}',
@@ -1881,18 +1792,14 @@ class _RoomScreenState extends State<RoomScreen> {
                         onPressed: () => Navigator.pop(context),
                         style: OutlinedButton.styleFrom(
                           minimumSize: const Size.fromHeight(45),
-                          side: const BorderSide(
-                            color: Colors.white24,
-                          ),
+                          side: const BorderSide(color: Colors.white24),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
                         child: Text(
                           'Cancel',
-                          style: GoogleFonts.poppins(
-                            color: Colors.white70,
-                          ),
+                          style: GoogleFonts.poppins(color: Colors.white70),
                         ),
                       ),
                     ),
@@ -1949,9 +1856,7 @@ class _RoomScreenState extends State<RoomScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFF190837),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: _pink.withOpacity(.20),
-              ),
+              border: Border.all(color: _pink.withValues(alpha: .20)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1959,19 +1864,18 @@ class _RoomScreenState extends State<RoomScreen> {
                 CircleAvatar(
                   radius: 34,
                   backgroundColor: const Color(0xFF45217B),
-                  backgroundImage:
-                  user.avatar != null ? AssetImage(user.avatar!) : null,
+                  backgroundImage: user.avatar != null
+                      ? AssetImage(user.avatar!)
+                      : null,
                   child: user.avatar == null
                       ? Text(
-                    user.name.isEmpty
-                        ? 'U'
-                        : user.name[0].toUpperCase(),
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  )
+                          user.name.isEmpty ? 'U' : user.name[0].toUpperCase(),
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        )
                       : null,
                 ),
                 const SizedBox(height: 12),
@@ -2016,14 +1920,12 @@ class _RoomScreenState extends State<RoomScreen> {
                           ),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.white,
-                            minimumSize:
-                            const Size.fromHeight(44),
+                            minimumSize: const Size.fromHeight(44),
                             side: BorderSide(
-                              color: _pink.withOpacity(.35),
+                              color: _pink.withValues(alpha: .35),
                             ),
                             shape: RoundedRectangleBorder(
-                              borderRadius:
-                              BorderRadius.circular(14),
+                              borderRadius: BorderRadius.circular(14),
                             ),
                           ),
                         ),
@@ -2035,21 +1937,15 @@ class _RoomScreenState extends State<RoomScreen> {
                             Navigator.pop(context);
                             _leaveMicRealtime();
                           },
-                          icon: const Icon(
-                            Icons.logout_rounded,
-                            size: 18,
-                          ),
+                          icon: const Icon(Icons.logout_rounded, size: 18),
                           label: const Text('Leave Mic'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                            const Color(0xFFDA345B),
+                            backgroundColor: const Color(0xFFDA345B),
                             foregroundColor: Colors.white,
                             elevation: 0,
-                            minimumSize:
-                            const Size.fromHeight(44),
+                            minimumSize: const Size.fromHeight(44),
                             shape: RoundedRectangleBorder(
-                              borderRadius:
-                              BorderRadius.circular(14),
+                              borderRadius: BorderRadius.circular(14),
                             ),
                           ),
                         ),
@@ -2102,12 +1998,8 @@ class _RoomScreenState extends State<RoomScreen> {
       style: OutlinedButton.styleFrom(
         foregroundColor: Colors.white,
         minimumSize: const Size.fromHeight(44),
-        side: BorderSide(
-          color: _pink.withOpacity(.25),
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+        side: BorderSide(color: _pink.withValues(alpha: .25)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     );
   }
@@ -2143,10 +2035,7 @@ class _RoomScreenState extends State<RoomScreen> {
                   onTap: () {
                     Navigator.pop(context);
 
-                    _setSeatLockRealtime(
-                      index,
-                      lock: !seat.isLocked,
-                    );
+                    _setSeatLockRealtime(index, lock: !seat.isLocked);
                   },
                   leading: Icon(
                     seat.isLocked
@@ -2155,9 +2044,7 @@ class _RoomScreenState extends State<RoomScreen> {
                     color: _pink,
                   ),
                   title: Text(
-                    seat.isLocked
-                        ? 'Unlock Mic'
-                        : 'Lock Mic',
+                    seat.isLocked ? 'Unlock Mic' : 'Lock Mic',
                     style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontSize: 13,
@@ -2188,10 +2075,7 @@ class _RoomScreenState extends State<RoomScreen> {
           Stack(
             alignment: Alignment.centerLeft,
             children: [
-              Container(
-                height: 1,
-                color: _pink.withOpacity(.28),
-              ),
+              Container(height: 1, color: _pink.withValues(alpha: .28)),
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 180),
                 curve: Curves.easeOutCubic,
@@ -2204,8 +2088,7 @@ class _RoomScreenState extends State<RoomScreen> {
                     color: const Color(0xFFFF82FF),
                     boxShadow: [
                       BoxShadow(
-                        color:
-                        const Color(0xFFFF60FD).withOpacity(.65),
+                        color: const Color(0xFFFF60FD).withValues(alpha: .65),
                         blurRadius: 6,
                       ),
                     ],
@@ -2229,12 +2112,9 @@ class _RoomScreenState extends State<RoomScreen> {
         child: Text(
           text,
           style: GoogleFonts.poppins(
-            color: active
-                ? Colors.white
-                : const Color(0xFF8B438E),
+            color: active ? Colors.white : const Color(0xFF8B438E),
             fontSize: 13,
-            fontWeight:
-            active ? FontWeight.w600 : FontWeight.w500,
+            fontWeight: active ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
       ),
@@ -2261,7 +2141,7 @@ class _RoomScreenState extends State<RoomScreen> {
                     _quickAction(
                       'Revise your room announcement !',
                       Icons.edit_outlined,
-                          () => _showMessage('Announcement editor'),
+                      () => _showMessage('Announcement editor'),
                     ),
                     const SizedBox(height: 9),
                     _quickAction(
@@ -2271,21 +2151,18 @@ class _RoomScreenState extends State<RoomScreen> {
                       _roomController.isOnMic
                           ? Icons.logout_rounded
                           : Icons.mic_none_rounded,
-                          () {
+                      () {
                         if (_roomController.isOnMic) {
                           _leaveMicRealtime();
                           return;
                         }
 
-                        final emptyIndex =
-                        _room.seats.indexWhere(
-                              (seat) => seat.isEmpty,
+                        final emptyIndex = _room.seats.indexWhere(
+                          (seat) => seat.isEmpty,
                         );
 
                         if (emptyIndex == -1) {
-                          _showMessage(
-                            'No empty mic seat available.',
-                          );
+                          _showMessage('No empty mic seat available.');
                           return;
                         }
 
@@ -2296,7 +2173,7 @@ class _RoomScreenState extends State<RoomScreen> {
                     _quickAction(
                       'Share your room with friends !',
                       Icons.share_rounded,
-                          () => _showMessage('Share room'),
+                      () => _showMessage('Share room'),
                     ),
                     const SizedBox(height: 12),
                     _buildTreasureBanner(),
@@ -2337,9 +2214,9 @@ class _RoomScreenState extends State<RoomScreen> {
       constraints: const BoxConstraints(minHeight: 84),
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF130235).withOpacity(.74),
+        color: const Color(0xFF130235).withValues(alpha: .74),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _pink.withOpacity(.30)),
+        border: Border.all(color: _pink.withValues(alpha: .30)),
       ),
       child: Row(
         children: [
@@ -2349,16 +2226,10 @@ class _RoomScreenState extends State<RoomScreen> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: const LinearGradient(
-                colors: [
-                  Color(0xFF7B21D6),
-                  Color(0xFFCB2FFF),
-                ],
+                colors: [Color(0xFF7B21D6), Color(0xFFCB2FFF)],
               ),
               boxShadow: [
-                BoxShadow(
-                  color: _pink.withOpacity(.18),
-                  blurRadius: 8,
-                ),
+                BoxShadow(color: _pink.withValues(alpha: .18), blurRadius: 8),
               ],
             ),
             child: const Icon(
@@ -2386,15 +2257,11 @@ class _RoomScreenState extends State<RoomScreen> {
             width: 58,
             height: 34,
             child: OutlinedButton(
-              onPressed: () =>
-                  _showMessage('Announcement editor'),
+              onPressed: () => _showMessage('Announcement editor'),
               style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.zero,
                 foregroundColor: const Color(0xFFFFE72D),
-                side: const BorderSide(
-                  color: Color(0xFFFFE72D),
-                  width: 1.1,
-                ),
+                side: const BorderSide(color: Color(0xFFFFE72D), width: 1.1),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -2413,11 +2280,7 @@ class _RoomScreenState extends State<RoomScreen> {
     );
   }
 
-  Widget _quickAction(
-      String title,
-      IconData icon,
-      VoidCallback onTap,
-      ) {
+  Widget _quickAction(String title, IconData icon, VoidCallback onTap) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -2428,22 +2291,14 @@ class _RoomScreenState extends State<RoomScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 14),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [
-                Color(0xFF33C6C4),
-                Color(0xFF149CA8),
-              ],
+              colors: [Color(0xFF33C6C4), Color(0xFF149CA8)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: Colors.white.withOpacity(.12),
-            ),
+            border: Border.all(color: Colors.white.withValues(alpha: .12)),
             boxShadow: [
-              BoxShadow(
-                color: _cyan.withOpacity(.10),
-                blurRadius: 8,
-              ),
+              BoxShadow(color: _cyan.withValues(alpha: .10), blurRadius: 8),
             ],
           ),
           child: Row(
@@ -2461,11 +2316,7 @@ class _RoomScreenState extends State<RoomScreen> {
                 ),
               ),
               const SizedBox(width: 6),
-              Icon(
-                icon,
-                color: Colors.white,
-                size: 22,
-              ),
+              Icon(icon, color: Colors.white, size: 22),
             ],
           ),
         ),
@@ -2484,7 +2335,7 @@ class _RoomScreenState extends State<RoomScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF12012D),
         borderRadius: BorderRadius.circular(11),
-        border: Border.all(color: _pink.withOpacity(.26)),
+        border: Border.all(color: _pink.withValues(alpha: .26)),
       ),
       child: Row(
         children: [
@@ -2513,12 +2364,7 @@ class _RoomScreenState extends State<RoomScreen> {
               color: const Color(0xFFFFD76A),
               fontSize: 16,
               fontWeight: FontWeight.w800,
-              shadows: const [
-                Shadow(
-                  color: Color(0xFFFFB300),
-                  blurRadius: 8,
-                ),
-              ],
+              shadows: const [Shadow(color: Color(0xFFFFB300), blurRadius: 8)],
             ),
           ),
         ],
@@ -2526,46 +2372,29 @@ class _RoomScreenState extends State<RoomScreen> {
     );
   }
 
-  Widget _sideReward(
-      String label,
-      IconData icon,
-      Color color,
-      ) {
+  Widget _sideReward(String label, IconData icon, Color color) {
     return GestureDetector(
-      onTap: () =>
-          _showMessage(label == '3' ? 'Rewards' : label),
+      onTap: () => _showMessage(label == '3' ? 'Rewards' : label),
       child: Container(
         width: 50,
         height: 50,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(11),
           gradient: LinearGradient(
-            colors: [
-              color.withOpacity(.94),
-              const Color(0xFF371045),
-            ],
+            colors: [color.withValues(alpha: .94), const Color(0xFF371045)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
-          border: Border.all(
-            color: Colors.white.withOpacity(.20),
-          ),
+          border: Border.all(color: Colors.white.withValues(alpha: .20)),
           boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(.15),
-              blurRadius: 7,
-            ),
+            BoxShadow(color: color.withValues(alpha: .15), blurRadius: 7),
           ],
         ),
         child: Stack(
           alignment: Alignment.center,
           clipBehavior: Clip.none,
           children: [
-            Icon(
-              icon,
-              color: Colors.white,
-              size: 26,
-            ),
+            Icon(icon, color: Colors.white, size: 26),
             Positioned(
               bottom: 3,
               child: Text(
@@ -2615,16 +2444,11 @@ class _RoomScreenState extends State<RoomScreen> {
               padding: const EdgeInsets.symmetric(vertical: 18),
               child: Text(
                 'No messages yet.',
-                style: GoogleFonts.poppins(
-                  color: Colors.white38,
-                  fontSize: 11,
-                ),
+                style: GoogleFonts.poppins(color: Colors.white38, fontSize: 11),
               ),
             )
           else
-            ..._chatMessages
-                .take(30)
-                .map((entry) => _chatMessage(entry)),
+            ..._chatMessages.take(30).map((entry) => _chatMessage(entry)),
           const SizedBox(height: 4),
           InkWell(
             onTap: _showChatComposer,
@@ -2635,9 +2459,7 @@ class _RoomScreenState extends State<RoomScreen> {
               decoration: BoxDecoration(
                 color: const Color(0xFF210941),
                 borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                  color: _pink.withOpacity(.20),
-                ),
+                border: Border.all(color: _pink.withValues(alpha: .20)),
               ),
               child: Row(
                 children: [
@@ -2682,12 +2504,12 @@ class _RoomScreenState extends State<RoomScreen> {
       padding: const EdgeInsets.fromLTRB(9, 8, 10, 8),
       decoration: entry.isSystem
           ? BoxDecoration(
-        color: const Color(0xFFFFD76A).withOpacity(.06),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: const Color(0xFFFFD76A).withOpacity(.16),
-        ),
-      )
+              color: const Color(0xFFFFD76A).withValues(alpha: .06),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: const Color(0xFFFFD76A).withValues(alpha: .16),
+              ),
+            )
           : null,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2738,7 +2560,7 @@ class _RoomScreenState extends State<RoomScreen> {
         width: 28,
         height: 28,
         decoration: BoxDecoration(
-          color: const Color(0xFFFFD76A).withOpacity(.14),
+          color: const Color(0xFFFFD76A).withValues(alpha: .14),
           shape: BoxShape.circle,
         ),
         child: const Icon(
@@ -2756,7 +2578,7 @@ class _RoomScreenState extends State<RoomScreen> {
           width: 28,
           height: 28,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) {
+          errorBuilder: (_, _, _) {
             return _chatAvatarFallback(entry.name);
           },
         ),
@@ -2774,10 +2596,7 @@ class _RoomScreenState extends State<RoomScreen> {
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
-          colors: [
-            Color(0xFF6E2AB0),
-            Color(0xFF314AA7),
-          ],
+          colors: [Color(0xFF6E2AB0), Color(0xFF314AA7)],
         ),
       ),
       child: Text(
@@ -2793,10 +2612,7 @@ class _RoomScreenState extends State<RoomScreen> {
 
   Widget _buildBottomBar() {
     final items = <_RoomBottomItem>[
-      _RoomBottomItem(
-        icon: Icons.grid_view_rounded,
-        onTap: _openRoomProfile,
-      ),
+      _RoomBottomItem(icon: Icons.grid_view_rounded, onTap: _openRoomProfile),
       _RoomBottomItem(
         icon: _roomController.speakerEnabled
             ? Icons.volume_up_rounded
@@ -2804,9 +2620,7 @@ class _RoomScreenState extends State<RoomScreen> {
         onTap: () {
           _roomController.toggleSpeaker();
 
-          _agoraVoiceService.setSpeakerEnabled(
-            _roomController.speakerEnabled,
-          );
+          _agoraVoiceService.setSpeakerEnabled(_roomController.speakerEnabled);
 
           _showMessage(
             _roomController.speakerEnabled
@@ -2843,14 +2657,10 @@ class _RoomScreenState extends State<RoomScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
           color: _bg,
-          border: Border(
-            top: BorderSide(
-              color: _pink.withOpacity(.08),
-            ),
-          ),
+          border: Border(top: BorderSide(color: _pink.withValues(alpha: .08))),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(.18),
+              color: Colors.black.withValues(alpha: .18),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -2877,66 +2687,50 @@ class _RoomScreenState extends State<RoomScreen> {
                         shape: BoxShape.circle,
                         gradient: item.isGift
                             ? const LinearGradient(
-                          colors: [
-                            Color(0xFF7C24D8),
-                            Color(0xFF3E125E),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        )
+                                colors: [Color(0xFF7C24D8), Color(0xFF3E125E)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              )
                             : item.isGame
                             ? const LinearGradient(
-                          colors: [
-                            Color(0xFF4826A8),
-                            Color(0xFF231045),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        )
+                                colors: [Color(0xFF4826A8), Color(0xFF231045)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              )
                             : null,
                         color: (item.isGift || item.isGame)
                             ? null
-                            : const Color(0xFF2A1154).withOpacity(.82),
+                            : const Color(0xFF2A1154).withValues(alpha: .82),
                         border: Border.all(
                           color: item.isGift
-                              ? const Color(0xFFFF65EB).withOpacity(.55)
-                              : _pink.withOpacity(.35),
+                              ? const Color(0xFFFF65EB).withValues(alpha: .55)
+                              : _pink.withValues(alpha: .35),
                           width: 1,
                         ),
                         boxShadow: [
                           BoxShadow(
                             color: item.isGift
-                                ? const Color(0xFFFF48ED).withOpacity(.22)
-                                : _pink.withOpacity(.09),
+                                ? const Color(0xFFFF48ED).withValues(alpha: .22)
+                                : _pink.withValues(alpha: .09),
                             blurRadius: item.isGift ? 10 : 7,
                           ),
                         ],
                       ),
                       child: item.isGift
                           ? const Center(
-                        child: Text(
-                          '🎁',
-                          style: TextStyle(
-                            fontSize: 24,
-                            height: 1,
-                          ),
-                        ),
-                      )
+                              child: Text(
+                                '🎁',
+                                style: TextStyle(fontSize: 24, height: 1),
+                              ),
+                            )
                           : item.isGame
                           ? const Center(
-                        child: Text(
-                          '🎮',
-                          style: TextStyle(
-                            fontSize: 24,
-                            height: 1,
-                          ),
-                        ),
-                      )
-                          : Icon(
-                        item.icon,
-                        color: Colors.white,
-                        size: 21,
-                      ),
+                              child: Text(
+                                '🎮',
+                                style: TextStyle(fontSize: 24, height: 1),
+                              ),
+                            )
+                          : Icon(item.icon, color: Colors.white, size: 21),
                     ),
                     if (item.showNotificationDot)
                       Positioned(
@@ -2948,10 +2742,7 @@ class _RoomScreenState extends State<RoomScreen> {
                           decoration: BoxDecoration(
                             color: const Color(0xFFFF3E5F),
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: _bg,
-                              width: 1.2,
-                            ),
+                            border: Border.all(color: _bg, width: 1.2),
                           ),
                         ),
                       ),
@@ -2979,9 +2770,7 @@ class _RoomScreenState extends State<RoomScreen> {
           height: MediaQuery.of(context).size.height * .55,
           decoration: const BoxDecoration(
             color: Color(0xFF160633),
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(24),
-            ),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: Column(
             children: [
@@ -3007,33 +2796,28 @@ class _RoomScreenState extends State<RoomScreen> {
               Expanded(
                 child: occupiedSeats.isEmpty
                     ? Center(
-                  child: Text(
-                    'No members on mic',
-                    style: GoogleFonts.poppins(
-                      color: Colors.white38,
-                    ),
-                  ),
-                )
+                        child: Text(
+                          'No members on mic',
+                          style: GoogleFonts.poppins(color: Colors.white38),
+                        ),
+                      )
                     : ListView.builder(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                  ),
-                  itemCount: occupiedSeats.length,
-                  itemBuilder: (_, index) {
-                    final user =
-                    occupiedSeats[index].user!;
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: occupiedSeats.length,
+                        itemBuilder: (_, index) {
+                          final user = occupiedSeats[index].user!;
 
-                    return _memberTile(
-                      user.name,
-                      user.isHost
-                          ? 'Room Owner'
-                          : user.isAdmin
-                          ? 'Admin'
-                          : 'Member',
-                      user.isHost,
-                    );
-                  },
-                ),
+                          return _memberTile(
+                            user.name,
+                            user.isHost
+                                ? 'Room Owner'
+                                : user.isAdmin
+                                ? 'Admin'
+                                : 'Member',
+                            user.isHost,
+                          );
+                        },
+                      ),
               ),
             ],
           ),
@@ -3042,22 +2826,13 @@ class _RoomScreenState extends State<RoomScreen> {
     );
   }
 
-  Widget _memberTile(
-      String name,
-      String role,
-      bool host,
-      ) {
+  Widget _memberTile(String name, String role, bool host) {
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 2,
-        vertical: 3,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
       leading: CircleAvatar(
         backgroundColor: const Color(0xFF45217B),
         child: Icon(
-          host
-              ? Icons.workspace_premium
-              : Icons.person,
+          host ? Icons.workspace_premium : Icons.person,
           color: Colors.white,
           size: 20,
         ),
@@ -3072,15 +2847,9 @@ class _RoomScreenState extends State<RoomScreen> {
       ),
       subtitle: Text(
         role,
-        style: GoogleFonts.poppins(
-          color: Colors.white38,
-          fontSize: 9.5,
-        ),
+        style: GoogleFonts.poppins(color: Colors.white38, fontSize: 9.5),
       ),
-      trailing: const Icon(
-        Icons.chevron_right_rounded,
-        color: Colors.white24,
-      ),
+      trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white24),
     );
   }
 
@@ -3104,9 +2873,7 @@ class _RoomScreenState extends State<RoomScreen> {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
           decoration: const BoxDecoration(
             color: Color(0xFF160633),
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(26),
-            ),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -3150,10 +2917,8 @@ class _RoomScreenState extends State<RoomScreen> {
               GridView.builder(
                 shrinkWrap: true,
                 itemCount: gifts.length,
-                physics:
-                const NeverScrollableScrollPhysics(),
-                gridDelegate:
-                const SliverGridDelegateWithFixedCrossAxisCount(
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 4,
                   mainAxisSpacing: 10,
                   crossAxisSpacing: 7,
@@ -3166,31 +2931,22 @@ class _RoomScreenState extends State<RoomScreen> {
                     onTap: () {
                       Navigator.pop(context);
 
-                      _addActivity(
-                        'You sent ${gift[1]} ${gift[0]}',
-                      );
+                      _addActivity('You sent ${gift[1]} ${gift[0]}');
 
-                      _showMessage(
-                        '${gift[1]} sent successfully',
-                      );
+                      _showMessage('${gift[1]} sent successfully');
                     },
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(.045),
+                        color: Colors.white.withValues(alpha: .045),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: Colors.white.withOpacity(.05),
+                          color: Colors.white.withValues(alpha: .05),
                         ),
                       ),
                       child: Column(
-                        mainAxisAlignment:
-                        MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            gift[0],
-                            style:
-                            const TextStyle(fontSize: 28),
-                          ),
+                          Text(gift[0], style: const TextStyle(fontSize: 28)),
                           const SizedBox(height: 4),
                           Text(
                             gift[1],
@@ -3202,8 +2958,7 @@ class _RoomScreenState extends State<RoomScreen> {
                           Text(
                             '🪙 ${gift[2]}',
                             style: GoogleFonts.poppins(
-                              color:
-                              const Color(0xFFFFCE58),
+                              color: const Color(0xFFFFCE58),
                               fontSize: 8,
                             ),
                           ),
@@ -3226,13 +2981,10 @@ class _RoomScreenState extends State<RoomScreen> {
       backgroundColor: Colors.transparent,
       builder: (_) {
         return Container(
-          padding:
-          const EdgeInsets.fromLTRB(18, 12, 18, 20),
+          padding: const EdgeInsets.fromLTRB(18, 12, 18, 20),
           decoration: const BoxDecoration(
             color: Color(0xFF160633),
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(26),
-            ),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -3247,41 +2999,24 @@ class _RoomScreenState extends State<RoomScreen> {
               ),
               const SizedBox(height: 18),
               Row(
-                mainAxisAlignment:
-                MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _moreAction(
-                    Icons.share_rounded,
-                    'Share',
-                        () {
-                      Navigator.pop(context);
-                      _showMessage('Share room');
-                    },
-                  ),
-                  _moreAction(
-                    Icons.settings_outlined,
-                    'Room',
-                        () {
-                      Navigator.pop(context);
-                      _showMessage('Room settings');
-                    },
-                  ),
-                  _moreAction(
-                    Icons.report_outlined,
-                    'Report',
-                        () {
-                      Navigator.pop(context);
-                      _showMessage('Report room');
-                    },
-                  ),
-                  _moreAction(
-                    Icons.logout_rounded,
-                    'Leave',
-                        () {
-                      Navigator.pop(context);
-                      Navigator.maybePop(context);
-                    },
-                  ),
+                  _moreAction(Icons.share_rounded, 'Share', () {
+                    Navigator.pop(context);
+                    _showMessage('Share room');
+                  }),
+                  _moreAction(Icons.settings_outlined, 'Room', () {
+                    Navigator.pop(context);
+                    _showMessage('Room settings');
+                  }),
+                  _moreAction(Icons.report_outlined, 'Report', () {
+                    Navigator.pop(context);
+                    _showMessage('Report room');
+                  }),
+                  _moreAction(Icons.logout_rounded, 'Leave', () {
+                    Navigator.pop(context);
+                    Navigator.maybePop(context);
+                  }),
                 ],
               ),
             ],
@@ -3291,11 +3026,7 @@ class _RoomScreenState extends State<RoomScreen> {
     );
   }
 
-  Widget _moreAction(
-      IconData icon,
-      String title,
-      VoidCallback onTap,
-      ) {
+  Widget _moreAction(IconData icon, String title, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -3304,29 +3035,21 @@ class _RoomScreenState extends State<RoomScreen> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(.06),
+              color: Colors.white.withValues(alpha: .06),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: 21,
-            ),
+            child: Icon(icon, color: Colors.white, size: 21),
           ),
           const SizedBox(height: 6),
           Text(
             title,
-            style: GoogleFonts.poppins(
-              color: Colors.white60,
-              fontSize: 9.5,
-            ),
+            style: GoogleFonts.poppins(color: Colors.white60, fontSize: 9.5),
           ),
         ],
       ),
     );
   }
 }
-
 
 class _RoomChatEntry {
   final String userId;

@@ -1,18 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
 class SeatService {
+  final FirebaseFirestore db = FirebaseFirestore.instance;
 
-
-  final FirebaseFirestore db =
-      FirebaseFirestore.instance;
-
-
-
-// TAKE SEAT
+  // TAKE SEAT
 
   Future<void> takeSeat({
-
     required String roomId,
 
     required int seatId,
@@ -20,70 +13,31 @@ class SeatService {
     required String userId,
 
     required String username,
-
-
   }) async {
-
-
     await db
-
         .collection("voice_rooms")
-
         .doc(roomId)
-
         .collection("seats")
-
         .doc(seatId.toString())
-
         .set({
+          "userId": userId,
 
-      "userId": userId,
+          "username": username,
 
-      "username": username,
+          "mic": true,
 
-      "mic": true,
-
-      "joinedAt":
-      FieldValue.serverTimestamp(),
-
-
-    });
-
-
+          "joinedAt": FieldValue.serverTimestamp(),
+        });
   }
 
+  // LEAVE SEAT
 
-
-
-
-// LEAVE SEAT
-
-
-  Future<void> leaveSeat({
-
-    required String roomId,
-
-    required int seatId,
-
-
-  }) async {
-
-
+  Future<void> leaveSeat({required String roomId, required int seatId}) async {
     await db
-
         .collection("voice_rooms")
-
         .doc(roomId)
-
         .collection("seats")
-
         .doc(seatId.toString())
-
         .delete();
-
-
   }
-
-
-
 }

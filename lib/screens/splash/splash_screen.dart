@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../routes/app_routes.dart';
+import '../../services/auth_service.dart';
 import '../../widgets/space_background.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -38,22 +39,12 @@ class _SplashScreenState extends State<SplashScreen>
     _scaleAnimation = Tween<double>(
       begin: .94,
       end: 1,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOutCubic,
-      ),
-    );
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, .025),
       end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOutCubic,
-      ),
-    );
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
     _controller.forward();
 
@@ -61,60 +52,39 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _continueAfterSplash() async {
-    // Professional splash timing: long enough to show branding,
-    // short enough to avoid making the app feel slow.
-    await Future.delayed(
-      const Duration(milliseconds: 2200),
-    );
+    await Future.delayed(const Duration(milliseconds: 1800));
 
     if (!mounted) return;
 
-    final user = FirebaseAuth.instance.currentUser;
+    final auth = FirebaseAuth.instance;
+    var user = auth.currentUser;
 
     if (user == null) {
-      Navigator.pushReplacementNamed(
-        context,
-        AppRoutes.intro,
-      );
+      Navigator.pushReplacementNamed(context, AppRoutes.intro);
       return;
     }
 
+    // Refresh when possible, but do not throw away a valid cached session
+    // just because the device is temporarily offline.
     try {
       await user.reload();
-
-      if (!mounted) return;
-
-      final refreshedUser =
-          FirebaseAuth.instance.currentUser;
-
-      if (refreshedUser == null) {
-        Navigator.pushReplacementNamed(
-          context,
-          AppRoutes.intro,
-        );
-        return;
-      }
-
-      if (!refreshedUser.emailVerified) {
-        Navigator.pushReplacementNamed(
-          context,
-          AppRoutes.emailVerification,
-        );
-        return;
-      }
-
-      Navigator.pushReplacementNamed(
-        context,
-        AppRoutes.home,
-      );
+      user = auth.currentUser ?? user;
     } catch (_) {
-      if (!mounted) return;
-
-      Navigator.pushReplacementNamed(
-        context,
-        AppRoutes.intro,
-      );
+      // Continue with the cached Firebase user.
     }
+
+    if (!mounted) return;
+
+    if (user?.email != null && !user!.emailVerified) {
+      Navigator.pushReplacementNamed(context, AppRoutes.emailVerification);
+      return;
+    }
+
+    await AuthService.instance.syncCurrentUserState();
+
+    if (!mounted) return;
+
+    Navigator.pushReplacementNamed(context, AppRoutes.main);
   }
 
   @override
@@ -139,9 +109,7 @@ class _SplashScreenState extends State<SplashScreen>
                     child: ScaleTransition(
                       scale: _scaleAnimation,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 28,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 28),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -178,20 +146,18 @@ class _SplashScreenState extends State<SplashScreen>
 
   Widget _buildLogo() {
     return Hero(
-      tag: 'appLogo',
+      tag: 'logo',
       child: Container(
         width: 112,
         height: 112,
         padding: const EdgeInsets.all(7),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(.14),
+          color: Colors.black.withValues(alpha: .14),
           borderRadius: BorderRadius.circular(28),
-          border: Border.all(
-            color: Colors.white.withOpacity(.10),
-          ),
+          border: Border.all(color: Colors.white.withValues(alpha: .10)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(.16),
+              color: Colors.black.withValues(alpha: .16),
               blurRadius: 18,
               offset: const Offset(0, 8),
             ),
@@ -199,10 +165,7 @@ class _SplashScreenState extends State<SplashScreen>
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(22),
-          child: Image.asset(
-            'assets/logo.png',
-            fit: BoxFit.contain,
-          ),
+          child: Image.asset('assets/logo.png', fit: BoxFit.contain),
         ),
       ),
     );
@@ -243,18 +206,13 @@ class _SplashScreenState extends State<SplashScreen>
             child: const LinearProgressIndicator(
               minHeight: 3,
               backgroundColor: Color(0x22FFFFFF),
-              valueColor: AlwaysStoppedAnimation<Color>(
-                Color(0xFFFFC94D),
-              ),
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFFC94D)),
             ),
           ),
           const SizedBox(height: 9),
           Text(
             'Starting Junaya...',
-            style: GoogleFonts.poppins(
-              color: Colors.white38,
-              fontSize: 10.5,
-            ),
+            style: GoogleFonts.poppins(color: Colors.white38, fontSize: 10.5),
           ),
         ],
       ),
@@ -276,10 +234,7 @@ class _SplashScreenState extends State<SplashScreen>
         const SizedBox(height: 4),
         Text(
           'Version 1.0.0',
-          style: GoogleFonts.poppins(
-            color: Colors.white24,
-            fontSize: 9,
-          ),
+          style: GoogleFonts.poppins(color: Colors.white24, fontSize: 9),
         ),
       ],
     );

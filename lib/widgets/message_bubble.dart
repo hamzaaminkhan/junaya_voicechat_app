@@ -20,30 +20,27 @@ class MessageBubble extends StatelessWidget {
         ? const Color(0xFF6C3BFF)
         : const Color(0xFF1A1F38);
 
-    final alignment =
-    isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start;
+    final alignment = isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start;
 
     final radius = BorderRadius.only(
       topLeft: const Radius.circular(18),
       topRight: const Radius.circular(18),
-      bottomLeft:
-      isMe ? const Radius.circular(18) : const Radius.circular(4),
-      bottomRight:
-      isMe ? const Radius.circular(4) : const Radius.circular(18),
+      bottomLeft: isMe ? const Radius.circular(18) : const Radius.circular(4),
+      bottomRight: isMe ? const Radius.circular(4) : const Radius.circular(18),
     );
 
     return Column(
       crossAxisAlignment: alignment,
       children: [
         Row(
-          mainAxisAlignment:
-          isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+          mainAxisAlignment: isMe
+              ? MainAxisAlignment.end
+              : MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             ConstrainedBox(
               constraints: BoxConstraints(
-                maxWidth:
-                MediaQuery.of(context).size.width * .72,
+                maxWidth: MediaQuery.of(context).size.width * .72,
               ),
               child: Container(
                 padding: const EdgeInsets.symmetric(
@@ -55,8 +52,7 @@ class MessageBubble extends StatelessWidget {
                   borderRadius: radius,
                 ),
                 child: Column(
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       message,
@@ -75,7 +71,7 @@ class MessageBubble extends StatelessWidget {
                         Text(
                           time,
                           style: TextStyle(
-                            color: Colors.white.withOpacity(.65),
+                            color: Colors.white.withValues(alpha: .65),
                             fontSize: 11,
                           ),
                         ),
@@ -84,9 +80,7 @@ class MessageBubble extends StatelessWidget {
                           const SizedBox(width: 5),
 
                           Icon(
-                            isSeen
-                                ? Icons.done_all
-                                : Icons.done,
+                            isSeen ? Icons.done_all : Icons.done,
                             size: 15,
                             color: isSeen
                                 ? Colors.lightBlueAccent

@@ -58,7 +58,11 @@ class _JoinAgencyScreenState extends State<JoinAgencyScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.handshake_rounded, color: Colors.amber, size: 42),
+                  const Icon(
+                    Icons.handshake_rounded,
+                    color: Colors.amber,
+                    size: 42,
+                  ),
                   const SizedBox(height: 14),
                   Text(
                     'Grow with an agency',
@@ -72,7 +76,7 @@ class _JoinAgencyScreenState extends State<JoinAgencyScreen> {
                   Text(
                     'Join a verified agency to access host support, events, targets and creator growth opportunities.',
                     style: GoogleFonts.poppins(
-                      color: Colors.white.withOpacity(.82),
+                      color: Colors.white.withValues(alpha: .82),
                       fontSize: 13,
                       height: 1.45,
                     ),
@@ -83,7 +87,8 @@ class _JoinAgencyScreenState extends State<JoinAgencyScreen> {
             const SizedBox(height: 18),
             const ProfileSectionHeader(
               title: 'Benefits',
-              subtitle: 'Agency benefits can be connected to your backend later.',
+              subtitle:
+                  'Agency benefits can be connected to your backend later.',
               icon: Icons.workspace_premium_outlined,
             ),
             const SizedBox(height: 12),
@@ -92,7 +97,10 @@ class _JoinAgencyScreenState extends State<JoinAgencyScreen> {
               runSpacing: 8,
               children: [
                 ProfileTag(text: 'Host support', icon: Icons.support_agent),
-                ProfileTag(text: 'Special events', icon: Icons.celebration_outlined),
+                ProfileTag(
+                  text: 'Special events',
+                  icon: Icons.celebration_outlined,
+                ),
                 ProfileTag(text: 'Growth targets', icon: Icons.trending_up),
                 ProfileTag(text: 'Creator rewards', icon: Icons.card_giftcard),
               ],
@@ -106,7 +114,8 @@ class _JoinAgencyScreenState extends State<JoinAgencyScreen> {
                   children: [
                     const ProfileSectionHeader(
                       title: 'Agency application',
-                      subtitle: 'Enter the agency ID supplied by the agency owner.',
+                      subtitle:
+                          'Enter the agency ID supplied by the agency owner.',
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -188,10 +197,12 @@ class _JoinAgencyScreenState extends State<JoinAgencyScreen> {
       hintStyle: const TextStyle(color: Colors.white30),
       prefixIcon: Icon(icon, color: Colors.amber),
       filled: true,
-      fillColor: Colors.black.withOpacity(.22),
+      fillColor: Colors.black.withValues(alpha: .22),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: Colors.purpleAccent.withOpacity(.35)),
+        borderSide: BorderSide(
+          color: Colors.purpleAccent.withValues(alpha: .35),
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),

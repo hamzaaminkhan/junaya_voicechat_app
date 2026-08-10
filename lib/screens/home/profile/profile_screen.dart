@@ -122,9 +122,7 @@ class ProfileScreen extends StatelessWidget {
         final double avatarRadius = veryNarrow ? 42 : 47;
 
         return Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: veryNarrow ? 12 : 16,
-          ),
+          padding: EdgeInsets.symmetric(horizontal: veryNarrow ? 12 : 16),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -132,16 +130,11 @@ class ProfileScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(2.5),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.purpleAccent,
-                    width: 2.5,
-                  ),
+                  border: Border.all(color: Colors.purpleAccent, width: 2.5),
                 ),
                 child: CircleAvatar(
                   radius: avatarRadius,
-                  backgroundImage: const AssetImage(
-                    'assets/users/profile.png',
-                  ),
+                  backgroundImage: const AssetImage('assets/users/profile.png'),
                 ),
               ),
 
@@ -185,11 +178,7 @@ class ProfileScreen extends StatelessWidget {
                           '0',
                           Colors.orange,
                         ),
-                        _smallBadge(
-                          Icons.diamond,
-                          '0',
-                          Colors.pinkAccent,
-                        ),
+                        _smallBadge(Icons.diamond, '0', Colors.pinkAccent),
                       ],
                     ),
 
@@ -209,11 +198,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 5),
-                        const Icon(
-                          Icons.copy,
-                          color: Colors.white70,
-                          size: 14,
-                        ),
+                        const Icon(Icons.copy, color: Colors.white70, size: 14),
                       ],
                     ),
 
@@ -250,16 +235,9 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _smallBadge(
-      IconData icon,
-      String value,
-      Color color,
-      ) {
+  Widget _smallBadge(IconData icon, String value, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 9,
-        vertical: 3,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(16),
@@ -267,11 +245,7 @@ class ProfileScreen extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 12,
-            color: Colors.white,
-          ),
+          Icon(icon, size: 12, color: Colors.white),
           const SizedBox(width: 3),
           Text(
             value,
@@ -289,17 +263,11 @@ class ProfileScreen extends StatelessWidget {
   // STATS SECTION
   Widget _statsSection() {
     return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: 14,
-      ),
-      padding: const EdgeInsets.symmetric(
-        vertical: 11,
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: 14),
+      padding: const EdgeInsets.symmetric(vertical: 11),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: Colors.purpleAccent.withValues(alpha: .5),
-        ),
+        border: Border.all(color: Colors.purpleAccent.withValues(alpha: .5)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -313,19 +281,11 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _statItem(
-      IconData icon,
-      String number,
-      String title,
-      ) {
+  Widget _statItem(IconData icon, String number, String title) {
     return Expanded(
       child: Column(
         children: [
-          Icon(
-            icon,
-            color: Colors.amber,
-            size: 21,
-          ),
+          Icon(icon, color: Colors.amber, size: 21),
           const SizedBox(height: 3),
           Text(
             number,
@@ -339,10 +299,7 @@ class ProfileScreen extends StatelessWidget {
             fit: BoxFit.scaleDown,
             child: Text(
               title,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 10,
-              ),
+              style: const TextStyle(color: Colors.white70, fontSize: 10),
             ),
           ),
         ],
@@ -353,41 +310,28 @@ class ProfileScreen extends StatelessWidget {
   // EDIT PROFILE BUTTON
   Widget _editButton(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: 14,
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: 14),
       height: 46,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: Colors.purpleAccent,
-        ),
+        border: Border.all(color: Colors.purpleAccent),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => const EditProfileDetailsScreen(),
-            ),
+            MaterialPageRoute(builder: (_) => const EditProfileDetailsScreen()),
           );
         },
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.edit,
-              color: Colors.amber,
-              size: 20,
-            ),
+            Icon(Icons.edit, color: Colors.amber, size: 20),
             SizedBox(width: 8),
             Text(
               'Edit Profile',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 15,
-              ),
+              style: TextStyle(color: Colors.white, fontSize: 15),
             ),
           ],
         ),
@@ -453,25 +397,16 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _menuTile(
-      IconData icon,
-      String title, {
-        VoidCallback? onTap,
-      }) {
+  Widget _menuTile(IconData icon, String title, {VoidCallback? onTap}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 5,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
       child: Material(
         color: const Color(0xff12071F),
 
         // ONLY use shape here.
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
-          side: BorderSide(
-            color: Colors.purpleAccent.withValues(alpha: .45),
-          ),
+          side: BorderSide(color: Colors.purpleAccent.withValues(alpha: .45)),
         ),
 
         clipBehavior: Clip.antiAlias,
@@ -484,18 +419,11 @@ class ProfileScreen extends StatelessWidget {
             vertical: 1,
           ),
 
-          leading: Icon(
-            icon,
-            color: Colors.amber,
-            size: 21,
-          ),
+          leading: Icon(icon, color: Colors.amber, size: 21),
 
           title: Text(
             title,
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 14,
-            ),
+            style: GoogleFonts.poppins(color: Colors.white, fontSize: 14),
           ),
 
           trailing: const Icon(
@@ -511,11 +439,11 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _headerMoneyCard(
-      IconData icon,
-      String value,
-      String title,
-      Color color,
-      ) {
+    IconData icon,
+    String value,
+    String title,
+    Color color,
+  ) {
     return Container(
       height: 34,
       padding: const EdgeInsets.symmetric(horizontal: 5),
@@ -530,11 +458,7 @@ class ProfileScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            color: color,
-            size: 15,
-          ),
+          Icon(icon, color: color, size: 15),
           const SizedBox(width: 3),
           Flexible(
             child: Column(
@@ -557,10 +481,7 @@ class ProfileScreen extends StatelessWidget {
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 7.5,
-                  ),
+                  style: const TextStyle(color: Colors.white70, fontSize: 7.5),
                 ),
               ],
             ),

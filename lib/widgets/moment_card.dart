@@ -1,443 +1,168 @@
 import 'package:flutter/material.dart';
 import '../models/moment_model.dart';
 
-
 class MomentCard extends StatelessWidget {
-
-
   final MomentModel moment;
 
-
-  const MomentCard({
-
-    super.key,
-
-    required this.moment,
-
-  });
-
-
+  const MomentCard({super.key, required this.moment});
 
   @override
   Widget build(BuildContext context) {
-
-
     return Container(
-
-      margin: const EdgeInsets.symmetric(
-
-        horizontal: 12,
-
-        vertical: 6,
-
-      ),
-
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
 
       padding: const EdgeInsets.all(10),
 
-
       decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.35),
 
+        borderRadius: BorderRadius.circular(16),
 
-        color: Colors.black.withOpacity(0.35),
-
-
-        borderRadius:
-        BorderRadius.circular(16),
-
-
-        border:
-
-        Border.all(
-
-          color: Colors.white24,
-
-          width: 1,
-
-        ),
-
-
+        border: Border.all(color: Colors.white24, width: 1),
       ),
 
-
-
       child: Column(
-
-
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
-
+        crossAxisAlignment: CrossAxisAlignment.start,
 
         children: [
-
-
-
           // USER HEADER
-
           Row(
-
             children: [
-
-
               CircleAvatar(
-
                 radius: 20,
 
-
-                backgroundImage:
-
-                AssetImage(
-
-                  moment.avatar,
-
-                ),
-
+                backgroundImage: AssetImage(moment.avatar),
               ),
-
-
 
               const SizedBox(width: 10),
 
-
-
               Column(
-
-                crossAxisAlignment:
-                CrossAxisAlignment.start,
-
+                crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
-
-
                   Text(
-
                     moment.username,
 
-
-                    style:
-
-                    const TextStyle(
-
+                    style: const TextStyle(
                       color: Colors.white,
 
                       fontSize: 14,
 
-                      fontWeight:
-                      FontWeight.bold,
-
+                      fontWeight: FontWeight.bold,
                     ),
-
                   ),
 
-
-
-                  const SizedBox(height:3),
-
-
+                  const SizedBox(height: 3),
 
                   Text(
-
                     moment.time,
 
-
-                    style:
-
-                    const TextStyle(
-
-                      color: Colors.white60,
-
-                      fontSize: 11,
-
-                    ),
-
+                    style: const TextStyle(color: Colors.white60, fontSize: 11),
                   ),
-
-
                 ],
-
               ),
-
-
             ],
-
           ),
 
-
-
-          const SizedBox(height:8),
-
-
+          const SizedBox(height: 8),
 
           // TEXT CONTENT
-
-
           Text(
-
             moment.content,
 
-
-            style:
-
-            const TextStyle(
-
+            style: const TextStyle(
               color: Colors.white,
 
               fontSize: 13.5,
 
-              height:1.3,
-
+              height: 1.3,
             ),
-
           ),
 
-
-
-
           // IMAGES
-
-
-          if(moment.images.isNotEmpty)
-
+          if (moment.images.isNotEmpty)
             Padding(
+              padding: const EdgeInsets.only(top: 12),
 
-              padding:
-
-              const EdgeInsets.only(top:12),
-
-
-              child:
-
-              _imageGrid(),
-
-
+              child: _imageGrid(),
             ),
 
-
-
-
-          const SizedBox(height:12),
-
-
+          const SizedBox(height: 12),
 
           // ACTIONS
-
-
           Row(
-
             children: [
+              Icon(Icons.favorite_border, color: Colors.white70, size: 19),
 
-
-              Icon(
-
-                Icons.favorite_border,
-
-                color: Colors.white70,
-
-                size:19,
-
-              ),
-
-
-
-              const SizedBox(width:5),
-
-
+              const SizedBox(width: 5),
 
               Text(
-
                 "${moment.likes}",
 
-
-                style:
-
-                const TextStyle(
-
-                  color: Colors.white70,
-
-                ),
-
+                style: const TextStyle(color: Colors.white70),
               ),
 
+              const SizedBox(width: 25),
 
+              Icon(Icons.chat_bubble_outline, color: Colors.white70, size: 19),
 
-              const SizedBox(width:25),
-
-
-
-              Icon(
-
-                Icons.chat_bubble_outline,
-
-                color: Colors.white70,
-
-                size:19,
-
-              ),
-
-
-
-              const SizedBox(width:5),
-
-
+              const SizedBox(width: 5),
 
               Text(
-
                 "${moment.comments}",
 
-
-                style:
-
-                const TextStyle(
-
-                  color: Colors.white70,
-
-                ),
-
+                style: const TextStyle(color: Colors.white70),
               ),
-
-
 
               const Spacer(),
 
-
-
-              Icon(
-
-                Icons.share_outlined,
-
-                color: Colors.white70,
-
-                size:21,
-
-              ),
-
-
-
+              Icon(Icons.share_outlined, color: Colors.white70, size: 21),
             ],
-
           ),
-
-
-
         ],
-
       ),
-
     );
-
   }
 
-
-
-
-
-  Widget _imageGrid(){
-
-
-
-    if(moment.images.length == 1){
-
-
+  Widget _imageGrid() {
+    if (moment.images.length == 1) {
       return ClipRRect(
+        borderRadius: BorderRadius.circular(12),
 
-        borderRadius:
-        BorderRadius.circular(12),
-
-
-        child:
-
-        Image.asset(
-
+        child: Image.asset(
           moment.images.first,
 
+          height: 170,
 
-          height:170,
+          width: double.infinity,
 
-
-          width:double.infinity,
-
-
-          fit:BoxFit.cover,
-
-
+          fit: BoxFit.cover,
         ),
-
       );
-
-
     }
 
-
-
     return GridView.builder(
+      shrinkWrap: true,
 
-      shrinkWrap:true,
+      physics: const NeverScrollableScrollPhysics(),
 
+      itemCount: moment.images.length > 6 ? 6 : moment.images.length,
 
-      physics:
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
 
-      const NeverScrollableScrollPhysics(),
+        crossAxisSpacing: 5,
 
-
-      itemCount:
-
-      moment.images.length > 6
-
-          ? 6
-
-          : moment.images.length,
-
-
-
-      gridDelegate:
-
-      const SliverGridDelegateWithFixedCrossAxisCount(
-
-        crossAxisCount:3,
-
-
-        crossAxisSpacing:5,
-
-
-        mainAxisSpacing:5,
-
-
+        mainAxisSpacing: 5,
       ),
 
-
-
-      itemBuilder:(context,index){
-
-
-
+      itemBuilder: (context, index) {
         return ClipRRect(
+          borderRadius: BorderRadius.circular(10),
 
-          borderRadius:
-
-          BorderRadius.circular(10),
-
-
-          child:
-
-          Image.asset(
-
-            moment.images[index],
-
-
-            fit:BoxFit.cover,
-
-          ),
-
+          child: Image.asset(moment.images[index], fit: BoxFit.cover),
         );
-
-
       },
-
-
     );
-
-
   }
-
-
 }

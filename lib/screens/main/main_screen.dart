@@ -53,11 +53,9 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _openRoom() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const RoomScreen(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const RoomScreen()));
   }
 
   @override
@@ -66,10 +64,7 @@ class _MainScreenState extends State<MainScreen> {
       backgroundColor: Colors.transparent,
       extendBody: false,
       body: SpaceBackground(
-        child: IndexedStack(
-          index: currentIndex,
-          children: pages,
-        ),
+        child: IndexedStack(index: currentIndex, children: pages),
       ),
       bottomNavigationBar: _buildBottomNavigation(),
     );
@@ -109,9 +104,7 @@ class _MainScreenState extends State<MainScreen> {
                   tooltip: 'Moments',
                 ),
               ),
-              Expanded(
-                child: _micButton(),
-              ),
+              Expanded(child: _micButton()),
               Expanded(
                 child: _navButton(
                   index: 2,
@@ -164,9 +157,7 @@ class _MainScreenState extends State<MainScreen> {
                     width: 48,
                     height: 48,
                     alignment: Alignment.center,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                    ),
+                    decoration: const BoxDecoration(shape: BoxShape.circle),
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 160),
                       child: Icon(
@@ -203,10 +194,7 @@ class _MainScreenState extends State<MainScreen> {
                         decoration: BoxDecoration(
                           color: const Color(0xFFFF3B7C),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: _navBackground,
-                            width: 1.5,
-                          ),
+                          border: Border.all(color: _navBackground, width: 1.5),
                         ),
                         child: Text(
                           badge > 99 ? '99+' : '$badge',
@@ -253,11 +241,7 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                 ],
               ),
-              child: const Icon(
-                Icons.mic_rounded,
-                size: 26,
-                color: _gold,
-              ),
+              child: const Icon(Icons.mic_rounded, size: 26, color: _gold),
             ),
           ),
         ),

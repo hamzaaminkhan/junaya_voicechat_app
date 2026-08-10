@@ -17,11 +17,9 @@ class RoomDetailsScreen extends StatelessWidget {
 
       body: Stack(
         children: [
-
           SingleChildScrollView(
             child: const Column(
               children: [
-
                 RoomHeader(),
 
                 SizedBox(height: 90),

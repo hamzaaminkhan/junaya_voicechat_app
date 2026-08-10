@@ -50,7 +50,7 @@ class _RoomProfileScreenState extends State<RoomProfileScreen> {
                 width: 63,
                 height: 63,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                errorBuilder: (_, _, _) => Container(
                   width: 63,
                   height: 63,
                   color: const Color(0xFF39205F),
@@ -67,7 +67,7 @@ class _RoomProfileScreenState extends State<RoomProfileScreen> {
                 Text(
                   '87012534',
                   style: GoogleFonts.poppins(
-                    color: Colors.white.withOpacity(.37),
+                    color: Colors.white.withValues(alpha: .37),
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
                   ),
@@ -78,7 +78,7 @@ class _RoomProfileScreenState extends State<RoomProfileScreen> {
                     Text(
                       'ID:87012534',
                       style: GoogleFonts.poppins(
-                        color: Colors.white.withOpacity(.36),
+                        color: Colors.white.withValues(alpha: .36),
                         fontSize: 14.5,
                         fontWeight: FontWeight.w500,
                       ),
@@ -108,7 +108,7 @@ class _RoomProfileScreenState extends State<RoomProfileScreen> {
             onPressed: () => setState(() {}),
             icon: Icon(
               Icons.refresh_rounded,
-              color: Colors.white.withOpacity(.35),
+              color: Colors.white.withValues(alpha: .35),
               size: 34,
             ),
           ),
@@ -116,7 +116,7 @@ class _RoomProfileScreenState extends State<RoomProfileScreen> {
             onPressed: () => Navigator.pop(context),
             icon: Icon(
               Icons.keyboard_arrow_up_rounded,
-              color: Colors.white.withOpacity(.35),
+              color: Colors.white.withValues(alpha: .35),
               size: 34,
             ),
           ),
@@ -131,19 +131,15 @@ class _RoomProfileScreenState extends State<RoomProfileScreen> {
       padding: const EdgeInsets.fromLTRB(22, 22, 22, 24),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(.20)),
+        border: Border.all(color: Colors.white.withValues(alpha: .20)),
         gradient: const LinearGradient(
-          colors: [
-            Color(0xFF6E35AE),
-            Color(0xFF4A2185),
-            Color(0xFF201057),
-          ],
+          colors: [Color(0xFF6E35AE), Color(0xFF4A2185), Color(0xFF201057)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(.22),
+            color: Colors.black.withValues(alpha: .22),
             blurRadius: 18,
             offset: const Offset(0, 6),
           ),
@@ -160,7 +156,7 @@ class _RoomProfileScreenState extends State<RoomProfileScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: const Color(0xFF8A50D7).withOpacity(.13),
+                  color: const Color(0xFF8A50D7).withValues(alpha: .13),
                   width: 38,
                 ),
               ),
@@ -178,7 +174,7 @@ class _RoomProfileScreenState extends State<RoomProfileScreen> {
                       width: 105,
                       height: 105,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+                      errorBuilder: (_, _, _) => Container(
                         width: 105,
                         height: 105,
                         color: const Color(0xFF36195D),
@@ -215,12 +211,16 @@ class _RoomProfileScreenState extends State<RoomProfileScreen> {
                       ],
                     ),
                   ),
-                  IconButton(
-                    onPressed: () => setState(() {}),
-                    icon: const Icon(
-                      Icons.refresh_rounded,
-                      color: Colors.white,
-                      size: 37,
+                  SizedBox(
+                    width: 40,
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: () => setState(() {}),
+                      icon: const Icon(
+                        Icons.refresh_rounded,
+                        color: Colors.white,
+                        size: 30,
+                      ),
                     ),
                   ),
                 ],
@@ -240,12 +240,11 @@ class _RoomProfileScreenState extends State<RoomProfileScreen> {
 
   Widget _buildTabs() {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _profileTab('Profile', 0),
-        const SizedBox(width: 30),
-        _profileTab('Member', 1),
-        const SizedBox(width: 30),
-        _profileTab('Activity', 2),
+        Flexible(child: _profileTab('Profile', 0)),
+        Flexible(child: _profileTab('Member', 1)),
+        Flexible(child: _profileTab('Activity', 2)),
       ],
     );
   }
@@ -309,28 +308,116 @@ class _RoomProfileScreenState extends State<RoomProfileScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Container(
-              width: 40,
-              height: 24,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(3),
-              ),
-              child: const Text('🇵🇰', style: TextStyle(fontSize: 22)),
+
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 8,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: .18),
+              width: 1,
             ),
-            const SizedBox(width: 10),
-            Text(
-              'Pakistan',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontSize: 17,
-              ),
+            gradient: LinearGradient(
+              colors: [
+                const Color(0xFF5E2AA5),
+                const Color(0xFF3B176D),
+              ],
             ),
-          ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+
+              // Pakistan Flag
+              Container(
+                width: 42,
+                height: 28,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: .25),
+                      blurRadius: 5,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(5),
+                  child: Stack(
+                    children: [
+
+                      // Green background
+                      Container(
+                        color: const Color(0xFF01411C),
+                      ),
+
+                      // White stripe
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Container(
+                          width: 10,
+                          color: Colors.white,
+                        ),
+                      ),
+
+                      // Crescent
+                      Positioned(
+                        left: 19,
+                        top: 6,
+                        child: Container(
+                          width: 13,
+                          height: 13,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Transform.translate(
+                            offset: Offset(4, -2),
+                            child: Container(
+                              width: 13,
+                              height: 13,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF01411C),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Star
+                      const Positioned(
+                        left: 29,
+                        top: 7,
+                        child: Icon(
+                          Icons.star,
+                          size: 7,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              Text(
+                'Pakistan',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         ),
+
         const SizedBox(height: 36),
         Text(
           'Level',
@@ -479,12 +566,10 @@ class _RoomProfileScreenState extends State<RoomProfileScreen> {
       child: Center(
         child: Text(
           text,
-          style: GoogleFonts.poppins(
-            color: Colors.white54,
-            fontSize: 15,
-          ),
+          style: GoogleFonts.poppins(color: Colors.white54, fontSize: 15),
         ),
       ),
     );
   }
 }
+

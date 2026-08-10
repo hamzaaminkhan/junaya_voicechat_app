@@ -17,9 +17,7 @@ class EditProfileScreen extends StatelessWidget {
             ),
           ),
           Positioned.fill(
-            child: Container(
-              color: Colors.black.withOpacity(.35),
-            ),
+            child: Container(color: Colors.black.withValues(alpha: .35)),
           ),
           SafeArea(
             child: Column(
@@ -116,19 +114,12 @@ class EditProfileScreen extends StatelessWidget {
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(
-              color: Colors.purpleAccent,
-              width: 2.5,
-            ),
+            border: Border.all(color: Colors.purpleAccent, width: 2.5),
           ),
           child: const CircleAvatar(
             radius: 46,
             backgroundColor: Color(0xff21152E),
-            child: Icon(
-              Icons.person,
-              size: 50,
-              color: Colors.white,
-            ),
+            child: Icon(Icons.person, size: 50, color: Colors.white),
           ),
         ),
         const SizedBox(height: 7),
@@ -149,11 +140,9 @@ class EditProfileScreen extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       height: 42,
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(.30),
+        color: Colors.black.withValues(alpha: .30),
         borderRadius: BorderRadius.circular(21),
-        border: Border.all(
-          color: Colors.purpleAccent.withOpacity(.5),
-        ),
+        border: Border.all(color: Colors.purpleAccent.withValues(alpha: .5)),
       ),
       child: Row(
         children: [
@@ -210,21 +199,9 @@ class EditProfileScreen extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const Icon(
-                Icons.male,
-                color: Colors.blueAccent,
-                size: 21,
-              ),
-              _smallBadge(
-                Icons.workspace_premium,
-                "0",
-                Colors.orange,
-              ),
-              _smallBadge(
-                Icons.diamond,
-                "0",
-                Colors.pinkAccent,
-              ),
+              const Icon(Icons.male, color: Colors.blueAccent, size: 21),
+              _smallBadge(Icons.workspace_premium, "0", Colors.orange),
+              _smallBadge(Icons.diamond, "0", Colors.pinkAccent),
             ],
           ),
           const SizedBox(height: 10),
@@ -235,29 +212,16 @@ class EditProfileScreen extends StatelessWidget {
             children: [
               Text(
                 "ID:137804327",
-                style: GoogleFonts.poppins(
-                  color: Colors.white70,
-                  fontSize: 13,
-                ),
+                style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13),
               ),
-              const Icon(
-                Icons.copy,
-                color: Colors.white70,
-                size: 16,
-              ),
+              const Icon(Icons.copy, color: Colors.white70, size: 16),
               const Text(
                 "|",
-                style: TextStyle(
-                  color: Colors.white38,
-                  fontSize: 17,
-                ),
+                style: TextStyle(color: Colors.white38, fontSize: 17),
               ),
               const Text(
                 "🇵🇰  Pakistan",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: Colors.white, fontSize: 13),
               ),
             ],
           ),
@@ -268,10 +232,10 @@ class EditProfileScreen extends StatelessWidget {
                 height: 30,
                 width: 30,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(.28),
+                  color: Colors.black.withValues(alpha: .28),
                   borderRadius: BorderRadius.circular(7),
                   border: Border.all(
-                    color: Colors.purpleAccent.withOpacity(.8),
+                    color: Colors.purpleAccent.withValues(alpha: .8),
                   ),
                 ),
                 child: const Icon(
@@ -283,10 +247,7 @@ class EditProfileScreen extends StatelessWidget {
               const SizedBox(width: 9),
               Text(
                 "64 kg",
-                style: GoogleFonts.poppins(
-                  color: Colors.white70,
-                  fontSize: 14,
-                ),
+                style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14),
               ),
             ],
           ),
@@ -295,16 +256,9 @@ class EditProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _smallBadge(
-      IconData icon,
-      String text,
-      Color color,
-      ) {
+  Widget _smallBadge(IconData icon, String text, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 9,
-        vertical: 3,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(16),
@@ -312,11 +266,7 @@ class EditProfileScreen extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 12,
-            color: Colors.white,
-          ),
+          Icon(icon, size: 12, color: Colors.white),
           const SizedBox(width: 3),
           Text(
             text,
@@ -340,10 +290,7 @@ class EditProfileScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                "Supporter",
-                style: _sectionTitleStyle(),
-              ),
+              Text("Supporter", style: _sectionTitleStyle()),
               Row(
                 children: [
                   Text(
@@ -378,37 +325,19 @@ class EditProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _medalItem(
-      Color color,
-      IconData icon,
-      ) {
+  Widget _medalItem(Color color, IconData icon) {
     return Container(
       height: 56,
       width: 56,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: [
-            color,
-            color.withOpacity(.5),
-          ],
-        ),
-        border: Border.all(
-          color: Colors.white24,
-          width: 1.5,
-        ),
+        gradient: LinearGradient(colors: [color, color.withValues(alpha: .5)]),
+        border: Border.all(color: Colors.white24, width: 1.5),
         boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(.25),
-            blurRadius: 8,
-          ),
+          BoxShadow(color: color.withValues(alpha: .25), blurRadius: 8),
         ],
       ),
-      child: Icon(
-        icon,
-        color: Colors.white70,
-        size: 27,
-      ),
+      child: Icon(icon, color: Colors.white70, size: 27),
     );
   }
 
@@ -418,21 +347,15 @@ class EditProfileScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Special Relationship",
-            style: _sectionTitleStyle(),
-          ),
+          Text("Special Relationship", style: _sectionTitleStyle()),
           const SizedBox(height: 11),
           Container(
             height: 126,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: const Color(0xff7A123E).withOpacity(.70),
+              color: const Color(0xff7A123E).withValues(alpha: .70),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.amber,
-                width: 1.5,
-              ),
+              border: Border.all(color: Colors.amber, width: 1.5),
             ),
             child: Stack(
               alignment: Alignment.center,
@@ -446,10 +369,7 @@ class EditProfileScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(2),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.amber,
-                            width: 2,
-                          ),
+                          border: Border.all(color: Colors.amber, width: 2),
                         ),
                         child: const CircleAvatar(
                           radius: 29,
@@ -473,11 +393,7 @@ class EditProfileScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                const Icon(
-                  Icons.favorite,
-                  color: Colors.pinkAccent,
-                  size: 30,
-                ),
+                const Icon(Icons.favorite, color: Colors.pinkAccent, size: 30),
                 Positioned(
                   right: 35,
                   child: Container(
@@ -485,10 +401,7 @@ class EditProfileScreen extends StatelessWidget {
                     width: 55,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.amber,
-                        width: 2,
-                      ),
+                      border: Border.all(color: Colors.amber, width: 2),
                       color: Colors.black26,
                     ),
                     child: const Icon(
@@ -504,11 +417,7 @@ class EditProfileScreen extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _emptyPropBox(),
-              _emptyPropBox(),
-              _emptyPropBox(),
-            ],
+            children: [_emptyPropBox(), _emptyPropBox(), _emptyPropBox()],
           ),
         ],
       ),
@@ -520,11 +429,9 @@ class EditProfileScreen extends StatelessWidget {
       height: 88,
       width: 80,
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(.25),
+        color: Colors.black.withValues(alpha: .25),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.purpleAccent.withOpacity(.55),
-        ),
+        border: Border.all(color: Colors.purpleAccent.withValues(alpha: .55)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -543,15 +450,9 @@ class EditProfileScreen extends StatelessWidget {
             width: 53,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15),
-              border: Border.all(
-                color: Colors.purpleAccent,
-              ),
+              border: Border.all(color: Colors.purpleAccent),
             ),
-            child: const Icon(
-              Icons.add,
-              color: Colors.white70,
-              size: 14,
-            ),
+            child: const Icon(Icons.add, color: Colors.white70, size: 14),
           ),
         ],
       ),
@@ -564,18 +465,15 @@ class EditProfileScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Medal",
-            style: _sectionTitleStyle(),
-          ),
+          Text("Medal", style: _sectionTitleStyle()),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(13),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(.25),
+              color: Colors.black.withValues(alpha: .25),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: Colors.purpleAccent.withOpacity(.45),
+                color: Colors.purpleAccent.withValues(alpha: .45),
               ),
             ),
             child: Column(
@@ -584,11 +482,7 @@ class EditProfileScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _medalInfo("0", "Medal Score"),
-                    Container(
-                      height: 35,
-                      width: 1,
-                      color: Colors.white24,
-                    ),
+                    Container(height: 35, width: 1, color: Colors.white24),
                     _medalInfo("0", "Rank"),
                   ],
                 ),
@@ -598,7 +492,7 @@ class EditProfileScreen extends StatelessWidget {
                   width: double.infinity,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(.05),
+                    color: Colors.white.withValues(alpha: .05),
                     borderRadius: BorderRadius.circular(11),
                   ),
                   child: Text(
@@ -617,10 +511,7 @@ class EditProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _medalInfo(
-      String number,
-      String title,
-      ) {
+  Widget _medalInfo(String number, String title) {
     return Column(
       children: [
         Text(
@@ -634,10 +525,7 @@ class EditProfileScreen extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           title,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 11,
-          ),
+          style: const TextStyle(color: Colors.white70, fontSize: 11),
         ),
       ],
     );

@@ -6,8 +6,6 @@ import 'package:junaya_voicechat_app/screens/vip/vip_button.dart';
 import 'package:junaya_voicechat_app/screens/vip/vip_header.dart';
 import 'package:junaya_voicechat_app/screens/vip/vip_plans.dart';
 
-
-
 class VipScreen extends StatelessWidget {
   const VipScreen({super.key});
 
@@ -20,9 +18,7 @@ class VipScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-        ),
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
           "VIP Membership",
           style: GoogleFonts.poppins(
@@ -37,7 +33,6 @@ class VipScreen extends StatelessWidget {
           physics: const BouncingScrollPhysics(),
           child: Column(
             children: const [
-
               SizedBox(height: 10),
 
               /// Premium Header
@@ -62,7 +57,6 @@ class VipScreen extends StatelessWidget {
 
               /// Purchase Button
               VipButton(),
-
             ],
           ),
         ),

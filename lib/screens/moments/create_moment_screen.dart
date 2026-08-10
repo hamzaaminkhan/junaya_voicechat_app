@@ -7,10 +7,7 @@ class CreatedMoment {
   final String text;
   final List<String> imagePaths;
 
-  const CreatedMoment({
-    required this.text,
-    required this.imagePaths,
-  });
+  const CreatedMoment({required this.text, required this.imagePaths});
 }
 
 class CreateMomentScreen extends StatefulWidget {
@@ -41,8 +38,9 @@ class _CreateMomentScreenState extends State<CreateMomentScreen> {
 
   Future<void> _pickImages() async {
     try {
-      final List<XFile> pickedImages =
-      await _imagePicker.pickMultiImage(imageQuality: 88);
+      final List<XFile> pickedImages = await _imagePicker.pickMultiImage(
+        imageQuality: 88,
+      );
 
       if (!mounted || pickedImages.isEmpty) return;
 
@@ -54,9 +52,7 @@ class _CreateMomentScreenState extends State<CreateMomentScreen> {
       }
 
       setState(() {
-        _selectedImages.addAll(
-          pickedImages.take(remainingSlots),
-        );
+        _selectedImages.addAll(pickedImages.take(remainingSlots));
       });
 
       if (pickedImages.length > remainingSlots) {
@@ -120,16 +116,14 @@ class _CreateMomentScreenState extends State<CreateMomentScreen> {
       resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
-          const Positioned.fill(
-            child: _EditScreenBackground(),
-          ),
+          const Positioned.fill(child: _EditScreenBackground()),
 
           SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
                 return SingleChildScrollView(
                   keyboardDismissBehavior:
-                  ScrollViewKeyboardDismissBehavior.onDrag,
+                      ScrollViewKeyboardDismissBehavior.onDrag,
                   padding: EdgeInsets.only(
                     left: 18,
                     right: 18,
@@ -179,9 +173,7 @@ class _CreateMomentScreenState extends State<CreateMomentScreen> {
         children: [
           Align(
             alignment: Alignment.centerLeft,
-            child: _GlowBackButton(
-              onTap: () => Navigator.pop(context),
-            ),
+            child: _GlowBackButton(onTap: () => Navigator.pop(context)),
           ),
 
           const Align(
@@ -199,10 +191,7 @@ class _CreateMomentScreenState extends State<CreateMomentScreen> {
                   ),
                 ),
                 SizedBox(height: 5),
-                SizedBox(
-                  width: 180,
-                  child: _DiamondDivider(),
-                ),
+                SizedBox(width: 180, child: _DiamondDivider()),
               ],
             ),
           ),
@@ -226,12 +215,12 @@ class _CreateMomentScreenState extends State<CreateMomentScreen> {
         color: const Color(0xB30A0015),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: purpleColor.withOpacity(0.65),
+          color: purpleColor.withValues(alpha: 0.65),
           width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: purpleColor.withOpacity(0.07),
+            color: purpleColor.withValues(alpha: 0.07),
             blurRadius: 1,
             spreadRadius: 1,
           ),
@@ -255,10 +244,7 @@ class _CreateMomentScreenState extends State<CreateMomentScreen> {
             onChanged: (_) => setState(() {}),
             decoration: const InputDecoration(
               hintText: 'Say something',
-              hintStyle: TextStyle(
-                color: Color(0xFFB8B3BF),
-                fontSize: 20,
-              ),
+              hintStyle: TextStyle(color: Color(0xFFB8B3BF), fontSize: 20),
               counterText: '',
               border: InputBorder.none,
               contentPadding: EdgeInsets.fromLTRB(18, 18, 18, 42),
@@ -270,10 +256,7 @@ class _CreateMomentScreenState extends State<CreateMomentScreen> {
             bottom: 15,
             child: Text(
               '${_textController.text.length}/1000',
-              style: const TextStyle(
-                color: Color(0xFFC5C0CA),
-                fontSize: 16,
-              ),
+              style: const TextStyle(color: Color(0xFFC5C0CA), fontSize: 16),
             ),
           ),
         ],
@@ -283,11 +266,7 @@ class _CreateMomentScreenState extends State<CreateMomentScreen> {
 
   Widget _buildImageSection() {
     if (_selectedImages.isEmpty) {
-      return _UploadTile(
-        width: 160,
-        height: 180,
-        onTap: _pickImages,
-      );
+      return _UploadTile(width: 160, height: 180, onTap: _pickImages);
     }
 
     return Column(
@@ -296,8 +275,9 @@ class _CreateMomentScreenState extends State<CreateMomentScreen> {
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount:
-          _selectedImages.length < 4 ? _selectedImages.length + 1 : 4,
+          itemCount: _selectedImages.length < 4
+              ? _selectedImages.length + 1
+              : 4,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 12,
@@ -305,11 +285,8 @@ class _CreateMomentScreenState extends State<CreateMomentScreen> {
             childAspectRatio: 0.92,
           ),
           itemBuilder: (context, index) {
-            if (index == _selectedImages.length &&
-                _selectedImages.length < 4) {
-              return _UploadTile(
-                onTap: _pickImages,
-              );
+            if (index == _selectedImages.length && _selectedImages.length < 4) {
+              return _UploadTile(onTap: _pickImages);
             }
 
             return _SelectedImageTile(
@@ -324,7 +301,7 @@ class _CreateMomentScreenState extends State<CreateMomentScreen> {
         Text(
           '${_selectedImages.length}/4 images selected',
           style: TextStyle(
-            color: lightPurpleColor.withOpacity(0.85),
+            color: lightPurpleColor.withValues(alpha: 0.85),
             fontSize: 13,
           ),
         ),
@@ -336,9 +313,7 @@ class _CreateMomentScreenState extends State<CreateMomentScreen> {
 class _GlowBackButton extends StatelessWidget {
   final VoidCallback onTap;
 
-  const _GlowBackButton({
-    required this.onTap,
-  });
+  const _GlowBackButton({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -353,16 +328,14 @@ class _GlowBackButton extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: const Color(0xFF170020),
-            border: Border.all(
-              color: const Color(0xFFFFD36A),
-            ),
+            border: Border.all(color: const Color(0xFFFFD36A)),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF9D3BFF).withOpacity(0.5),
+                color: const Color(0xFF9D3BFF).withValues(alpha: 0.5),
                 blurRadius: 1,
               ),
               BoxShadow(
-                color: const Color(0xFFFFD36A).withOpacity(0.25),
+                color: const Color(0xFFFFD36A).withValues(alpha: 0.25),
                 blurRadius: 1,
               ),
             ],
@@ -382,10 +355,7 @@ class _GlowSendButton extends StatelessWidget {
   final bool loading;
   final VoidCallback? onTap;
 
-  const _GlowSendButton({
-    required this.loading,
-    required this.onTap,
-  });
+  const _GlowSendButton({required this.loading, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -400,22 +370,16 @@ class _GlowSendButton extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(30),
             gradient: const LinearGradient(
-              colors: [
-                Color(0xFF42105E),
-                Color(0xFF7317A5),
-                Color(0xFF291039),
-              ],
+              colors: [Color(0xFF42105E), Color(0xFF7317A5), Color(0xFF291039)],
             ),
-            border: Border.all(
-              color: const Color(0xFFFFD36A),
-            ),
+            border: Border.all(color: const Color(0xFFFFD36A)),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFA52EFF).withOpacity(0.55),
+                color: const Color(0xFFA52EFF).withValues(alpha: 0.55),
                 blurRadius: 1,
               ),
               BoxShadow(
-                color: const Color(0xFFFFD36A).withOpacity(0.22),
+                color: const Color(0xFFFFD36A).withValues(alpha: 0.22),
                 blurRadius: 10,
               ),
             ],
@@ -423,21 +387,21 @@ class _GlowSendButton extends StatelessWidget {
           child: Center(
             child: loading
                 ? const SizedBox(
-              width: 21,
-              height: 21,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Color(0xFFFFD36A),
-              ),
-            )
+                    width: 21,
+                    height: 21,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Color(0xFFFFD36A),
+                    ),
+                  )
                 : const Text(
-              'Send',
-              style: TextStyle(
-                color: Color(0xFFFFE2A0),
-                fontWeight: FontWeight.w700,
-                fontSize: 17,
-              ),
-            ),
+                    'Send',
+                    style: TextStyle(
+                      color: Color(0xFFFFE2A0),
+                      fontWeight: FontWeight.w700,
+                      fontSize: 17,
+                    ),
+                  ),
           ),
         ),
       ),
@@ -450,11 +414,7 @@ class _UploadTile extends StatelessWidget {
   final double? height;
   final VoidCallback onTap;
 
-  const _UploadTile({
-    this.width,
-    this.height,
-    required this.onTap,
-  });
+  const _UploadTile({this.width, this.height, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -483,7 +443,9 @@ class _UploadTile extends StatelessWidget {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFA837FF).withOpacity(0.55),
+                          color: const Color(
+                            0xFFA837FF,
+                          ).withValues(alpha: 0.55),
                           blurRadius: 1,
                         ),
                       ],
@@ -539,10 +501,7 @@ class _SelectedImageTile extends StatelessWidget {
   final String imagePath;
   final VoidCallback onRemove;
 
-  const _SelectedImageTile({
-    required this.imagePath,
-    required this.onRemove,
-  });
+  const _SelectedImageTile({required this.imagePath, required this.onRemove});
 
   @override
   Widget build(BuildContext context) {
@@ -554,7 +513,7 @@ class _SelectedImageTile extends StatelessWidget {
             child: Image.file(
               File(imagePath),
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) {
+              errorBuilder: (_, _, _) {
                 return Container(
                   color: const Color(0xFF261030),
                   child: const Icon(
@@ -571,9 +530,7 @@ class _SelectedImageTile extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: const Color(0xFFB34FFF),
-              ),
+              border: Border.all(color: const Color(0xFFB34FFF)),
             ),
           ),
         ),
@@ -591,10 +548,8 @@ class _SelectedImageTile extends StatelessWidget {
                 height: 31,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.black.withOpacity(0.72),
-                  border: Border.all(
-                    color: const Color(0xFFFFD36A),
-                  ),
+                  color: Colors.black.withValues(alpha: 0.72),
+                  border: Border.all(color: const Color(0xFFFFD36A)),
                 ),
                 child: const Icon(
                   Icons.close_rounded,
@@ -624,7 +579,7 @@ class _DiamondDivider extends StatelessWidget {
               gradient: LinearGradient(
                 colors: [
                   Colors.transparent,
-                  const Color(0xFFFFD36A).withOpacity(0.9),
+                  const Color(0xFFFFD36A).withValues(alpha: 0.9),
                 ],
               ),
             ),
@@ -646,12 +601,10 @@ class _DiamondDivider extends StatelessWidget {
                   Color(0xFF4F086F),
                 ],
               ),
-              border: Border.all(
-                color: const Color(0xFFFFDF86),
-              ),
+              border: Border.all(color: const Color(0xFFFFDF86)),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFA52FFF).withOpacity(0.8),
+                  color: const Color(0xFFA52FFF).withValues(alpha: 0.8),
                   blurRadius: 1,
                 ),
               ],
@@ -667,7 +620,7 @@ class _DiamondDivider extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFFFFD36A).withOpacity(0.9),
+                  const Color(0xFFFFD36A).withValues(alpha: 0.9),
                   Colors.transparent,
                 ],
               ),
@@ -698,30 +651,26 @@ class _DashedRoundedBorderPainter extends CustomPainter {
     const double gapLength = 5;
 
     final Paint paint = Paint()
-      ..color = const Color(0xFFD271FF).withOpacity(0.85)
+      ..color = const Color(0xFFD271FF).withValues(alpha: 0.85)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5
       ..strokeCap = StrokeCap.round;
 
     final Path path = Path()
       ..addRRect(
-        RRect.fromRectAndRadius(
-          Offset.zero & size,
-          const Radius.circular(18),
-        ),
+        RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(18)),
       );
 
     for (final metric in path.computeMetrics()) {
       double distance = 0;
 
       while (distance < metric.length) {
-        final double nextDistance =
-        (distance + dashLength).clamp(0, metric.length);
-
-        canvas.drawPath(
-          metric.extractPath(distance, nextDistance),
-          paint,
+        final double nextDistance = (distance + dashLength).clamp(
+          0,
+          metric.length,
         );
+
+        canvas.drawPath(metric.extractPath(distance, nextDistance), paint);
 
         distance = nextDistance + gapLength;
       }
@@ -744,10 +693,7 @@ class _EditScreenBackground extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF0D0017),
-
-            ],
+            colors: [Color(0xFF0D0017)],
           ),
         ),
       ),
@@ -763,21 +709,18 @@ class _EditBackgroundPainter extends CustomPainter {
     final Paint glowPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 10
-      ..color = const Color(0xFF9A2BFF).withOpacity(0.16)
-      ..maskFilter = const MaskFilter.blur(
-        BlurStyle.normal,
-        18,
-      );
+      ..color = const Color(0xFF9A2BFF).withValues(alpha: 0.16)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18);
 
     final Paint purplePaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
-      ..color = const Color(0xFF8F2BE2).withOpacity(0.65);
+      ..color = const Color(0xFF8F2BE2).withValues(alpha: 0.65);
 
     final Paint goldPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.4
-      ..color = const Color(0xFFFFB83E).withOpacity(0.75);
+      ..color = const Color(0xFFFFB83E).withValues(alpha: 0.75);
 
     final Path leftWave = Path()
       ..moveTo(-30, bottom - 110)
@@ -821,19 +764,12 @@ class _EditBackgroundPainter extends CustomPainter {
           bottom - 10 - offset,
         );
 
-      canvas.drawPath(
-        leftLine,
-        index == 1 ? goldPaint : purplePaint,
-      );
+      canvas.drawPath(leftLine, index == 1 ? goldPaint : purplePaint);
 
-      canvas.drawPath(
-        rightLine,
-        index == 1 ? goldPaint : purplePaint,
-      );
+      canvas.drawPath(rightLine, index == 1 ? goldPaint : purplePaint);
     }
 
-    final Paint particlePaint = Paint()
-      ..color = const Color(0xFFFFC556);
+    final Paint particlePaint = Paint()..color = const Color(0xFFFFC556);
 
     for (int index = 0; index < 26; index++) {
       final double x = index.isEven
@@ -846,7 +782,7 @@ class _EditBackgroundPainter extends CustomPainter {
       canvas.drawCircle(
         Offset(x, y),
         radius,
-        particlePaint..color = particlePaint.color.withOpacity(0.65),
+        particlePaint..color = particlePaint.color.withValues(alpha: 0.65),
       );
     }
   }

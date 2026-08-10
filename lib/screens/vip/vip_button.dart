@@ -4,10 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 class VipButton extends StatelessWidget {
   final VoidCallback? onPressed;
 
-  const VipButton({
-    super.key,
-    this.onPressed,
-  });
+  const VipButton({super.key, this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -19,14 +16,11 @@ class VipButton extends StatelessWidget {
             width: double.infinity,
             height: 58,
             child: ElevatedButton.icon(
-              onPressed: onPressed ??
-                      () {
+              onPressed:
+                  onPressed ??
+                  () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          "VIP Purchase Coming Soon",
-                        ),
-                      ),
+                      const SnackBar(content: Text("VIP Purchase Coming Soon")),
                     );
                   },
               style: ElevatedButton.styleFrom(
@@ -38,10 +32,7 @@ class VipButton extends StatelessWidget {
                   borderRadius: BorderRadius.circular(18),
                 ),
               ),
-              icon: const Icon(
-                Icons.workspace_premium,
-                size: 28,
-              ),
+              icon: const Icon(Icons.workspace_premium, size: 28),
               label: Text(
                 "Become VIP",
                 style: GoogleFonts.poppins(
@@ -57,10 +48,7 @@ class VipButton extends StatelessWidget {
           Text(
             "Cancel anytime • Secure Payment • Instant Activation",
             textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              color: Colors.white60,
-              fontSize: 13,
-            ),
+            style: GoogleFonts.poppins(color: Colors.white60, fontSize: 13),
           ),
         ],
       ),

@@ -97,19 +97,16 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    bannerTimer = Timer.periodic(
-      const Duration(seconds: 4),
-          (_) {
-        if (!bannerController.hasClients) return;
+    bannerTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!bannerController.hasClients) return;
 
-        final int nextPage = (bannerIndex + 1) % _bannerAssets.length;
-        bannerController.animateToPage(
-          nextPage,
-          duration: const Duration(milliseconds: 450),
-          curve: Curves.easeOutCubic,
-        );
-      },
-    );
+      final int nextPage = (bannerIndex + 1) % _bannerAssets.length;
+      bannerController.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeOutCubic,
+      );
+    });
   }
 
   @override
@@ -157,15 +154,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SliverToBoxAdapter(child: SizedBox(height: 15)),
                 SliverToBoxAdapter(
-                  child: sectionTitle(
-                    'Popular Rooms',
-                    trailing: 'Live now',
-                  ),
+                  child: sectionTitle('Popular Rooms', trailing: 'Live now'),
                 ),
                 const SliverToBoxAdapter(child: SizedBox(height: 6)),
                 SliverList.separated(
                   itemCount: rooms.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
                     final room = rooms[index];
                     return JunaidRoomCard(
@@ -247,9 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const NotificationScreen(),
-                ),
+                MaterialPageRoute(builder: (_) => const NotificationScreen()),
               );
             },
           ),
@@ -274,17 +266,11 @@ class _HomeScreenState extends State<HomeScreen> {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(.16),
+              color: Colors.black.withValues(alpha: .16),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.white.withOpacity(.10),
-              ),
+              border: Border.all(color: Colors.white.withValues(alpha: .10)),
             ),
-            child: Icon(
-              icon,
-              color: const Color(0xFFFFC857),
-              size: 21,
-            ),
+            child: Icon(icon, color: const Color(0xFFFFC857), size: 21),
           ),
         ),
       ),
@@ -331,7 +317,7 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14),
         scrollDirection: Axis.horizontal,
         itemCount: tabs.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 7),
+        separatorBuilder: (_, _) => const SizedBox(width: 7),
         itemBuilder: (context, index) {
           return GestureDetector(
             onTap: () => setState(() => selectedTab = index),
@@ -352,7 +338,7 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14),
         scrollDirection: Axis.horizontal,
         itemCount: countries.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 7),
+        separatorBuilder: (_, _) => const SizedBox(width: 7),
         itemBuilder: (context, index) {
           final country = countries[index];
           return GestureDetector(
@@ -368,10 +354,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget sectionTitle(
-      String text, {
-        String? trailing,
-      }) {
+  Widget sectionTitle(String text, {String? trailing}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15),
       child: Row(
@@ -388,16 +371,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           if (trailing != null)
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 9,
-                vertical: 4,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(.055),
+                color: Colors.white.withValues(alpha: .055),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: Colors.white.withOpacity(.08),
-                ),
+                border: Border.all(color: Colors.white.withValues(alpha: .08)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -442,9 +420,7 @@ class _HomeScreenState extends State<HomeScreen> {
             margin: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.white.withOpacity(.10),
-              ),
+              border: Border.all(color: Colors.white.withValues(alpha: .10)),
             ),
             clipBehavior: Clip.antiAlias,
             child: Image.asset(

@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 import '../models/user_model.dart';
 import 'firestore_service.dart';
-
 
 class AuthService {
   AuthService._();
@@ -11,111 +11,149 @@ class AuthService {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  /// Current Firebase User
   User? get currentUser => _auth.currentUser;
 
-  /// Authentication State Changes
-  Stream<User?> get authStateChanges =>
-      _auth.authStateChanges();
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  /// Sign Up
   Future<UserCredential> signUp({
     required String fullName,
     required String username,
     required String email,
     required String password,
   }) async {
+    final normalizedName = fullName.trim();
+    final normalizedUsername = username.trim().toLowerCase();
+    final normalizedEmail = email.trim().toLowerCase();
+
     try {
-      // Check username availability
-      final usernameExists =
-      await FirestoreService.instance.usernameExists(username);
+      final usernameExists = await FirestoreService.instance.usernameExists(
+        normalizedUsername,
+      );
 
       if (usernameExists) {
         throw Exception('Username is already taken.');
       }
 
-      // Create Firebase Account
-      final credential =
-      await _auth.createUserWithEmailAndPassword(
-        email: email.trim(),
+      final credential = await _auth.createUserWithEmailAndPassword(
+        email: normalizedEmail,
         password: password,
       );
 
       final user = credential.user;
-
       if (user == null) {
         throw Exception('Failed to create user.');
       }
 
-      // Send Verification Email
-      await user.sendEmailVerification();
+      await user.updateDisplayName(normalizedName);
 
-      // Create Firestore User
+      final now = Timestamp.now();
       final userModel = UserModel(
         uid: user.uid,
-        fullName: fullName,
-        username: username,
-        email: email,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
+        fullName: normalizedName,
+        username: normalizedUsername,
+        email: normalizedEmail,
+        isOnline: false,
+        isEmailVerified: user.emailVerified,
+        createdAt: now,
+        updatedAt: now,
       );
 
-      await FirestoreService.instance.createUser(userModel);
+      try {
+        await FirestoreService.instance.createUser(userModel);
+      } catch (_) {
+        // Avoid leaving a Firebase Auth account without its Junaya profile.
+        try {
+          await user.delete();
+        } catch (_) {}
+        rethrow;
+      }
+
+      // Email delivery can fail temporarily. The verification screen also
+      // offers a resend action, so an already-created account remains usable.
+      try {
+        await user.sendEmailVerification();
+      } on FirebaseAuthException {
+        // Best effort. Do not invalidate the newly created account.
+      }
 
       return credential;
     } on FirebaseAuthException catch (e) {
       throw Exception(_firebaseAuthError(e));
-    } catch (e) {
-      rethrow;
     }
   }
 
-  /// Login
   Future<UserCredential> signIn({
     required String email,
     required String password,
   }) async {
     try {
-      return await _auth.signInWithEmailAndPassword(
+      final credential = await _auth.signInWithEmailAndPassword(
         email: email.trim(),
         password: password,
       );
+
+      final user = credential.user;
+      if (user != null && user.emailVerified) {
+        await _syncVerificationState(user);
+        await _setOnlineStatus(user.uid, true);
+      }
+
+      return credential;
     } on FirebaseAuthException catch (e) {
       throw Exception(_firebaseAuthError(e));
     }
   }
 
-  /// Firebase Error Messages
-  String _firebaseAuthError(FirebaseAuthException e) {
-    switch (e.code) {
-      case 'email-already-in-use':
-        return 'Email is already registered.';
+  Future<UserCredential> signInWithPhoneCredential(
+    PhoneAuthCredential credential,
+  ) async {
+    try {
+      final result = await _auth.signInWithCredential(credential);
+      final user = result.user;
 
-      case 'invalid-email':
-        return 'Invalid email address.';
+      if (user == null) {
+        throw Exception('Unable to verify this phone number.');
+      }
 
-      case 'weak-password':
-        return 'Password is too weak.';
+      final exists = await FirestoreService.instance.userExists(user.uid);
+      if (!exists) {
+        final suffix = user.uid.length > 8
+            ? user.uid.substring(user.uid.length - 8)
+            : user.uid;
+        final now = Timestamp.now();
 
-      case 'user-not-found':
-        return 'User not found.';
+        await FirestoreService.instance.createUser(
+          UserModel(
+            uid: user.uid,
+            fullName: user.displayName?.trim().isNotEmpty == true
+                ? user.displayName!.trim()
+                : 'Junaya User',
+            username: 'user_$suffix'.toLowerCase(),
+            email: user.email ?? '',
+            phoneNumber: user.phoneNumber ?? '',
+            isOnline: true,
+            isEmailVerified: user.emailVerified,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+      } else {
+        await _setOnlineStatus(user.uid, true);
+      }
 
-      case 'wrong-password':
-        return 'Incorrect password.';
-
-      case 'invalid-credential':
-        return 'Invalid email or password.';
-
-      case 'too-many-requests':
-        return 'Too many attempts.';
-
-      default:
-        return e.message ?? 'Authentication failed.';
+      return result;
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_firebaseAuthError(e));
     }
   }
 
-  /// Sign Out
   Future<void> signOut() async {
+    final uid = currentUser?.uid;
+
+    if (uid != null) {
+      await _setOnlineStatus(uid, false);
+    }
+
     try {
       await _auth.signOut();
     } on FirebaseAuthException catch (e) {
@@ -123,88 +161,152 @@ class AuthService {
     }
   }
 
-  /// Send Password Reset Email
   Future<void> resetPassword(String email) async {
     try {
-      await _auth.sendPasswordResetEmail(
-        email: email.trim(),
-      );
+      await _auth.sendPasswordResetEmail(email: email.trim());
     } on FirebaseAuthException catch (e) {
       throw Exception(_firebaseAuthError(e));
     }
   }
 
-  /// Send Email Verification Again
   Future<void> sendEmailVerification() async {
+    final user = currentUser;
+    if (user == null) {
+      throw Exception('No user is currently signed in.');
+    }
+
     try {
-      final user = currentUser;
-
-      if (user == null) {
-        throw Exception('No user is currently signed in.');
-      }
-
       await user.sendEmailVerification();
     } on FirebaseAuthException catch (e) {
       throw Exception(_firebaseAuthError(e));
     }
   }
 
-  /// Reload Current User
-  Future<void> reloadUser() async {
+  Future<User?> reloadUser() async {
+    final user = currentUser;
+    if (user == null) return null;
+
     try {
-      await currentUser?.reload();
+      await user.reload();
+      return currentUser;
     } on FirebaseAuthException catch (e) {
       throw Exception(_firebaseAuthError(e));
     }
   }
 
-  /// Check Email Verification Status
   Future<bool> isEmailVerified() async {
-    await reloadUser();
-    return currentUser?.emailVerified ?? false;
+    final user = await reloadUser();
+    final verified = user?.emailVerified ?? false;
+
+    if (user != null && verified) {
+      await _syncVerificationState(user);
+    }
+
+    return verified;
   }
 
-  /// Delete Current Account
+  Future<void> syncCurrentUserState() async {
+    final user = currentUser;
+    if (user == null) return;
+
+    await _syncVerificationState(user);
+    if (user.email == null || user.emailVerified) {
+      await _setOnlineStatus(user.uid, true);
+    }
+  }
+
   Future<void> deleteAccount() async {
+    final user = currentUser;
+    if (user == null) {
+      throw Exception('No authenticated user.');
+    }
+
     try {
-      final user = currentUser;
-
-      if (user == null) {
-        throw Exception('No authenticated user.');
-      }
-
-      // Delete Firestore document first
       await FirestoreService.instance.deleteUser(user.uid);
-
-      // Delete Firebase account
       await user.delete();
     } on FirebaseAuthException catch (e) {
       throw Exception(_firebaseAuthError(e));
     }
   }
 
-  /// Re-authenticate User
   Future<void> reAuthenticate({
     required String email,
     required String password,
   }) async {
+    final user = currentUser;
+    if (user == null) {
+      throw Exception('No authenticated user.');
+    }
+
     try {
-      final user = currentUser;
-
-      if (user == null) {
-        throw Exception('No authenticated user.');
-      }
-
       final credential = EmailAuthProvider.credential(
         email: email.trim(),
         password: password,
       );
 
-      await user.reauthenticateWithCredential(
-        credential,
-      );
+      await user.reauthenticateWithCredential(credential);
     } on FirebaseAuthException catch (e) {
       throw Exception(_firebaseAuthError(e));
+    }
+  }
+
+  Future<void> _syncVerificationState(User user) async {
+    try {
+      final exists = await FirestoreService.instance.userExists(user.uid);
+      if (!exists) return;
+
+      await FirestoreService.instance.updateEmailVerification(
+        user.uid,
+        user.emailVerified,
+      );
+    } catch (_) {
+      // Firestore sync should not block Firebase authentication.
+    }
+  }
+
+  Future<void> _setOnlineStatus(String uid, bool isOnline) async {
+    try {
+      final exists = await FirestoreService.instance.userExists(uid);
+      if (!exists) return;
+
+      await FirestoreService.instance.updateOnlineStatus(uid, isOnline);
+    } catch (_) {
+      // Presence is best effort; auth should remain available offline.
+    }
+  }
+
+  String _firebaseAuthError(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'email-already-in-use':
+        return 'Email is already registered.';
+      case 'invalid-email':
+        return 'Please enter a valid email address.';
+      case 'weak-password':
+        return 'Password is too weak.';
+      case 'user-not-found':
+      case 'wrong-password':
+      case 'invalid-credential':
+        return 'Invalid email or password.';
+      case 'user-disabled':
+        return 'This account has been disabled.';
+      case 'too-many-requests':
+        return 'Too many attempts. Please try again later.';
+      case 'network-request-failed':
+        return 'Check your internet connection and try again.';
+      case 'operation-not-allowed':
+        return 'This sign-in method is not enabled.';
+      case 'requires-recent-login':
+        return 'Please sign in again before continuing.';
+      case 'invalid-verification-code':
+        return 'The verification code is incorrect.';
+      case 'session-expired':
+        return 'The verification code expired. Request a new code.';
+      case 'missing-verification-code':
+        return 'Enter the verification code.';
+      case 'quota-exceeded':
+        return 'SMS verification quota has been reached. Try again later.';
+      default:
+        return e.message ?? 'Authentication failed. Please try again.';
     }
   }
 }

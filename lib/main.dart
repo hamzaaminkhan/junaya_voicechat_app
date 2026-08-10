@@ -6,74 +6,35 @@ import 'package:junaya_voicechat_app/routes/app_routes.dart';
 import 'package:junaya_voicechat_app/theme/app_theme.dart';
 import 'package:junaya_voicechat_app/widgets/space_background.dart';
 
-
 void main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
 
-
-  await Firebase.initializeApp(
-
-    options: DefaultFirebaseOptions.currentPlatform,
-
-  );
-
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(const JunayaApp());
-
 }
 
-
-
 class JunayaApp extends StatelessWidget {
-
-
   const JunayaApp({super.key});
-
-
 
   @override
   Widget build(BuildContext context) {
-
-
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
 
+      title: 'JUNAYA',
 
-      debugShowCheckedModeBanner:false,
+      theme: AppTheme.darkTheme,
 
+      themeMode: ThemeMode.dark,
 
-      title:'JUNAYA',
+      initialRoute: AppRoutes.splash,
 
-
-
-      theme:
-      AppTheme.darkTheme,
-
-
-
-      themeMode:
-      ThemeMode.dark,
-
-
-
-      initialRoute:
-      AppRoutes.intro,
-
-
-
-      routes:
-      AppRoutes.routes,
+      routes: AppRoutes.routes,
 
       builder: (context, child) {
-        return SpaceBackground(
-          child: child ?? const SizedBox.shrink(),
-        );
+        return SpaceBackground(child: child ?? const SizedBox.shrink());
       },
-
     );
-
-
   }
-
-
 }

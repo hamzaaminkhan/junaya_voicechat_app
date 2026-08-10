@@ -32,7 +32,7 @@ class LevelScreen extends StatelessWidget {
                   height: 82,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.black.withOpacity(.22),
+                    color: Colors.black.withValues(alpha: .22),
                     border: Border.all(color: Colors.amber, width: 2),
                   ),
                   child: Center(
@@ -67,7 +67,9 @@ class LevelScreen extends StatelessWidget {
                     minHeight: 10,
                     value: progress,
                     backgroundColor: Colors.black26,
-                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      Colors.amber,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 9),
@@ -87,7 +89,8 @@ class LevelScreen extends StatelessWidget {
           const SizedBox(height: 20),
           const ProfileSectionHeader(
             title: 'Level rewards',
-            subtitle: 'Unlock profile effects and room perks as your level grows.',
+            subtitle:
+                'Unlock profile effects and room perks as your level grows.',
             icon: Icons.auto_graph_rounded,
           ),
           const SizedBox(height: 12),
@@ -126,11 +129,23 @@ class LevelScreen extends StatelessWidget {
           const ProfileSectionCard(
             child: Column(
               children: [
-                _XpRow(icon: Icons.mic_none_rounded, text: 'Spend time in voice rooms', xp: '+ XP'),
+                _XpRow(
+                  icon: Icons.mic_none_rounded,
+                  text: 'Spend time in voice rooms',
+                  xp: '+ XP',
+                ),
                 Divider(color: Colors.white12),
-                _XpRow(icon: Icons.card_giftcard, text: 'Send and receive gifts', xp: '+ XP'),
+                _XpRow(
+                  icon: Icons.card_giftcard,
+                  text: 'Send and receive gifts',
+                  xp: '+ XP',
+                ),
                 Divider(color: Colors.white12),
-                _XpRow(icon: Icons.people_outline, text: 'Join community activities', xp: '+ XP'),
+                _XpRow(
+                  icon: Icons.people_outline,
+                  text: 'Join community activities',
+                  xp: '+ XP',
+                ),
               ],
             ),
           ),
@@ -154,13 +169,12 @@ class LevelScreen extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: (unlocked ? Colors.amber : Colors.white24).withOpacity(.13),
+              color: (unlocked ? Colors.amber : Colors.white24).withValues(
+                alpha: .13,
+              ),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(
-              icon,
-              color: unlocked ? Colors.amber : Colors.white38,
-            ),
+            child: Icon(icon, color: unlocked ? Colors.amber : Colors.white38),
           ),
           const SizedBox(width: 13),
           Expanded(

@@ -63,52 +63,47 @@ class VipBenefits extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-        
+
             const SizedBox(height: 18),
-        
+
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: benefits.length,
-              gridDelegate:
-              const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
 
-                crossAxisCount:2,
+                childAspectRatio: 0.75,
 
-                childAspectRatio:0.75,
+                crossAxisSpacing: 15,
 
-                crossAxisSpacing:15,
-
-                mainAxisSpacing:15,
-
+                mainAxisSpacing: 15,
               ),
               itemBuilder: (context, index) {
                 final item = benefits[index];
-        
+
                 return Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: const Color(0xff1A1F38),
                     borderRadius: BorderRadius.circular(22),
-                    border: Border.all(
-                      color: Colors.white10,
-                    ),
+                    border: Border.all(color: Colors.white10),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       CircleAvatar(
                         radius: 24,
-                        backgroundColor: Colors.amber.withOpacity(.15),
+                        backgroundColor: Colors.amber.withValues(alpha: .15),
                         child: Icon(
                           item["icon"],
                           color: Colors.amber,
                           size: 26,
                         ),
                       ),
-        
+
                       const SizedBox(height: 15),
-        
+
                       Text(
                         item["title"],
                         textAlign: TextAlign.center,
@@ -118,36 +113,27 @@ class VipBenefits extends StatelessWidget {
                           fontSize: 15,
                         ),
                       ),
-        
+
                       const SizedBox(height: 8),
 
                       Flexible(
-
                         child: Text(
-
                           item["subtitle"],
 
                           textAlign: TextAlign.center,
 
+                          maxLines: 3,
 
-                          maxLines:3,
-
-                          overflow:
-                          TextOverflow.ellipsis,
-
+                          overflow: TextOverflow.ellipsis,
 
                           style: GoogleFonts.poppins(
-
                             color: Colors.white60,
 
-                            fontSize:12,
+                            fontSize: 12,
 
-                            height:1.3,
-
+                            height: 1.3,
                           ),
-
                         ),
-
                       ),
                     ],
                   ),

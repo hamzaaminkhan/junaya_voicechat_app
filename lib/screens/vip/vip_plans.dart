@@ -71,28 +71,23 @@ class _VipPlansState extends State<VipPlans> {
                   decoration: BoxDecoration(
                     gradient: isSelected
                         ? const LinearGradient(
-                      colors: [
-                        Color(0xff6C3BFF),
-                        Color(0xffB43EFF),
-                      ],
-                    )
+                            colors: [Color(0xff6C3BFF), Color(0xffB43EFF)],
+                          )
                         : null,
                     color: isSelected ? null : const Color(0xff1A1F38),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: isSelected
-                          ? Colors.amber
-                          : Colors.white12,
+                      color: isSelected ? Colors.amber : Colors.white12,
                       width: 2,
                     ),
                     boxShadow: isSelected
                         ? [
-                      BoxShadow(
-                        color: Colors.purple.withOpacity(.35),
-                        blurRadius: 15,
-                        offset: const Offset(0, 8),
-                      ),
-                    ]
+                            BoxShadow(
+                              color: Colors.purple.withValues(alpha: .35),
+                              blurRadius: 15,
+                              offset: const Offset(0, 8),
+                            ),
+                          ]
                         : [],
                   ),
                   child: Row(
@@ -110,8 +105,7 @@ class _VipPlansState extends State<VipPlans> {
 
                       Expanded(
                         child: Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               plan["title"]!,
@@ -126,17 +120,14 @@ class _VipPlansState extends State<VipPlans> {
 
                             Text(
                               plan["duration"]!,
-                              style: GoogleFonts.poppins(
-                                color: Colors.white70,
-                              ),
+                              style: GoogleFonts.poppins(color: Colors.white70),
                             ),
                           ],
                         ),
                       ),
 
                       Column(
-                        crossAxisAlignment:
-                        CrossAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
                             plan["price"]!,
@@ -151,15 +142,13 @@ class _VipPlansState extends State<VipPlans> {
 
                           if (plan["badge"]!.isNotEmpty)
                             Container(
-                              padding:
-                              const EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                 horizontal: 10,
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
                                 color: Colors.amber,
-                                borderRadius:
-                                BorderRadius.circular(20),
+                                borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
                                 plan["badge"]!,

@@ -38,6 +38,7 @@ class FirestoreService {
       throw Exception('Failed to fetch user.');
     }
   }
+
   /// Update entire user document
   Future<void> updateUser(UserModel user) async {
     try {
@@ -77,10 +78,7 @@ class FirestoreService {
   }
 
   /// Update Profile Image
-  Future<void> updateProfileImage(
-      String uid,
-      String imageUrl,
-      ) async {
+  Future<void> updateProfileImage(String uid, String imageUrl) async {
     try {
       await _users.doc(uid).update({
         'profileImage': imageUrl,
@@ -92,10 +90,7 @@ class FirestoreService {
   }
 
   /// Update Online Status
-  Future<void> updateOnlineStatus(
-      String uid,
-      bool isOnline,
-      ) async {
+  Future<void> updateOnlineStatus(String uid, bool isOnline) async {
     try {
       await _users.doc(uid).update({
         'isOnline': isOnline,
@@ -106,11 +101,20 @@ class FirestoreService {
     }
   }
 
+  /// Keep Firestore email verification state aligned with Firebase Auth.
+  Future<void> updateEmailVerification(String uid, bool isVerified) async {
+    try {
+      await _users.doc(uid).update({
+        'isEmailVerified': isVerified,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } on FirebaseException catch (e) {
+      throw Exception('Firestore Error: ${e.message}');
+    }
+  }
+
   /// Update VIP Status
-  Future<void> updateVipStatus(
-      String uid,
-      bool isVip,
-      ) async {
+  Future<void> updateVipStatus(String uid, bool isVip) async {
     try {
       await _users.doc(uid).update({
         'isVip': isVip,
@@ -122,10 +126,7 @@ class FirestoreService {
   }
 
   /// Update Coins
-  Future<void> updateCoins(
-      String uid,
-      int coins,
-      ) async {
+  Future<void> updateCoins(String uid, int coins) async {
     try {
       await _users.doc(uid).update({
         'coins': coins,
@@ -137,10 +138,7 @@ class FirestoreService {
   }
 
   /// Update Diamonds
-  Future<void> updateDiamonds(
-      String uid,
-      int diamonds,
-      ) async {
+  Future<void> updateDiamonds(String uid, int diamonds) async {
     try {
       await _users.doc(uid).update({
         'diamonds': diamonds,
@@ -152,10 +150,7 @@ class FirestoreService {
   }
 
   /// Add Coins (Transaction Safe)
-  Future<void> addCoins(
-      String uid,
-      int amount,
-      ) async {
+  Future<void> addCoins(String uid, int amount) async {
     try {
       await _firestore.runTransaction((transaction) async {
         final docRef = _users.doc(uid);
@@ -178,10 +173,7 @@ class FirestoreService {
   }
 
   /// Remove Coins (Cannot Go Below Zero)
-  Future<void> removeCoins(
-      String uid,
-      int amount,
-      ) async {
+  Future<void> removeCoins(String uid, int amount) async {
     try {
       await _firestore.runTransaction((transaction) async {
         final docRef = _users.doc(uid);
@@ -206,10 +198,7 @@ class FirestoreService {
   }
 
   /// Add Diamonds (Transaction Safe)
-  Future<void> addDiamonds(
-      String uid,
-      int amount,
-      ) async {
+  Future<void> addDiamonds(String uid, int amount) async {
     try {
       await _firestore.runTransaction((transaction) async {
         final docRef = _users.doc(uid);
@@ -232,10 +221,7 @@ class FirestoreService {
   }
 
   /// Remove Diamonds (Cannot Go Below Zero)
-  Future<void> removeDiamonds(
-      String uid,
-      int amount,
-      ) async {
+  Future<void> removeDiamonds(String uid, int amount) async {
     try {
       await _firestore.runTransaction((transaction) async {
         final docRef = _users.doc(uid);
@@ -247,8 +233,7 @@ class FirestoreService {
 
         final currentDiamonds = snapshot.data()?['diamonds'] ?? 0;
 
-        final newDiamonds =
-        (currentDiamonds - amount).clamp(0, 1 << 31);
+        final newDiamonds = (currentDiamonds - amount).clamp(0, 1 << 31);
 
         transaction.update(docRef, {
           'diamonds': newDiamonds,
@@ -268,6 +253,7 @@ class FirestoreService {
       throw Exception('Firestore Error: ${e.message}');
     }
   }
+
   /// Listen to user document in real-time
   Stream<UserModel?> userStream(String uid) {
     return _users.doc(uid).snapshots().map((doc) {
@@ -281,10 +267,7 @@ class FirestoreService {
   Future<bool> usernameExists(String username) async {
     try {
       final result = await _users
-          .where(
-        'username',
-        isEqualTo: username.trim().toLowerCase(),
-      )
+          .where('username', isEqualTo: username.trim().toLowerCase())
           .limit(1)
           .get();
 
@@ -298,10 +281,7 @@ class FirestoreService {
   Future<bool> emailExists(String email) async {
     try {
       final result = await _users
-          .where(
-        'email',
-        isEqualTo: email.trim().toLowerCase(),
-      )
+          .where('email', isEqualTo: email.trim().toLowerCase())
           .limit(1)
           .get();
 
@@ -321,4 +301,3 @@ class FirestoreService {
     }
   }
 }
-

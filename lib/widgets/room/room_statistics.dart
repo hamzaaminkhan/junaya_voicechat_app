@@ -8,25 +8,21 @@ class RoomStatistics extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 18),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 18,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(25),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(.25),
+            color: Colors.black.withValues(alpha: .25),
             blurRadius: 12,
             offset: const Offset(0, 5),
-          )
+          ),
         ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: const [
-
           StatItem(
             icon: Icons.people,
             value: "245",
@@ -78,15 +74,10 @@ class StatItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-
         CircleAvatar(
           radius: 22,
-          backgroundColor: color.withOpacity(.15),
-          child: Icon(
-            icon,
-            color: color,
-            size: 24,
-          ),
+          backgroundColor: color.withValues(alpha: .15),
+          child: Icon(icon, color: color, size: 24),
         ),
 
         const SizedBox(height: 8),
@@ -104,10 +95,7 @@ class StatItem extends StatelessWidget {
 
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.white60,
-            fontSize: 12,
-          ),
+          style: const TextStyle(color: Colors.white60, fontSize: 12),
         ),
       ],
     );

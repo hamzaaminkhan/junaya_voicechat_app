@@ -9,23 +9,17 @@ class VipHeader extends StatelessWidget {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 28,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(25),
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xff6C3BFF),
-            Color(0xffB43EFF),
-          ],
+          colors: [Color(0xff6C3BFF), Color(0xffB43EFF)],
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.purpleAccent.withOpacity(0.35),
+            color: Colors.purpleAccent.withValues(alpha: 0.35),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -33,7 +27,6 @@ class VipHeader extends StatelessWidget {
       ),
       child: Column(
         children: [
-
           /// Crown
           Container(
             height: 90,
@@ -43,7 +36,7 @@ class VipHeader extends StatelessWidget {
               color: Colors.amber,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.amber.withOpacity(.45),
+                  color: Colors.amber.withValues(alpha: .45),
                   blurRadius: 25,
                 ),
               ],
@@ -71,32 +64,21 @@ class VipHeader extends StatelessWidget {
 
           Text(
             "Unlock Premium Features",
-            style: GoogleFonts.poppins(
-              color: Colors.white70,
-              fontSize: 16,
-            ),
+            style: GoogleFonts.poppins(color: Colors.white70, fontSize: 16),
           ),
 
           const SizedBox(height: 25),
 
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 18,
-              vertical: 10,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(.15),
+              color: Colors.white.withValues(alpha: .15),
               borderRadius: BorderRadius.circular(30),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-
-                const Icon(
-                  Icons.star,
-                  color: Colors.amber,
-                  size: 20,
-                ),
+                const Icon(Icons.star, color: Colors.amber, size: 20),
 
                 const SizedBox(width: 8),
 
@@ -118,19 +100,14 @@ class VipHeader extends StatelessWidget {
             minHeight: 8,
             borderRadius: BorderRadius.circular(20),
             backgroundColor: Colors.white24,
-            valueColor: const AlwaysStoppedAnimation(
-              Colors.amber,
-            ),
+            valueColor: const AlwaysStoppedAnimation(Colors.amber),
           ),
 
           const SizedBox(height: 10),
 
           Text(
             "15% Progress to VIP 1",
-            style: GoogleFonts.poppins(
-              color: Colors.white70,
-              fontSize: 13,
-            ),
+            style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13),
           ),
         ],
       ),

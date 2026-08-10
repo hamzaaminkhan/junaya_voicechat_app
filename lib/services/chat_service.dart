@@ -10,18 +10,15 @@ class ChatService {
 
   /// Generates a unique conversation ID
   /// Same ID regardless of sender/receiver order.
-  String getConversationId(
-      String user1,
-      String user2,
-      ) {
+  String getConversationId(String user1, String user2) {
     final ids = [user1, user2]..sort();
     return ids.join("_");
   }
 
   /// Firestore reference
   CollectionReference<Map<String, dynamic>> _messagesRef(
-      String conversationId,
-      ) {
+    String conversationId,
+  ) {
     return _firestore
         .collection("chats")
         .doc(conversationId)
@@ -35,8 +32,7 @@ class ChatService {
     required String message,
     String type = "text",
   }) async {
-    final conversationId =
-    getConversationId(senderId, receiverId);
+    final conversationId = getConversationId(senderId, receiverId);
 
     final doc = _messagesRef(conversationId).doc();
 
@@ -59,23 +55,16 @@ class ChatService {
     required String senderId,
     required String receiverId,
   }) {
-    final conversationId =
-    getConversationId(senderId, receiverId);
+    final conversationId = getConversationId(senderId, receiverId);
 
     return _messagesRef(conversationId)
-        .orderBy(
-      "timestamp",
-      descending: false,
-    )
+        .orderBy("timestamp", descending: false)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
-          .map(
-            (doc) =>
-            MessageModel.fromMap(doc.data()),
-      )
-          .toList(),
-    );
+              .map((doc) => MessageModel.fromMap(doc.data()))
+              .toList(),
+        );
   }
 
   /// Mark Message as Seen
@@ -84,14 +73,9 @@ class ChatService {
     required String receiverId,
     required String messageId,
   }) async {
-    final conversationId =
-    getConversationId(senderId, receiverId);
+    final conversationId = getConversationId(senderId, receiverId);
 
-    await _messagesRef(conversationId)
-        .doc(messageId)
-        .update({
-      "seen": true,
-    });
+    await _messagesRef(conversationId).doc(messageId).update({"seen": true});
   }
 
   /// Delete Message
@@ -100,14 +84,10 @@ class ChatService {
     required String receiverId,
     required String messageId,
   }) async {
-    final conversationId =
-    getConversationId(senderId, receiverId);
+    final conversationId = getConversationId(senderId, receiverId);
 
-    await _messagesRef(conversationId)
-        .doc(messageId)
-        .update({
-      "deleted": true,
-      "message": "",
-    });
+    await _messagesRef(
+      conversationId,
+    ).doc(messageId).update({"deleted": true, "message": ""});
   }
 }

@@ -1,6 +1,4 @@
 class RoomModel {
-
-
   final String image;
   final String avatar;
   final String flag;
@@ -11,10 +9,7 @@ class RoomModel {
   final String role;
   final int likes;
 
-
-
   RoomModel({
-
     required this.image,
     required this.avatar,
     required this.flag,
@@ -24,8 +19,5 @@ class RoomModel {
     required this.level,
     required this.role,
     required this.likes,
-
   });
-
-
 }

@@ -5,11 +5,7 @@ class CategoryChip extends StatelessWidget {
   final String text;
   final bool active;
 
-  const CategoryChip({
-    super.key,
-    required this.text,
-    this.active = false,
-  });
+  const CategoryChip({super.key, required this.text, this.active = false});
 
   @override
   Widget build(BuildContext context) {
@@ -20,13 +16,13 @@ class CategoryChip extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: active
-            ? const Color(0xFFFFC857).withOpacity(.14)
-            : Colors.black.withOpacity(.12),
+            ? const Color(0xFFFFC857).withValues(alpha: .14)
+            : Colors.black.withValues(alpha: .12),
         borderRadius: BorderRadius.circular(11),
         border: Border.all(
           color: active
-              ? const Color(0xFFFFC857).withOpacity(.72)
-              : Colors.white.withOpacity(.09),
+              ? const Color(0xFFFFC857).withValues(alpha: .72)
+              : Colors.white.withValues(alpha: .09),
         ),
       ),
       child: Text(

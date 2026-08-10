@@ -64,67 +64,73 @@ class _LanguageScreenState extends State<LanguageScreen> {
       child: _loading
           ? const Center(child: CircularProgressIndicator(color: Colors.amber))
           : ListView(
-        padding: const EdgeInsets.fromLTRB(16, 18, 16, 32),
-        children: [
-          const ProfileSectionCard(
-            child: ProfileSectionHeader(
-              title: 'Choose your language',
-              subtitle: 'This saves the user preference now. App-wide translations can be connected when localization files are added.',
-              icon: Icons.language_rounded,
-            ),
-          ),
-          const SizedBox(height: 14),
-          ..._languages.map((language) {
-            final code = language['code']!;
-            final selected = code == _selectedCode;
+              padding: const EdgeInsets.fromLTRB(16, 18, 16, 32),
+              children: [
+                const ProfileSectionCard(
+                  child: ProfileSectionHeader(
+                    title: 'Choose your language',
+                    subtitle:
+                        'This saves the user preference now. App-wide translations can be connected when localization files are added.',
+                    icon: Icons.language_rounded,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                ..._languages.map((language) {
+                  final code = language['code']!;
+                  final selected = code == _selectedCode;
 
-            return ProfileSectionCard(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: EdgeInsets.zero,
-              child: RadioListTile<String>(
-                value: code,
-                groupValue: _selectedCode,
-                activeColor: Colors.amber,
-                onChanged: (value) {
-                  if (value != null) {
-                    _selectLanguage(value, language['name']!);
-                  }
-                },
-                title: Text(
-                  language['name']!,
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  ),
-                ),
-                subtitle: Text(
-                  language['native']!,
-                  style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
-                ),
-                secondary: Container(
-                  width: 42,
-                  height: 42,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: selected
-                        ? Colors.amber.withOpacity(.14)
-                        : Colors.white.withOpacity(.05),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    code.toUpperCase(),
-                    style: GoogleFonts.poppins(
-                      color: selected ? Colors.amber : Colors.white54,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
+                  return ProfileSectionCard(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: EdgeInsets.zero,
+                    child: RadioListTile<String>(
+                      value: code,
+                      groupValue: _selectedCode,
+                      activeColor: Colors.amber,
+                      onChanged: (value) {
+                        if (value != null) {
+                          _selectLanguage(value, language['name']!);
+                        }
+                      },
+                      title: Text(
+                        language['name']!,
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: selected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                        ),
+                      ),
+                      subtitle: Text(
+                        language['native']!,
+                        style: GoogleFonts.poppins(
+                          color: Colors.white54,
+                          fontSize: 12,
+                        ),
+                      ),
+                      secondary: Container(
+                        width: 42,
+                        height: 42,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: selected
+                              ? Colors.amber.withValues(alpha: .14)
+                              : Colors.white.withValues(alpha: .05),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          code.toUpperCase(),
+                          style: GoogleFonts.poppins(
+                            color: selected ? Colors.amber : Colors.white54,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ),
-            );
-          }),
-        ],
-      ),
+                  );
+                }),
+              ],
+            ),
     );
   }
 }

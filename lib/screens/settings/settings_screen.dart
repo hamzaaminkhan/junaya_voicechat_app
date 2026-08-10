@@ -1,7 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'package:junaya_voicechat_app/routes/app_routes.dart';
+import 'package:junaya_voicechat_app/services/auth_service.dart';
+import '../auth/forgot_password_screen.dart' as auth;
 
 import 'account_screen.dart';
 
@@ -23,7 +24,7 @@ class SettingsScreen extends StatelessWidget {
         children: [
           _item(context, 'Account', const AccountScreen()),
           _item(context, 'Change Gmail', null),
-          _item(context, 'Forgot Password', null),
+          _item(context, 'Forgot Password', const auth.ForgotPasswordScreen()),
           _item(context, 'Face Verification', null),
           _item(context, 'Location', null),
           _item(context, 'Blocked List', null),
@@ -39,20 +40,11 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _item(
-      BuildContext context,
-      String text,
-      Widget? page,
-      ) {
+  Widget _item(BuildContext context, String text, Widget? page) {
     return Card(
-      color: Colors.black.withOpacity(.25),
+      color: Colors.black.withValues(alpha: .25),
       child: ListTile(
-        title: Text(
-          text,
-          style: const TextStyle(
-            color: Colors.white,
-          ),
-        ),
+        title: Text(text, style: const TextStyle(color: Colors.white)),
         trailing: const Icon(
           Icons.arrow_forward_ios,
           color: Colors.white,
@@ -61,13 +53,11 @@ class SettingsScreen extends StatelessWidget {
         onTap: page == null
             ? null
             : () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => page,
-            ),
-          );
-        },
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => page),
+                );
+              },
       ),
     );
   }
@@ -86,26 +76,31 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
         onPressed: () async {
-          await FirebaseAuth.instance.signOut();
+          try {
+            await AuthService.instance.signOut();
+          } catch (e) {
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(e.toString().replaceFirst('Exception: ', '')),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            return;
+          }
 
           if (!context.mounted) return;
 
           Navigator.pushNamedAndRemoveUntil(
             context,
             AppRoutes.login,
-                (route) => false,
+            (route) => false,
           );
         },
-        icon: const Icon(
-          Icons.logout_rounded,
-          size: 20,
-        ),
+        icon: const Icon(Icons.logout_rounded, size: 20),
         label: const Text(
           'Log Out',
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
     );

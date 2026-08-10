@@ -29,11 +29,9 @@ class JunaidRoomCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 14),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(.16),
+        color: Colors.black.withValues(alpha: .16),
         borderRadius: BorderRadius.circular(17),
-        border: Border.all(
-          color: Colors.white.withOpacity(.09),
-        ),
+        border: Border.all(color: Colors.white.withValues(alpha: .09)),
       ),
       child: Column(
         children: [
@@ -45,9 +43,9 @@ class JunaidRoomCard extends StatelessWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
-                  color: const Color(0xFF6D2BC8).withOpacity(.24),
+                  color: const Color(0xFF6D2BC8).withValues(alpha: .24),
                   border: Border.all(
-                    color: const Color(0xFF9F6CFF).withOpacity(.35),
+                    color: const Color(0xFF9F6CFF).withValues(alpha: .35),
                   ),
                 ),
                 child: const Icon(
@@ -63,10 +61,7 @@ class JunaidRoomCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          flag,
-                          style: const TextStyle(fontSize: 13),
-                        ),
+                        Text(flag, style: const TextStyle(fontSize: 13)),
                         const SizedBox(width: 5),
                         Expanded(
                           child: Text(
@@ -103,15 +98,9 @@ class JunaidRoomCard extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              _metaChip(
-                level,
-                const Color(0xFF68E9BF),
-              ),
+              _metaChip(level, const Color(0xFF68E9BF)),
               const SizedBox(width: 6),
-              _metaChip(
-                role,
-                const Color(0xFFFFC46B),
-              ),
+              _metaChip(role, const Color(0xFFFFC46B)),
               const Spacer(),
               const Icon(
                 Icons.favorite_rounded,
@@ -138,15 +127,12 @@ class JunaidRoomCard extends StatelessWidget {
 
   Widget _vipBadge() {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 9,
-        vertical: 4,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFFF4D98).withOpacity(.08),
+        color: const Color(0xFFFF4D98).withValues(alpha: .08),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: const Color(0xFFFF6AA9).withOpacity(.50),
+          color: const Color(0xFFFF6AA9).withValues(alpha: .50),
         ),
       ),
       child: Text(
@@ -162,21 +148,16 @@ class JunaidRoomCard extends StatelessWidget {
 
   Widget _metaChip(String text, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 3,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(.07),
+        color: color.withValues(alpha: .07),
         borderRadius: BorderRadius.circular(9),
-        border: Border.all(
-          color: color.withOpacity(.32),
-        ),
+        border: Border.all(color: color.withValues(alpha: .32)),
       ),
       child: Text(
         text,
         style: GoogleFonts.poppins(
-          color: color.withOpacity(.92),
+          color: color.withValues(alpha: .92),
           fontSize: 9.5,
           fontWeight: FontWeight.w600,
         ),

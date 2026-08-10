@@ -41,11 +41,7 @@ class ProfileSectionScaffold extends StatelessWidget {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color(0xD4080313),
-              Color(0xC817052A),
-              Color(0xDC080313),
-            ],
+            colors: [Color(0xD4080313), Color(0xC817052A), Color(0xDC080313)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -83,12 +79,10 @@ class ProfileSectionCard extends StatelessWidget {
         color: gradient == null ? (color ?? const Color(0xE612071F)) : null,
         gradient: gradient,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: Colors.purpleAccent.withOpacity(.42),
-        ),
+        border: Border.all(color: Colors.purpleAccent.withValues(alpha: .42)),
         boxShadow: [
           BoxShadow(
-            color: Colors.purpleAccent.withOpacity(.08),
+            color: Colors.purpleAccent.withValues(alpha: .08),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -132,7 +126,7 @@ class ProfileSectionHeader extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: Colors.amber.withOpacity(.12),
+              color: Colors.amber.withValues(alpha: .12),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: Colors.amber),
@@ -190,26 +184,18 @@ class ProfilePrimaryButton extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.amber,
         foregroundColor: Colors.black,
-        disabledBackgroundColor: Colors.amber.withOpacity(.35),
+        disabledBackgroundColor: Colors.amber.withValues(alpha: .35),
         disabledForegroundColor: Colors.black54,
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
       onPressed: onPressed,
       child: Row(
         mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (icon != null) ...[
-            Icon(icon, size: 19),
-            const SizedBox(width: 8),
-          ],
-          Text(
-            label,
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
-          ),
+          if (icon != null) ...[Icon(icon, size: 19), const SizedBox(width: 8)],
+          Text(label, style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -236,9 +222,9 @@ class ProfileTag extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(.12),
+        color: color.withValues(alpha: .12),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(.35)),
+        border: Border.all(color: color.withValues(alpha: .35)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

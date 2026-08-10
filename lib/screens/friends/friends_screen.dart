@@ -23,24 +23,14 @@ class FriendsScreen extends StatelessWidget {
       "online": true,
       "followers": "8.4K",
     },
-    {
-      "name": "John",
-      "country": "USA",
-      "online": true,
-      "followers": "5.9K",
-    },
+    {"name": "John", "country": "USA", "online": true, "followers": "5.9K"},
     {
       "name": "Fatima",
       "country": "Saudi Arabia",
       "online": false,
       "followers": "3.8K",
     },
-    {
-      "name": "Ahmed",
-      "country": "Egypt",
-      "online": true,
-      "followers": "7.3K",
-    },
+    {"name": "Ahmed", "country": "Egypt", "online": true, "followers": "7.3K"},
   ];
 
   @override
@@ -67,13 +57,12 @@ class FriendsScreen extends StatelessWidget {
           Padding(
             padding: EdgeInsets.only(right: 15),
             child: Icon(Icons.person_add),
-          )
+          ),
         ],
       ),
 
       body: Column(
         children: [
-
           const SizedBox(height: 15),
 
           Padding(
@@ -99,7 +88,6 @@ class FriendsScreen extends StatelessWidget {
               itemCount: friends.length,
               padding: const EdgeInsets.all(16),
               itemBuilder: (context, index) {
-
                 final friend = friends[index];
 
                 return Card(
@@ -110,17 +98,12 @@ class FriendsScreen extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 15),
 
                   child: ListTile(
-
                     leading: Stack(
                       children: [
-
                         const CircleAvatar(
                           radius: 28,
                           backgroundColor: Colors.amber,
-                          child: Icon(
-                            Icons.person,
-                            color: Colors.black,
-                          ),
+                          child: Icon(Icons.person, color: Colors.black),
                         ),
 
                         Positioned(
@@ -134,10 +117,7 @@ class FriendsScreen extends StatelessWidget {
                                   ? Colors.green
                                   : Colors.grey,
                               shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white,
-                                width: 2,
-                              ),
+                              border: Border.all(color: Colors.white, width: 2),
                             ),
                           ),
                         ),
@@ -155,21 +135,16 @@ class FriendsScreen extends StatelessWidget {
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-
                         Text(
                           friend["country"],
-                          style: const TextStyle(
-                            color: Colors.white70,
-                          ),
+                          style: const TextStyle(color: Colors.white70),
                         ),
 
                         const SizedBox(height: 4),
 
                         Text(
                           "${friend["followers"]} Followers",
-                          style: const TextStyle(
-                            color: Colors.amber,
-                          ),
+                          style: const TextStyle(color: Colors.amber),
                         ),
                       ],
                     ),

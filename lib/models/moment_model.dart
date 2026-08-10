@@ -1,5 +1,4 @@
 class MomentModel {
-
   final String username;
   final String avatar;
   final String time;
@@ -10,9 +9,7 @@ class MomentModel {
   final int likes;
   final int comments;
 
-
   MomentModel({
-
     required this.username,
 
     required this.avatar,
@@ -26,7 +23,5 @@ class MomentModel {
     this.likes = 0,
 
     this.comments = 0,
-
   });
-
 }

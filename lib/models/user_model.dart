@@ -5,6 +5,7 @@ class UserModel {
   final String fullName;
   final String username;
   final String email;
+  final String phoneNumber;
   final String profileImage;
 
   final int coins;
@@ -22,6 +23,7 @@ class UserModel {
     required this.fullName,
     required this.username,
     required this.email,
+    this.phoneNumber = '',
     this.profileImage = '',
     this.coins = 0,
     this.diamonds = 0,
@@ -39,6 +41,7 @@ class UserModel {
       'fullName': fullName.trim(),
       'username': username.trim().toLowerCase(),
       'email': email.trim().toLowerCase(),
+      'phoneNumber': phoneNumber.trim(),
       'profileImage': profileImage,
       'coins': coins,
       'diamonds': diamonds,
@@ -57,6 +60,7 @@ class UserModel {
       fullName: map['fullName'] ?? '',
       username: map['username'] ?? '',
       email: map['email'] ?? '',
+      phoneNumber: map['phoneNumber'] ?? '',
       profileImage: map['profileImage'] ?? '',
       coins: (map['coins'] ?? 0) as int,
       diamonds: (map['diamonds'] ?? 0) as int,
@@ -74,6 +78,7 @@ class UserModel {
     String? fullName,
     String? username,
     String? email,
+    String? phoneNumber,
     String? profileImage,
     int? coins,
     int? diamonds,
@@ -88,13 +93,13 @@ class UserModel {
       fullName: fullName ?? this.fullName,
       username: username ?? this.username,
       email: email ?? this.email,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
       profileImage: profileImage ?? this.profileImage,
       coins: coins ?? this.coins,
       diamonds: diamonds ?? this.diamonds,
       isVip: isVip ?? this.isVip,
       isOnline: isOnline ?? this.isOnline,
-      isEmailVerified:
-      isEmailVerified ?? this.isEmailVerified,
+      isEmailVerified: isEmailVerified ?? this.isEmailVerified,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

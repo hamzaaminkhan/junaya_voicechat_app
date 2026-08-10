@@ -47,8 +47,9 @@ class MedalScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final unlockedCount =
-        medals.where((medal) => medal['unlocked'] == true).length;
+    final unlockedCount = medals
+        .where((medal) => medal['unlocked'] == true)
+        .length;
 
     final progress = unlockedCount / medals.length;
 
@@ -56,17 +57,9 @@ class MedalScreen extends StatelessWidget {
       title: 'Medal',
       child: ListView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(
-          14,
-          14,
-          14,
-          28,
-        ),
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 28),
         children: [
-          _buildProgressCard(
-            unlockedCount: unlockedCount,
-            progress: progress,
-          ),
+          _buildProgressCard(unlockedCount: unlockedCount, progress: progress),
 
           const SizedBox(height: 16),
 
@@ -76,15 +69,13 @@ class MedalScreen extends StatelessWidget {
 
           LayoutBuilder(
             builder: (context, constraints) {
-              final int columns =
-              constraints.maxWidth < 300 ? 1 : 2;
+              final int columns = constraints.maxWidth < 300 ? 1 : 2;
 
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: medals.length,
-                gridDelegate:
-                SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: columns,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
@@ -94,13 +85,11 @@ class MedalScreen extends StatelessWidget {
                 ),
                 itemBuilder: (context, index) {
                   final medal = medals[index];
-                  final unlocked =
-                  medal['unlocked'] as bool;
+                  final unlocked = medal['unlocked'] as bool;
 
                   return _MedalCard(
                     title: medal['title'] as String,
-                    description:
-                    medal['description'] as String,
+                    description: medal['description'] as String,
                     icon: medal['icon'] as IconData,
                     unlocked: unlocked,
                   );
@@ -125,11 +114,9 @@ class MedalScreen extends StatelessWidget {
             width: 54,
             height: 54,
             decoration: BoxDecoration(
-              color: Colors.amber.withOpacity(.10),
+              color: Colors.amber.withValues(alpha: .10),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.amber.withOpacity(.35),
-              ),
+              border: Border.all(color: Colors.amber.withValues(alpha: .35)),
             ),
             child: const Icon(
               Icons.emoji_events_rounded,
@@ -142,8 +129,7 @@ class MedalScreen extends StatelessWidget {
 
           Expanded(
             child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   '$unlockedCount of ${medals.length} unlocked',
@@ -172,10 +158,8 @@ class MedalScreen extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: progress,
                     minHeight: 5,
-                    backgroundColor:
-                    Colors.white.withOpacity(.07),
-                    valueColor:
-                    const AlwaysStoppedAnimation<Color>(
+                    backgroundColor: Colors.white.withValues(alpha: .07),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
                       Colors.amber,
                     ),
                   ),
@@ -195,7 +179,7 @@ class MedalScreen extends StatelessWidget {
           width: 31,
           height: 31,
           decoration: BoxDecoration(
-            color: Colors.amber.withOpacity(.08),
+            color: Colors.amber.withValues(alpha: .08),
             borderRadius: BorderRadius.circular(9),
           ),
           child: const Icon(
@@ -209,8 +193,7 @@ class MedalScreen extends StatelessWidget {
 
         Expanded(
           child: Column(
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Your medals',
@@ -251,16 +234,10 @@ class _MedalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color accent =
-    unlocked ? Colors.amber : Colors.white24;
+    final Color accent = unlocked ? Colors.amber : Colors.white24;
 
     return ProfileSectionCard(
-      padding: const EdgeInsets.fromLTRB(
-        11,
-        11,
-        11,
-        10,
-      ),
+      padding: const EdgeInsets.fromLTRB(11, 11, 11, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -271,28 +248,21 @@ class _MedalCard extends StatelessWidget {
                 height: 42,
                 decoration: BoxDecoration(
                   color: unlocked
-                      ? Colors.amber.withOpacity(.10)
-                      : Colors.white.withOpacity(.035),
-                  borderRadius:
-                  BorderRadius.circular(13),
+                      ? Colors.amber.withValues(alpha: .10)
+                      : Colors.white.withValues(alpha: .035),
+                  borderRadius: BorderRadius.circular(13),
                   border: Border.all(
                     color: unlocked
-                        ? Colors.amber.withOpacity(.28)
-                        : Colors.white.withOpacity(.08),
+                        ? Colors.amber.withValues(alpha: .28)
+                        : Colors.white.withValues(alpha: .08),
                   ),
                 ),
-                child: Icon(
-                  icon,
-                  color: accent,
-                  size: 23,
-                ),
+                child: Icon(icon, color: accent, size: 23),
               ),
 
               const Spacer(),
 
-              _StatusPill(
-                unlocked: unlocked,
-              ),
+              _StatusPill(unlocked: unlocked),
             ],
           ),
 
@@ -303,9 +273,7 @@ class _MedalCard extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.poppins(
-              color: unlocked
-                  ? Colors.white
-                  : Colors.white54,
+              color: unlocked ? Colors.white : Colors.white54,
               fontSize: 12.8,
               fontWeight: FontWeight.w600,
             ),
@@ -318,9 +286,7 @@ class _MedalCard extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.poppins(
-              color: unlocked
-                  ? Colors.white54
-                  : Colors.white30,
+              color: unlocked ? Colors.white54 : Colors.white30,
               fontSize: 9.6,
               height: 1.32,
             ),
@@ -333,8 +299,8 @@ class _MedalCard extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
               color: unlocked
-                  ? Colors.amber.withOpacity(.65)
-                  : Colors.white.withOpacity(.06),
+                  ? Colors.amber.withValues(alpha: .65)
+                  : Colors.white.withValues(alpha: .06),
             ),
           ),
         ],
@@ -346,34 +312,24 @@ class _MedalCard extends StatelessWidget {
 class _StatusPill extends StatelessWidget {
   final bool unlocked;
 
-  const _StatusPill({
-    required this.unlocked,
-  });
+  const _StatusPill({required this.unlocked});
 
   @override
   Widget build(BuildContext context) {
-    final Color color =
-    unlocked ? const Color(0xFF62E7A5) : Colors.white38;
+    final Color color = unlocked ? const Color(0xFF62E7A5) : Colors.white38;
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 7,
-        vertical: 4,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(.08),
+        color: color.withValues(alpha: .08),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: color.withOpacity(.20),
-        ),
+        border: Border.all(color: color.withValues(alpha: .20)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            unlocked
-                ? Icons.check_circle_rounded
-                : Icons.lock_outline_rounded,
+            unlocked ? Icons.check_circle_rounded : Icons.lock_outline_rounded,
             color: color,
             size: 11,
           ),

@@ -19,11 +19,9 @@ class RankingCard extends StatelessWidget {
       height: 46,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(.14),
+        color: Colors.black.withValues(alpha: .14),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: Colors.white.withOpacity(.08),
-        ),
+        border: Border.all(color: Colors.white.withValues(alpha: .08)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -33,11 +31,9 @@ class RankingCard extends StatelessWidget {
             height: 25,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: color.withOpacity(.10),
+              color: color.withValues(alpha: .10),
               shape: BoxShape.circle,
-              border: Border.all(
-                color: color.withOpacity(.28),
-              ),
+              border: Border.all(color: color.withValues(alpha: .28)),
             ),
             child: Text(
               icon,
@@ -55,7 +51,7 @@ class RankingCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
-                color: Colors.white.withOpacity(.88),
+                color: Colors.white.withValues(alpha: .88),
                 fontSize: 10.5,
                 fontWeight: FontWeight.w600,
               ),

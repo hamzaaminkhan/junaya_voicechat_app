@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 class GiftAnimation {
-  static final ValueNotifier<String?> currentGift =
-  ValueNotifier<String?>(null);
+  static final ValueNotifier<String?> currentGift = ValueNotifier<String?>(
+    null,
+  );
 
   static void show(BuildContext context, String gift) {
     currentGift.value = gift;
@@ -32,13 +33,10 @@ class GiftAnimationLayer extends StatelessWidget {
             builder: (context, value, child) {
               return Stack(
                 children: [
-
                   /// Dark Overlay
                   Opacity(
                     opacity: 0.3 * value,
-                    child: Container(
-                      color: Colors.black,
-                    ),
+                    child: Container(color: Colors.black),
                   ),
 
                   /// Gift
@@ -49,9 +47,7 @@ class GiftAnimationLayer extends StatelessWidget {
                         opacity: value,
                         child: Text(
                           gift,
-                          style: const TextStyle(
-                            fontSize: 150,
-                          ),
+                          style: const TextStyle(fontSize: 150),
                         ),
                       ),
                     ),

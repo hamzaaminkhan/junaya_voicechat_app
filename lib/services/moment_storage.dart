@@ -27,63 +27,50 @@ class LocalMomentData {
     };
   }
 
-  factory LocalMomentData.fromJson(
-      Map<String, dynamic> json,
-      ) {
+  factory LocalMomentData.fromJson(Map<String, dynamic> json) {
     final dynamic rawImages = json['imagePaths'];
 
     return LocalMomentData(
       id: json['id']?.toString() ?? '',
       text: json['text']?.toString() ?? '',
       imagePaths: rawImages is List
-          ? rawImages
-          .whereType<String>()
-          .toList()
+          ? rawImages.whereType<String>().toList()
           : <String>[],
-      createdAt: DateTime.tryParse(
-        json['createdAt']?.toString() ?? '',
-      ) ??
+      createdAt:
+          DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
           DateTime.now(),
     );
   }
 }
 
 class MomentStorage {
-  static const String _storageKey =
-      'junaya_saved_moments_v1';
+  static const String _storageKey = 'junaya_saved_moments_v1';
 
-  final SharedPreferencesAsync _preferences =
-  SharedPreferencesAsync();
+  final SharedPreferencesAsync _preferences = SharedPreferencesAsync();
 
   Future<LocalMomentData> createMoment({
     required String text,
     required List<String> sourceImagePaths,
   }) async {
-    final String id =
-    DateTime.now().microsecondsSinceEpoch.toString();
+    final String id = DateTime.now().microsecondsSinceEpoch.toString();
 
-    final List<String> permanentImagePaths =
-    await _copyImagesToAppFolder(
+    final List<String> permanentImagePaths = await _copyImagesToAppFolder(
       momentId: id,
       sourcePaths: sourceImagePaths,
     );
 
-    final LocalMomentData newMoment =
-    LocalMomentData(
+    final LocalMomentData newMoment = LocalMomentData(
       id: id,
       text: text,
       imagePaths: permanentImagePaths,
       createdAt: DateTime.now(),
     );
 
-    final List<LocalMomentData> existingMoments =
-    await loadMoments();
+    final List<LocalMomentData> existingMoments = await loadMoments();
 
     final List<LocalMomentData> updatedMoments = [
       newMoment,
-      ...existingMoments.where(
-            (moment) => moment.id != id,
-      ),
+      ...existingMoments.where((moment) => moment.id != id),
     ];
 
     await _writeMoments(updatedMoments);
@@ -92,11 +79,9 @@ class MomentStorage {
   }
 
   Future<List<LocalMomentData>> loadMoments() async {
-    final String? savedJson =
-    await _preferences.getString(_storageKey);
+    final String? savedJson = await _preferences.getString(_storageKey);
 
-    if (savedJson == null ||
-        savedJson.trim().isEmpty) {
+    if (savedJson == null || savedJson.trim().isEmpty) {
       return [];
     }
 
@@ -111,8 +96,7 @@ class MomentStorage {
 
       for (final dynamic item in decoded) {
         if (item is Map) {
-          final LocalMomentData moment =
-          LocalMomentData.fromJson(
+          final LocalMomentData moment = LocalMomentData.fromJson(
             Map<String, dynamic>.from(item),
           );
 
@@ -121,8 +105,7 @@ class MomentStorage {
       }
 
       moments.sort(
-            (first, second) => second.createdAt
-            .compareTo(first.createdAt),
+        (first, second) => second.createdAt.compareTo(first.createdAt),
       );
 
       return moments;
@@ -131,21 +114,14 @@ class MomentStorage {
     }
   }
 
-  Future<void> deleteMoment(
-      LocalMomentData moment,
-      ) async {
-    final List<LocalMomentData> existing =
-    await loadMoments();
+  Future<void> deleteMoment(LocalMomentData moment) async {
+    final List<LocalMomentData> existing = await loadMoments();
 
-    final List<LocalMomentData> updated =
-    existing
-        .where(
-          (item) => item.id != moment.id,
-    )
+    final List<LocalMomentData> updated = existing
+        .where((item) => item.id != moment.id)
         .toList();
 
-    for (final String imagePath
-    in moment.imagePaths) {
+    for (final String imagePath in moment.imagePaths) {
       try {
         final File imageFile = File(imagePath);
 
@@ -171,13 +147,11 @@ class MomentStorage {
       createdAt: moment.createdAt,
     );
 
-    final List<LocalMomentData> existingMoments =
-    await loadMoments();
+    final List<LocalMomentData> existingMoments = await loadMoments();
 
     bool momentFound = false;
 
-    final List<LocalMomentData> updatedMoments =
-    existingMoments.map((item) {
+    final List<LocalMomentData> updatedMoments = existingMoments.map((item) {
       if (item.id == moment.id) {
         momentFound = true;
         return updatedMoment;
@@ -204,36 +178,27 @@ class MomentStorage {
     }
 
     final Directory documentsDirectory =
-    await getApplicationDocumentsDirectory();
+        await getApplicationDocumentsDirectory();
 
     final Directory momentsDirectory = Directory(
-      p.join(
-        documentsDirectory.path,
-        'junaya_moments',
-      ),
+      p.join(documentsDirectory.path, 'junaya_moments'),
     );
 
     if (!await momentsDirectory.exists()) {
-      await momentsDirectory.create(
-        recursive: true,
-      );
+      await momentsDirectory.create(recursive: true);
     }
 
     final List<String> savedPaths = [];
 
-    for (int index = 0;
-    index < sourcePaths.length;
-    index++) {
+    for (int index = 0; index < sourcePaths.length; index++) {
       try {
-        final File sourceFile =
-        File(sourcePaths[index]);
+        final File sourceFile = File(sourcePaths[index]);
 
         if (!await sourceFile.exists()) {
           continue;
         }
 
-        String extension =
-        p.extension(sourceFile.path);
+        String extension = p.extension(sourceFile.path);
 
         if (extension.isEmpty) {
           extension = '.jpg';
@@ -244,9 +209,7 @@ class MomentStorage {
           '${momentId}_$index$extension',
         );
 
-        final File copiedFile = await sourceFile.copy(
-          destinationPath,
-        );
+        final File copiedFile = await sourceFile.copy(destinationPath);
 
         savedPaths.add(copiedFile.path);
       } catch (_) {
@@ -257,18 +220,11 @@ class MomentStorage {
     return savedPaths;
   }
 
-  Future<void> _writeMoments(
-      List<LocalMomentData> moments,
-      ) async {
+  Future<void> _writeMoments(List<LocalMomentData> moments) async {
     final String encoded = jsonEncode(
-      moments
-          .map((moment) => moment.toJson())
-          .toList(),
+      moments.map((moment) => moment.toJson()).toList(),
     );
 
-    await _preferences.setString(
-      _storageKey,
-      encoded,
-    );
+    await _preferences.setString(_storageKey, encoded);
   }
 }

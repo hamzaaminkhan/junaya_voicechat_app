@@ -5,11 +5,7 @@ class VipBalance extends StatelessWidget {
   final int coins;
   final int diamonds;
 
-  const VipBalance({
-    super.key,
-    this.coins = 25000,
-    this.diamonds = 850,
-  });
+  const VipBalance({super.key, this.coins = 25000, this.diamonds = 850});
 
   @override
   Widget build(BuildContext context) {
@@ -22,15 +18,12 @@ class VipBalance extends StatelessWidget {
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xff6C3BFF),
-              Color(0xffB43EFF),
-            ],
+            colors: [Color(0xff6C3BFF), Color(0xffB43EFF)],
           ),
           borderRadius: BorderRadius.circular(22),
           boxShadow: [
             BoxShadow(
-              color: Colors.purple.withOpacity(.30),
+              color: Colors.purple.withValues(alpha: .30),
               blurRadius: 15,
               offset: const Offset(0, 8),
             ),
@@ -38,13 +31,9 @@ class VipBalance extends StatelessWidget {
         ),
         child: Column(
           children: [
-
             Text(
               "Your Balance",
-              style: GoogleFonts.poppins(
-                color: Colors.white70,
-                fontSize: 18,
-              ),
+              style: GoogleFonts.poppins(color: Colors.white70, fontSize: 18),
             ),
 
             const SizedBox(height: 22),
@@ -52,7 +41,6 @@ class VipBalance extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-
                 Expanded(
                   child: _balanceCard(
                     icon: Icons.monetization_on,
@@ -77,20 +65,14 @@ class VipBalance extends StatelessWidget {
 
             const SizedBox(height: 25),
 
-            Divider(
-              color: Colors.white.withOpacity(.20),
-            ),
+            Divider(color: Colors.white.withValues(alpha: .20)),
 
             const SizedBox(height: 15),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-
-                const Icon(
-                  Icons.workspace_premium,
-                  color: Colors.amber,
-                ),
+                const Icon(Icons.workspace_premium, color: Colors.amber),
 
                 const SizedBox(width: 8),
 
@@ -117,21 +99,14 @@ class VipBalance extends StatelessWidget {
     required String value,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        vertical: 18,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 18),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(.12),
+        color: Colors.white.withValues(alpha: .12),
         borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
         children: [
-
-          Icon(
-            icon,
-            color: iconColor,
-            size: 34,
-          ),
+          Icon(icon, color: iconColor, size: 34),
 
           const SizedBox(height: 12),
 
@@ -148,10 +123,7 @@ class VipBalance extends StatelessWidget {
 
           Text(
             title,
-            style: GoogleFonts.poppins(
-              color: Colors.white70,
-              fontSize: 14,
-            ),
+            style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14),
           ),
         ],
       ),

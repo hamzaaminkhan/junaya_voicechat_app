@@ -22,7 +22,7 @@ class LiveChat extends StatelessWidget {
         child: Container(
           height: 170,
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(.25),
+            color: Colors.black.withValues(alpha: .25),
             borderRadius: BorderRadius.circular(20),
           ),
           child: ListView.builder(
@@ -36,7 +36,6 @@ class LiveChat extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     CircleAvatar(
                       radius: 16,
                       backgroundColor: AppColors.primary,
@@ -58,13 +57,12 @@ class LiveChat extends StatelessWidget {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(.12),
+                          color: Colors.white.withValues(alpha: .12),
                           borderRadius: BorderRadius.circular(15),
                         ),
                         child: RichText(
                           text: TextSpan(
                             children: [
-
                               TextSpan(
                                 text: "${chat.name}: ",
                                 style: const TextStyle(
@@ -75,9 +73,7 @@ class LiveChat extends StatelessWidget {
 
                               TextSpan(
                                 text: chat.message,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                ),
+                                style: const TextStyle(color: Colors.white),
                               ),
                             ],
                           ),

@@ -40,10 +40,7 @@ class RoomSocketService {
       builder.setExtraHeaders(headers);
     }
 
-    _socket = IO.io(
-      serverUrl,
-      builder.build(),
-    );
+    _socket = IO.io(serverUrl, builder.build());
 
     final socket = _socket!;
 
@@ -52,21 +49,15 @@ class RoomSocketService {
     });
 
     socket.onDisconnect((reason) {
-      onDisconnected?.call(
-        reason?.toString() ?? 'Disconnected',
-      );
+      onDisconnected?.call(reason?.toString() ?? 'Disconnected');
     });
 
     socket.onConnectError((error) {
-      onError?.call(
-        error?.toString() ?? 'Connection error',
-      );
+      onError?.call(error?.toString() ?? 'Connection error');
     });
 
     socket.onError((error) {
-      onError?.call(
-        error?.toString() ?? 'Socket error',
-      );
+      onError?.call(error?.toString() ?? 'Socket error');
     });
 
     socket.on('room:update', (data) {
@@ -118,29 +109,19 @@ class RoomSocketService {
       'room:join',
       {
         'roomId': roomId,
-        'user': {
-          'id': userId,
-          'name': name,
-          'avatar': avatar,
-        },
+        'user': {'id': userId, 'name': name, 'avatar': avatar},
       },
       ack: (data) {
         final result = _toMap(data);
 
         if (result == null) {
-          onResult?.call(
-            false,
-            'Invalid room join response.',
-          );
+          onResult?.call(false, 'Invalid room join response.');
           return;
         }
 
         final ok = result['ok'] == true;
 
-        onResult?.call(
-          ok,
-          ok ? null : result['error']?.toString(),
-        );
+        onResult?.call(ok, ok ? null : result['error']?.toString());
       },
     );
   }
@@ -150,14 +131,10 @@ class RoomSocketService {
     required String userId,
     void Function(bool ok, String? error)? onResult,
   }) {
-    _emitWithResult(
-      'room:leave',
-      {
-        'roomId': roomId,
-        'userId': userId,
-      },
-      onResult,
-    );
+    _emitWithResult('room:leave', {
+      'roomId': roomId,
+      'userId': userId,
+    }, onResult);
   }
 
   void joinSeat({
@@ -168,19 +145,11 @@ class RoomSocketService {
     String? avatar,
     void Function(bool ok, String? error)? onResult,
   }) {
-    _emitWithResult(
-      'seat:join',
-      {
-        'roomId': roomId,
-        'seatNumber': seatNumber,
-        'user': {
-          'id': userId,
-          'name': name,
-          'avatar': avatar,
-        },
-      },
-      onResult,
-    );
+    _emitWithResult('seat:join', {
+      'roomId': roomId,
+      'seatNumber': seatNumber,
+      'user': {'id': userId, 'name': name, 'avatar': avatar},
+    }, onResult);
   }
 
   void leaveSeat({
@@ -188,14 +157,10 @@ class RoomSocketService {
     required String userId,
     void Function(bool ok, String? error)? onResult,
   }) {
-    _emitWithResult(
-      'seat:leave',
-      {
-        'roomId': roomId,
-        'userId': userId,
-      },
-      onResult,
-    );
+    _emitWithResult('seat:leave', {
+      'roomId': roomId,
+      'userId': userId,
+    }, onResult);
   }
 
   void setMicMuted({
@@ -204,15 +169,11 @@ class RoomSocketService {
     required bool muted,
     void Function(bool ok, String? error)? onResult,
   }) {
-    _emitWithResult(
-      'mic:set',
-      {
-        'roomId': roomId,
-        'userId': userId,
-        'muted': muted,
-      },
-      onResult,
-    );
+    _emitWithResult('mic:set', {
+      'roomId': roomId,
+      'userId': userId,
+      'muted': muted,
+    }, onResult);
   }
 
   void lockSeat({
@@ -221,15 +182,11 @@ class RoomSocketService {
     required String userId,
     void Function(bool ok, String? error)? onResult,
   }) {
-    _emitWithResult(
-      'seat:lock',
-      {
-        'roomId': roomId,
-        'seatNumber': seatNumber,
-        'userId': userId,
-      },
-      onResult,
-    );
+    _emitWithResult('seat:lock', {
+      'roomId': roomId,
+      'seatNumber': seatNumber,
+      'userId': userId,
+    }, onResult);
   }
 
   void unlockSeat({
@@ -238,52 +195,34 @@ class RoomSocketService {
     required String userId,
     void Function(bool ok, String? error)? onResult,
   }) {
-    _emitWithResult(
-      'seat:unlock',
-      {
-        'roomId': roomId,
-        'seatNumber': seatNumber,
-        'userId': userId,
-      },
-      onResult,
-    );
+    _emitWithResult('seat:unlock', {
+      'roomId': roomId,
+      'seatNumber': seatNumber,
+      'userId': userId,
+    }, onResult);
   }
 
   void requestAgoraToken({
     required String roomId,
     required String role,
-    required void Function(
-        bool ok,
-        Map<String, dynamic>? agora,
-        String? error,
-        ) onResult,
+    required void Function(bool ok, Map<String, dynamic>? agora, String? error)
+    onResult,
   }) {
     final socket = _socket;
 
     if (socket == null || !socket.connected) {
-      onResult(
-        false,
-        null,
-        'Socket is not connected.',
-      );
+      onResult(false, null, 'Socket is not connected.');
       return;
     }
 
     socket.emitWithAck(
       'agora:token',
-      {
-        'roomId': roomId,
-        'role': role,
-      },
+      {'roomId': roomId, 'role': role},
       ack: (data) {
         final result = _toMap(data);
 
         if (result == null) {
-          onResult(
-            false,
-            null,
-            'Invalid Agora token response.',
-          );
+          onResult(false, null, 'Invalid Agora token response.');
           return;
         }
 
@@ -293,8 +232,7 @@ class RoomSocketService {
           onResult(
             false,
             null,
-            result['error']?.toString() ??
-                'Unable to get Agora token.',
+            result['error']?.toString() ?? 'Unable to get Agora token.',
           );
           return;
         }
@@ -302,19 +240,11 @@ class RoomSocketService {
         final rawAgora = result['agora'];
 
         if (rawAgora is! Map) {
-          onResult(
-            false,
-            null,
-            'Agora token payload is missing.',
-          );
+          onResult(false, null, 'Agora token payload is missing.');
           return;
         }
 
-        onResult(
-          true,
-          Map<String, dynamic>.from(rawAgora),
-          null,
-        );
+        onResult(true, Map<String, dynamic>.from(rawAgora), null);
       },
     );
   }
@@ -326,25 +256,18 @@ class RoomSocketService {
     required String message,
     void Function(bool ok, String? error)? onResult,
   }) {
-    _emitWithResult(
-      'chat:send',
-      {
-        'roomId': roomId,
-        'user': {
-          'id': userId,
-          'name': name,
-        },
-        'message': message,
-      },
-      onResult,
-    );
+    _emitWithResult('chat:send', {
+      'roomId': roomId,
+      'user': {'id': userId, 'name': name},
+      'message': message,
+    }, onResult);
   }
 
   void _emitWithResult(
-      String event,
-      Map<String, dynamic> payload,
-      void Function(bool ok, String? error)? onResult,
-      ) {
+    String event,
+    Map<String, dynamic> payload,
+    void Function(bool ok, String? error)? onResult,
+  ) {
     final socket = _socket;
 
     if (socket == null || !socket.connected) {
@@ -359,19 +282,13 @@ class RoomSocketService {
         final result = _toMap(data);
 
         if (result == null) {
-          onResult?.call(
-            false,
-            'Invalid server response.',
-          );
+          onResult?.call(false, 'Invalid server response.');
           return;
         }
 
         final ok = result['ok'] == true;
 
-        onResult?.call(
-          ok,
-          ok ? null : result['error']?.toString(),
-        );
+        onResult?.call(ok, ok ? null : result['error']?.toString());
       },
     );
   }
