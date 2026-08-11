@@ -8,7 +8,6 @@ class RoomSocketService {
   IO.Socket? _socket;
 
   bool get isConnected => _socket?.connected == true;
-
   String? get socketId => _socket?.id;
 
   void connect({
@@ -120,7 +119,6 @@ class RoomSocketService {
         }
 
         final ok = result['ok'] == true;
-
         onResult?.call(ok, ok ? null : result['error']?.toString());
       },
     );
@@ -202,11 +200,16 @@ class RoomSocketService {
     }, onResult);
   }
 
-  void requestAgoraToken({
+  void requestLiveKitToken({
     required String roomId,
-    required String role,
-    required void Function(bool ok, Map<String, dynamic>? agora, String? error)
-    onResult,
+    required String identity,
+    required String name,
+    String role = 'publisher',
+    required void Function(
+        bool ok,
+        Map<String, dynamic>? livekit,
+        String? error,
+        ) onResult,
   }) {
     final socket = _socket;
 
@@ -216,13 +219,18 @@ class RoomSocketService {
     }
 
     socket.emitWithAck(
-      'agora:token',
-      {'roomId': roomId, 'role': role},
+      'livekit:token',
+      {
+        'roomId': roomId,
+        'identity': identity,
+        'name': name,
+        'role': role,
+      },
       ack: (data) {
         final result = _toMap(data);
 
         if (result == null) {
-          onResult(false, null, 'Invalid Agora token response.');
+          onResult(false, null, 'Invalid LiveKit token response.');
           return;
         }
 
@@ -232,19 +240,36 @@ class RoomSocketService {
           onResult(
             false,
             null,
-            result['error']?.toString() ?? 'Unable to get Agora token.',
+            result['error']?.toString() ?? 'Unable to get LiveKit token.',
           );
           return;
         }
 
-        final rawAgora = result['agora'];
+        Map<String, dynamic>? livekit;
+        final rawLiveKit = result['livekit'];
 
-        if (rawAgora is! Map) {
-          onResult(false, null, 'Agora token payload is missing.');
+        if (rawLiveKit is Map) {
+          livekit = Map<String, dynamic>.from(rawLiveKit);
+        } else {
+          // Also accept a flat response: { ok, token, serverUrl, ... }.
+          final token = result['token']?.toString() ?? '';
+          final serverUrl =
+              result['serverUrl']?.toString() ??
+                  result['url']?.toString() ??
+                  result['wsUrl']?.toString() ??
+                  '';
+
+          if (token.isNotEmpty && serverUrl.isNotEmpty) {
+            livekit = Map<String, dynamic>.from(result);
+          }
+        }
+
+        if (livekit == null) {
+          onResult(false, null, 'LiveKit token payload is missing.');
           return;
         }
 
-        onResult(true, Map<String, dynamic>.from(rawAgora), null);
+        onResult(true, livekit, null);
       },
     );
   }
@@ -264,10 +289,10 @@ class RoomSocketService {
   }
 
   void _emitWithResult(
-    String event,
-    Map<String, dynamic> payload,
-    void Function(bool ok, String? error)? onResult,
-  ) {
+      String event,
+      Map<String, dynamic> payload,
+      void Function(bool ok, String? error)? onResult,
+      ) {
     final socket = _socket;
 
     if (socket == null || !socket.connected) {
@@ -287,7 +312,6 @@ class RoomSocketService {
         }
 
         final ok = result['ok'] == true;
-
         onResult?.call(ok, ok ? null : result['error']?.toString());
       },
     );
@@ -307,15 +331,12 @@ class RoomSocketService {
 
   void disconnect() {
     final socket = _socket;
-
     if (socket == null) return;
-
     socket.disconnect();
   }
 
   void dispose() {
     final socket = _socket;
-
     if (socket == null) return;
 
     socket.dispose();

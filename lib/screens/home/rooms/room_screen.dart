@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:junaya_voicechat_app/services/livekit_voice_service.dart';
 
 import 'room_profile_screen.dart';
 import 'room_socket_service.dart';
-import 'agora_voice_service.dart';
+import 'package:flutter/foundation.dart';
 
 enum RoomSeatStatus { empty, occupied, locked }
 
@@ -253,7 +254,7 @@ class RoomController extends ChangeNotifier {
   void _createTemporaryRoom() {
     final seats = List<RoomSeat>.generate(
       15,
-      (index) => RoomSeat(number: index + 1),
+          (index) => RoomSeat(number: index + 1),
     );
 
     seats[0] = const RoomSeat(
@@ -448,10 +449,10 @@ class RoomController extends ChangeNotifier {
 class RoomScreen extends StatefulWidget {
   final String socketServerUrl;
   final bool enableRealtime;
-
+ // place your IP address instead
   const RoomScreen({
     super.key,
-    this.socketServerUrl = 'http://10.0.2.2:3000',
+    this.socketServerUrl = 'http://192.168.10.40:3000',
     this.enableRealtime = true,
   });
 
@@ -467,13 +468,13 @@ class _RoomScreenState extends State<RoomScreen> {
   int _tab = 0;
   late final RoomController _roomController;
   late final RoomSocketService _socketService;
-  late final AgoraVoiceService _agoraVoiceService;
+  late final LiveKitVoiceService _liveKitVoiceService;
 
   bool _socketConnected = false;
   String? _socketError;
 
-  bool _agoraConnected = false;
-  String? _agoraError;
+  bool _liveKitConnected = false;
+  String? _liveKitError;
 
   final List<String> _activityMessages = [
     'Welcome to Junaya Voice Room 👋',
@@ -503,8 +504,12 @@ class _RoomScreenState extends State<RoomScreen> {
     super.initState();
 
     _roomController = RoomController(
-      currentUserId: 'current_user_001',
-      currentUserName: 'You',
+      currentUserId: kIsWeb
+          ? 'chrome_test_user'
+          : 'android_test_user',
+      currentUserName: kIsWeb
+          ? 'Chrome User'
+          : 'Android User',
       currentUserAvatar: 'assets/users/profile.png',
     );
 
@@ -512,26 +517,25 @@ class _RoomScreenState extends State<RoomScreen> {
 
     _socketService = RoomSocketService();
 
-    _agoraVoiceService = AgoraVoiceService(
-      onTokenWillExpire: _refreshAgoraToken,
-      onRemoteUserJoined: (uid) {
-        debugPrint('Agora remote user joined: $uid');
+    _liveKitVoiceService = LiveKitVoiceService(
+      onRemoteUserJoined: (identity) {
+        debugPrint('LiveKit remote user joined: $identity');
       },
-      onRemoteUserLeft: (uid) {
-        debugPrint('Agora remote user left: $uid');
+      onRemoteUserLeft: (identity) {
+        debugPrint('LiveKit remote user left: $identity');
       },
       onError: (message) {
         if (!mounted) return;
 
         setState(() {
-          _agoraError = message;
+          _liveKitError = message;
         });
 
         _showMessage(message);
       },
     );
 
-    _agoraVoiceService.addListener(_agoraUpdated);
+    _liveKitVoiceService.addListener(_liveKitUpdated);
 
     if (widget.enableRealtime) {
       _connectRealtimeRoom();
@@ -564,7 +568,7 @@ class _RoomScreenState extends State<RoomScreen> {
               return;
             }
 
-            _startAgoraAudience();
+            _startLiveKit();
           },
         );
       },
@@ -646,17 +650,16 @@ class _RoomScreenState extends State<RoomScreen> {
     );
   }
 
-  void _agoraUpdated() {
+  void _liveKitUpdated() {
     if (!mounted) return;
 
     setState(() {
-      _agoraConnected = _agoraVoiceService.joined;
+      _liveKitConnected = _liveKitVoiceService.connected;
     });
   }
 
-  void _requestAgoraToken({
-    required String role,
-    required void Function(Map<String, dynamic> agora) onSuccess,
+  void _requestLiveKitToken({
+    required void Function(Map<String, dynamic> livekit) onSuccess,
     bool showErrors = true,
   }) {
     if (!_socketConnected) {
@@ -666,17 +669,21 @@ class _RoomScreenState extends State<RoomScreen> {
       return;
     }
 
-    _socketService.requestAgoraToken(
+    _socketService.requestLiveKitToken(
       roomId: _room.id,
-      role: role,
-      onResult: (ok, agora, error) {
+      identity: _roomController.currentUserId,
+      name: _roomController.currentUserName,
+      // Connect with publish permission but keep the mic disabled until
+      // the socket server confirms that this user owns a mic seat.
+      role: 'subscriber',
+      onResult: (ok, livekit, error) {
         if (!mounted) return;
 
-        if (!ok || agora == null) {
-          final message = error ?? 'Unable to obtain secure voice token.';
+        if (!ok || livekit == null) {
+          final message = error ?? 'Unable to obtain secure LiveKit token.';
 
           setState(() {
-            _agoraError = message;
+            _liveKitError = message;
           });
 
           if (showErrors) {
@@ -686,104 +693,84 @@ class _RoomScreenState extends State<RoomScreen> {
         }
 
         setState(() {
-          _agoraError = null;
+          _liveKitError = null;
         });
 
-        onSuccess(agora);
+        onSuccess(livekit);
       },
     );
   }
 
-  void _startAgoraAudience() {
-    if (_agoraVoiceService.joined) {
+  void _startLiveKit() {
+    if (_liveKitVoiceService.connected) {
       return;
     }
 
-    _requestAgoraToken(
-      role: 'subscriber',
-      onSuccess: (agora) async {
-        final appId = agora['appId']?.toString() ?? '';
-        final token = agora['token']?.toString() ?? '';
-        final channelId = agora['channelId']?.toString() ?? _room.id;
-        final rawUid = agora['uid'];
+    _requestLiveKitToken(
+      onSuccess: (livekit) async {
+        final serverUrl =
+            livekit['serverUrl']?.toString() ??
+                livekit['url']?.toString() ??
+                livekit['wsUrl']?.toString() ??
+                '';
+        final token = livekit['token']?.toString() ?? '';
+        final roomName = livekit['roomName']?.toString() ?? _room.id;
+        final identity =
+            livekit['identity']?.toString() ?? _roomController.currentUserId;
 
-        final uid = rawUid is int
-            ? rawUid
-            : int.tryParse(rawUid?.toString() ?? '');
-
-        if (appId.isEmpty || token.isEmpty || uid == null) {
-          _showMessage('Invalid Agora voice configuration.');
+        if (serverUrl.isEmpty || token.isEmpty) {
+          const message = 'Invalid LiveKit voice configuration.';
+          setState(() {
+            _liveKitConnected = false;
+            _liveKitError = message;
+          });
+          _showMessage(message);
           return;
         }
 
-        try {
-          await _agoraVoiceService.initializeAndJoinAsAudience(
-            appId: appId,
-            token: token,
-            channelId: channelId,
-            uid: uid,
-          );
-
-          if (!mounted) return;
-
-          setState(() {
-            _agoraConnected = true;
-            _agoraError = null;
-          });
-        } catch (_) {
-          if (!mounted) return;
-
-          setState(() {
-            _agoraConnected = false;
-          });
-        }
-      },
-    );
-  }
-
-  void _refreshAgoraToken() {
-    final role = _agoraVoiceService.publishing ? 'publisher' : 'subscriber';
-
-    _requestAgoraToken(
-      role: role,
-      showErrors: false,
-      onSuccess: (agora) {
-        final token = agora['token']?.toString() ?? '';
-
-        if (token.isNotEmpty) {
-          _agoraVoiceService.renewToken(token);
-        }
-      },
-    );
-  }
-
-  void _enableAgoraPublishingAfterSeatJoin({required int seatIndex}) {
-    _requestAgoraToken(
-      role: 'publisher',
-      onSuccess: (agora) async {
-        final token = agora['token']?.toString() ?? '';
-
-        if (token.isEmpty) {
-          _showMessage('Publisher voice token is missing.');
-          _rollbackMicSeat(seatIndex);
-          return;
-        }
-
-        final enabled = await _agoraVoiceService.becomeBroadcaster(
-          publisherToken: token,
+        final connected = await _liveKitVoiceService.joinRoom(
+          serverUrl: serverUrl,
+          token: token,
+          roomName: roomName,
+          identity: identity,
         );
 
         if (!mounted) return;
 
-        if (!enabled) {
-          _rollbackMicSeat(seatIndex);
-          return;
-        }
-
-        _addActivity('Your microphone is now live on Mic ${seatIndex + 1} 🎙️');
-        _showMessage('Microphone is live');
+        setState(() {
+          _liveKitConnected = connected;
+          if (connected) {
+            _liveKitError = null;
+          }
+        });
       },
     );
+  }
+
+  Future<void> _enableLiveKitMicAfterSeatJoin({
+    required int seatIndex,
+  }) async {
+    if (!_liveKitVoiceService.connected) {
+      _showMessage('LiveKit voice is not connected yet.');
+      _rollbackMicSeat(seatIndex);
+      return;
+    }
+
+    // The backend has already promoted this participant in LiveKit.
+    // Give the permission update a brief moment to reach the client.
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+
+    final enabled = await _liveKitVoiceService.becomeSpeaker();
+
+    if (!mounted) return;
+
+    if (!enabled) {
+      _rollbackMicSeat(seatIndex);
+      return;
+    }
+
+    _addActivity('Your microphone is now live on Mic ${seatIndex + 1} 🎙️');
+    _showMessage('Microphone is live');
   }
 
   void _rollbackMicSeat(int seatIndex) {
@@ -795,24 +782,10 @@ class _RoomScreenState extends State<RoomScreen> {
       onResult: (_, _) {},
     );
 
-    _agoraVoiceService.becomeAudience();
+    _liveKitVoiceService.becomeListener();
 
     _showMessage(
       'Mic ${seatIndex + 1} was released because voice could not start.',
-    );
-  }
-
-  void _renewSubscriberTokenAfterLeavingMic() {
-    _requestAgoraToken(
-      role: 'subscriber',
-      showErrors: false,
-      onSuccess: (agora) {
-        final token = agora['token']?.toString() ?? '';
-
-        _agoraVoiceService.becomeAudience(
-          subscriberToken: token.isEmpty ? null : token,
-        );
-      },
     );
   }
 
@@ -833,8 +806,8 @@ class _RoomScreenState extends State<RoomScreen> {
 
     _socketService.dispose();
 
-    _agoraVoiceService.removeListener(_agoraUpdated);
-    _agoraVoiceService.disposeVoice();
+    _liveKitVoiceService.removeListener(_liveKitUpdated);
+    _liveKitVoiceService.dispose();
 
     _roomController.removeListener(_roomUpdated);
     _roomController.dispose();
@@ -1079,7 +1052,7 @@ class _RoomScreenState extends State<RoomScreen> {
           _addActivity('You joined Mic ${index + 1} 🎙️');
           _showMessage('You joined Mic ${index + 1}');
 
-          _enableAgoraPublishingAfterSeatJoin(seatIndex: index);
+          _enableLiveKitMicAfterSeatJoin(seatIndex: index);
         } else {
           _showMessage(error ?? 'Unable to join mic');
         }
@@ -1088,7 +1061,7 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 
   void _leaveMicRealtime() {
-    _agoraVoiceService.becomeAudience();
+    _liveKitVoiceService.becomeListener();
 
     if (!_socketConnected) {
       final left = _roomController.leaveMic();
@@ -1111,7 +1084,6 @@ class _RoomScreenState extends State<RoomScreen> {
           _addActivity('You left the mic seat.');
           _showMessage('You left the mic');
 
-          _renewSubscriberTokenAfterLeavingMic();
         } else {
           _showMessage(error ?? 'Unable to leave mic');
         }
@@ -1120,7 +1092,7 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 
   void _toggleMicRealtime() {
-    if (!_roomController.isOnMic || !_agoraVoiceService.publishing) {
+    if (!_roomController.isOnMic || !_liveKitVoiceService.connected) {
       _showMessage('Take a mic seat first.');
       return;
     }
@@ -1129,7 +1101,7 @@ class _RoomScreenState extends State<RoomScreen> {
 
     final muted = !_roomController.microphoneEnabled;
 
-    _agoraVoiceService.setMuted(muted);
+    _liveKitVoiceService.setMuted(muted);
 
     if (_socketConnected) {
       _socketService.setMicMuted(
@@ -1360,7 +1332,7 @@ class _RoomScreenState extends State<RoomScreen> {
                               height: 7,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: _agoraConnected
+                                color: _liveKitConnected
                                     ? const Color(0xFF31E8F7)
                                     : Colors.white24,
                               ),
@@ -1580,12 +1552,12 @@ class _RoomScreenState extends State<RoomScreen> {
                   shape: BoxShape.circle,
                   gradient: user?.isSpeaking == true
                       ? const LinearGradient(
-                          colors: [
-                            Color(0xFFFF48ED),
-                            Color(0xFF7E54FF),
-                            Color(0xFF18C5C7),
-                          ],
-                        )
+                    colors: [
+                      Color(0xFFFF48ED),
+                      Color(0xFF7E54FF),
+                      Color(0xFF18C5C7),
+                    ],
+                  )
                       : null,
                   color: user?.isSpeaking == true
                       ? null
@@ -1593,11 +1565,11 @@ class _RoomScreenState extends State<RoomScreen> {
                   border: user?.isSpeaking == true
                       ? null
                       : Border.all(
-                          color: seat.isLocked
-                              ? Colors.white24
-                              : _pink.withValues(alpha: .46),
-                          width: 1,
-                        ),
+                    color: seat.isLocked
+                        ? Colors.white24
+                        : _pink.withValues(alpha: .46),
+                    width: 1,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: user?.isSpeaking == true
@@ -1869,13 +1841,13 @@ class _RoomScreenState extends State<RoomScreen> {
                       : null,
                   child: user.avatar == null
                       ? Text(
-                          user.name.isEmpty ? 'U' : user.name[0].toUpperCase(),
-                          style: GoogleFonts.poppins(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        )
+                    user.name.isEmpty ? 'U' : user.name[0].toUpperCase(),
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  )
                       : null,
                 ),
                 const SizedBox(height: 12),
@@ -2141,7 +2113,7 @@ class _RoomScreenState extends State<RoomScreen> {
                     _quickAction(
                       'Revise your room announcement !',
                       Icons.edit_outlined,
-                      () => _showMessage('Announcement editor'),
+                          () => _showMessage('Announcement editor'),
                     ),
                     const SizedBox(height: 9),
                     _quickAction(
@@ -2151,14 +2123,14 @@ class _RoomScreenState extends State<RoomScreen> {
                       _roomController.isOnMic
                           ? Icons.logout_rounded
                           : Icons.mic_none_rounded,
-                      () {
+                          () {
                         if (_roomController.isOnMic) {
                           _leaveMicRealtime();
                           return;
                         }
 
                         final emptyIndex = _room.seats.indexWhere(
-                          (seat) => seat.isEmpty,
+                              (seat) => seat.isEmpty,
                         );
 
                         if (emptyIndex == -1) {
@@ -2173,7 +2145,7 @@ class _RoomScreenState extends State<RoomScreen> {
                     _quickAction(
                       'Share your room with friends !',
                       Icons.share_rounded,
-                      () => _showMessage('Share room'),
+                          () => _showMessage('Share room'),
                     ),
                     const SizedBox(height: 12),
                     _buildTreasureBanner(),
@@ -2504,12 +2476,12 @@ class _RoomScreenState extends State<RoomScreen> {
       padding: const EdgeInsets.fromLTRB(9, 8, 10, 8),
       decoration: entry.isSystem
           ? BoxDecoration(
-              color: const Color(0xFFFFD76A).withValues(alpha: .06),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: const Color(0xFFFFD76A).withValues(alpha: .16),
-              ),
-            )
+        color: const Color(0xFFFFD76A).withValues(alpha: .06),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0xFFFFD76A).withValues(alpha: .16),
+        ),
+      )
           : null,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2620,7 +2592,7 @@ class _RoomScreenState extends State<RoomScreen> {
         onTap: () {
           _roomController.toggleSpeaker();
 
-          _agoraVoiceService.setSpeakerEnabled(_roomController.speakerEnabled);
+          _liveKitVoiceService.setSpeakerEnabled(_roomController.speakerEnabled);
 
           _showMessage(
             _roomController.speakerEnabled
@@ -2687,16 +2659,16 @@ class _RoomScreenState extends State<RoomScreen> {
                         shape: BoxShape.circle,
                         gradient: item.isGift
                             ? const LinearGradient(
-                                colors: [Color(0xFF7C24D8), Color(0xFF3E125E)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              )
+                          colors: [Color(0xFF7C24D8), Color(0xFF3E125E)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
                             : item.isGame
                             ? const LinearGradient(
-                                colors: [Color(0xFF4826A8), Color(0xFF231045)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              )
+                          colors: [Color(0xFF4826A8), Color(0xFF231045)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
                             : null,
                         color: (item.isGift || item.isGame)
                             ? null
@@ -2718,18 +2690,18 @@ class _RoomScreenState extends State<RoomScreen> {
                       ),
                       child: item.isGift
                           ? const Center(
-                              child: Text(
-                                '🎁',
-                                style: TextStyle(fontSize: 24, height: 1),
-                              ),
-                            )
+                        child: Text(
+                          '🎁',
+                          style: TextStyle(fontSize: 24, height: 1),
+                        ),
+                      )
                           : item.isGame
                           ? const Center(
-                              child: Text(
-                                '🎮',
-                                style: TextStyle(fontSize: 24, height: 1),
-                              ),
-                            )
+                        child: Text(
+                          '🎮',
+                          style: TextStyle(fontSize: 24, height: 1),
+                        ),
+                      )
                           : Icon(item.icon, color: Colors.white, size: 21),
                     ),
                     if (item.showNotificationDot)
@@ -2796,28 +2768,28 @@ class _RoomScreenState extends State<RoomScreen> {
               Expanded(
                 child: occupiedSeats.isEmpty
                     ? Center(
-                        child: Text(
-                          'No members on mic',
-                          style: GoogleFonts.poppins(color: Colors.white38),
-                        ),
-                      )
+                  child: Text(
+                    'No members on mic',
+                    style: GoogleFonts.poppins(color: Colors.white38),
+                  ),
+                )
                     : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: occupiedSeats.length,
-                        itemBuilder: (_, index) {
-                          final user = occupiedSeats[index].user!;
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: occupiedSeats.length,
+                  itemBuilder: (_, index) {
+                    final user = occupiedSeats[index].user!;
 
-                          return _memberTile(
-                            user.name,
-                            user.isHost
-                                ? 'Room Owner'
-                                : user.isAdmin
-                                ? 'Admin'
-                                : 'Member',
-                            user.isHost,
-                          );
-                        },
-                      ),
+                    return _memberTile(
+                      user.name,
+                      user.isHost
+                          ? 'Room Owner'
+                          : user.isAdmin
+                          ? 'Admin'
+                          : 'Member',
+                      user.isHost,
+                    );
+                  },
+                ),
               ),
             ],
           ),
