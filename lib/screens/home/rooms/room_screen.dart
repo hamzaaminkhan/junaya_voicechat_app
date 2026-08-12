@@ -520,7 +520,7 @@ class _RoomScreenState extends State<RoomScreen> {
     }
 
     // Android Studio emulator reaches the Windows host through 10.0.2.2.
-    return 'http://192.168.18.30:3000';
+    return 'http://192.168.00.00:3000';
   }
 
   final List<_RoomChatEntry> _chatMessages = [
