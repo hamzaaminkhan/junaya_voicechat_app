@@ -61,28 +61,104 @@ class LiveKitVoiceService extends ChangeNotifier {
 
       _eventsListener = room.createListener()
         ..on<ParticipantConnectedEvent>((event) {
+          debugPrint(
+            '✅ LiveKit remote participant joined: '
+                '${event.participant.identity}',
+          );
           onRemoteUserJoined?.call(event.participant.identity);
         })
         ..on<ParticipantDisconnectedEvent>((event) {
+          debugPrint(
+            '👋 LiveKit remote participant left: '
+                '${event.participant.identity}',
+          );
           onRemoteUserLeft?.call(event.participant.identity);
         })
-        ..on<RoomDisconnectedEvent>((_) {
+        ..on<RoomDisconnectedEvent>((event) {
+          debugPrint('❌ LiveKit room disconnected');
+
           _connected = false;
           _micEnabled = false;
           _safeNotifyListeners();
         });
 
+      debugPrint(
+        '🎧 Connecting LiveKit: '
+            'room=$roomName identity=$identity url=$cleanUrl',
+      );
+
       await room.connect(cleanUrl, cleanToken);
 
       _connected = true;
-      _micEnabled = room.localParticipant?.isMicrophoneEnabled() ?? false;
+      _micEnabled =
+          room.localParticipant?.isMicrophoneEnabled() ?? false;
+
+      debugPrint(
+        '✅ LiveKit connected: '
+            'room=$roomName identity=$identity mic=$_micEnabled',
+      );
+
       _safeNotifyListeners();
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
       _connected = false;
       _micEnabled = false;
+
+      debugPrint('❌ LiveKit join failed: $e');
+      debugPrintStack(stackTrace: stackTrace);
+
       _emitError('LiveKit join failed: $e');
       _safeNotifyListeners();
+      return false;
+    }
+  }
+
+  /// Ensures Android has RECORD_AUDIO permission before microphone capture.
+  ///
+  /// On Flutter Web, browser permission is handled when LiveKit attempts to
+  /// access getUserMedia, so permission_handler is intentionally skipped.
+  Future<bool> _ensureMicrophonePermission() async {
+    if (kIsWeb) {
+      return true;
+    }
+
+    try {
+      var status = await Permission.microphone.status;
+
+      debugPrint('🎤 Microphone permission before request: $status');
+
+      if (status.isGranted) {
+        return true;
+      }
+
+      status = await Permission.microphone.request();
+
+      debugPrint('🎤 Microphone permission after request: $status');
+
+      if (status.isGranted) {
+        return true;
+      }
+
+      if (status.isPermanentlyDenied) {
+        _emitError(
+          'Microphone permission is permanently denied. '
+              'Enable Microphone in Android Settings > Apps > '
+              'Junaya > Permissions.',
+        );
+        return false;
+      }
+
+      if (status.isRestricted) {
+        _emitError(
+          'Microphone access is restricted on this device.',
+        );
+        return false;
+      }
+
+      _emitError('Microphone permission required.');
+      return false;
+    } catch (e) {
+      _emitError('Unable to request microphone permission: $e');
       return false;
     }
   }
@@ -95,10 +171,9 @@ class LiveKitVoiceService extends ChangeNotifier {
       return false;
     }
 
-    final permission = await Permission.microphone.request();
+    final permissionGranted = await _ensureMicrophonePermission();
 
-    if (!permission.isGranted) {
-      _emitError('Microphone permission required.');
+    if (!permissionGranted) {
       return false;
     }
 
@@ -110,12 +185,34 @@ class LiveKitVoiceService extends ChangeNotifier {
         return false;
       }
 
+      debugPrint(
+        '🎤 Enabling microphone for '
+            '${participant.identity}',
+      );
+
       await participant.setMicrophoneEnabled(true);
+
       _micEnabled = participant.isMicrophoneEnabled();
+
+      debugPrint(
+        _micEnabled
+            ? '✅ LiveKit microphone enabled'
+            : '❌ LiveKit microphone did not become enabled',
+      );
+
       _safeNotifyListeners();
+
+      if (!_micEnabled) {
+        _emitError('LiveKit microphone could not be enabled.');
+      }
+
       return _micEnabled;
-    } catch (e) {
+    } catch (e, stackTrace) {
       _micEnabled = false;
+
+      debugPrint('❌ Unable to enable LiveKit microphone: $e');
+      debugPrintStack(stackTrace: stackTrace);
+
       _emitError('Unable to enable LiveKit microphone: $e');
       _safeNotifyListeners();
       return false;
@@ -132,7 +229,12 @@ class LiveKitVoiceService extends ChangeNotifier {
     }
 
     try {
+      debugPrint(
+        '🔇 Disabling microphone for ${participant.identity}',
+      );
+
       await participant.setMicrophoneEnabled(false);
+
       _micEnabled = false;
       _safeNotifyListeners();
     } catch (e) {
@@ -148,10 +250,28 @@ class LiveKitVoiceService extends ChangeNotifier {
       return false;
     }
 
+    // If the user is trying to unmute, make sure microphone permission still
+    // exists. Android users can revoke it from system settings at any time.
+    if (!muted) {
+      final permissionGranted = await _ensureMicrophonePermission();
+
+      if (!permissionGranted) {
+        return false;
+      }
+    }
+
     try {
       await participant.setMicrophoneEnabled(!muted);
+
       _micEnabled = participant.isMicrophoneEnabled();
       _safeNotifyListeners();
+
+      debugPrint(
+        muted
+            ? '🔇 LiveKit microphone muted'
+            : '🎤 LiveKit microphone unmuted',
+      );
+
       return true;
     } catch (e) {
       _emitError('Unable to update LiveKit microphone: $e');
@@ -168,6 +288,13 @@ class LiveKitVoiceService extends ChangeNotifier {
 
     try {
       await room.setSpeakerOn(enabled);
+
+      debugPrint(
+        enabled
+            ? '🔊 LiveKit speaker output enabled'
+            : '🔇 LiveKit speaker output disabled',
+      );
+
       return true;
     } catch (e) {
       _emitError('Unable to change audio output: $e');
@@ -192,7 +319,7 @@ class LiveKitVoiceService extends ChangeNotifier {
       try {
         await room.disconnect();
       } catch (_) {
-        // The room may already be disconnected.
+        // Room may already be disconnected.
       }
     }
 
@@ -202,6 +329,7 @@ class LiveKitVoiceService extends ChangeNotifier {
   }
 
   void _emitError(String message) {
+    debugPrint('LiveKitVoiceService: $message');
     onError?.call(message);
   }
 

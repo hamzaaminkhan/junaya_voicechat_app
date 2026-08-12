@@ -143,6 +143,12 @@ class VoiceRoom {
   final int roomRank;
   final List<RoomSeat> seats;
 
+  /// Every Socket.IO user currently connected to the room.
+  ///
+  /// This is intentionally separate from [seats]. A room member can be a
+  /// listener without occupying a microphone seat.
+  final List<RoomUser> members;
+
   const VoiceRoom({
     required this.id,
     required this.name,
@@ -151,6 +157,7 @@ class VoiceRoom {
     required this.onlineUsers,
     required this.roomRank,
     required this.seats,
+    this.members = const [],
   });
 
   VoiceRoom copyWith({
@@ -161,6 +168,7 @@ class VoiceRoom {
     int? onlineUsers,
     int? roomRank,
     List<RoomSeat>? seats,
+    List<RoomUser>? members,
   }) {
     return VoiceRoom(
       id: id ?? this.id,
@@ -170,6 +178,7 @@ class VoiceRoom {
       onlineUsers: onlineUsers ?? this.onlineUsers,
       roomRank: roomRank ?? this.roomRank,
       seats: seats ?? this.seats,
+      members: members ?? this.members,
     );
   }
 
@@ -192,6 +201,10 @@ class VoiceRoom {
           .whereType<Map>()
           .map((item) => RoomSeat.fromJson(Map<String, dynamic>.from(item)))
           .toList(),
+      members: (json['members'] as List<dynamic>? ?? const [])
+          .whereType<Map>()
+          .map((item) => RoomUser.fromJson(Map<String, dynamic>.from(item)))
+          .toList(),
     );
   }
 
@@ -204,6 +217,7 @@ class VoiceRoom {
       'onlineUsers': onlineUsers,
       'roomRank': roomRank,
       'seats': seats.map((seat) => seat.toJson()).toList(),
+      'members': members.map((user) => user.toJson()).toList(),
     };
   }
 }
@@ -447,12 +461,20 @@ class RoomController extends ChangeNotifier {
 }
 
 class RoomScreen extends StatefulWidget {
+  /// Optional Socket.IO server override.
+  ///
+  /// Leave this empty for automatic development routing:
+  /// - Flutter Web / Chrome -> http://localhost:3000
+  /// - Android emulator     -> http://10.0.2.2:3000
+  ///
+  /// For a real Android phone, pass your PC LAN address, for example:
+  /// RoomScreen(socketServerUrl: 'http://192.168.18.30:3000')
   final String socketServerUrl;
   final bool enableRealtime;
- // place your IP address instead
+
   const RoomScreen({
     super.key,
-    this.socketServerUrl = 'http://192.168.10.40:3000',
+    this.socketServerUrl = '',
     this.enableRealtime = true,
   });
 
@@ -483,6 +505,23 @@ class _RoomScreenState extends State<RoomScreen> {
   ];
 
   final TextEditingController _chatController = TextEditingController();
+
+  String get _resolvedSocketServerUrl {
+    final override = widget.socketServerUrl.trim();
+
+    // Explicit override always wins. Use this for a physical Android phone.
+    if (override.isNotEmpty) {
+      return override;
+    }
+
+    // Chrome/Flutter Web runs on the same Windows machine as Node.
+    if (kIsWeb) {
+      return 'http://localhost:3000';
+    }
+
+    // Android Studio emulator reaches the Windows host through 10.0.2.2.
+    return 'http://192.168.18.30:3000';
+  }
 
   final List<_RoomChatEntry> _chatMessages = [
     const _RoomChatEntry(
@@ -543,9 +582,23 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 
   void _connectRealtimeRoom() {
+    debugPrint(
+      '🌐 SOCKET CONNECT START: '
+          'url=$_resolvedSocketServerUrl '
+          'platform=${kIsWeb ? "WEB" : "ANDROID"} '
+          'room=${_room.id} '
+          'user=${_roomController.currentUserId}',
+    );
+
     _socketService.connect(
-      serverUrl: widget.socketServerUrl,
+      serverUrl: _resolvedSocketServerUrl,
       onConnected: () {
+        debugPrint(
+          '✅ SOCKET CONNECTED: '
+              'url=$_resolvedSocketServerUrl '
+              'user=${_roomController.currentUserId}',
+        );
+
         if (!mounted) return;
 
         setState(() {
@@ -559,6 +612,14 @@ class _RoomScreenState extends State<RoomScreen> {
           name: _roomController.currentUserName,
           avatar: _roomController.currentUserAvatar,
           onResult: (ok, error) {
+            debugPrint(
+              '🚪 ROOM JOIN RESULT: '
+                  'ok=$ok '
+                  'error=$error '
+                  'room=${_room.id} '
+                  'user=${_roomController.currentUserId}',
+            );
+
             if (!mounted) return;
 
             if (!ok) {
@@ -573,6 +634,12 @@ class _RoomScreenState extends State<RoomScreen> {
         );
       },
       onDisconnected: (reason) {
+        debugPrint(
+          '⚠️ SOCKET DISCONNECTED: '
+              'reason=$reason '
+              'url=$_resolvedSocketServerUrl',
+        );
+
         if (!mounted) return;
 
         setState(() {
@@ -580,6 +647,12 @@ class _RoomScreenState extends State<RoomScreen> {
         });
       },
       onError: (message) {
+        debugPrint(
+          '❌ SOCKET ERROR: '
+              '$message '
+              'url=$_resolvedSocketServerUrl',
+        );
+
         if (!mounted) return;
 
         setState(() {
@@ -588,6 +661,12 @@ class _RoomScreenState extends State<RoomScreen> {
         });
       },
       onRoomUpdate: (data) {
+        debugPrint(
+          '🔥 ROOM UPDATE: '
+              'online=${data['onlineUsers']} '
+              'members=${data['members']}',
+        );
+
         _roomController.updateRoomFromServer(data);
       },
       onUserJoined: (data) {
@@ -2729,9 +2808,7 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 
   void _showMemberSheet() {
-    final occupiedSeats = _room.seats
-        .where((seat) => seat.user != null)
-        .toList();
+    final members = _room.members;
 
     showModalBottomSheet(
       context: context,
@@ -2757,7 +2834,7 @@ class _RoomScreenState extends State<RoomScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Room Members',
+                'Room Members (${members.length})',
                 style: GoogleFonts.poppins(
                   color: Colors.white,
                   fontSize: 16,
@@ -2766,26 +2843,42 @@ class _RoomScreenState extends State<RoomScreen> {
               ),
               const SizedBox(height: 14),
               Expanded(
-                child: occupiedSeats.isEmpty
+                child: members.isEmpty
                     ? Center(
                   child: Text(
-                    'No members on mic',
-                    style: GoogleFonts.poppins(color: Colors.white38),
+                    'No online members',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white38,
+                    ),
                   ),
                 )
                     : ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: occupiedSeats.length,
+                  itemCount: members.length,
                   itemBuilder: (_, index) {
-                    final user = occupiedSeats[index].user!;
+                    final user = members[index];
+
+                    final seatIndex = _room.seats.indexWhere(
+                          (seat) => seat.user?.id == user.id,
+                    );
+
+                    final isOnMic = seatIndex != -1;
+
+                    String role;
+
+                    if (user.isHost) {
+                      role = 'Room Owner';
+                    } else if (user.isAdmin) {
+                      role = 'Admin';
+                    } else if (isOnMic) {
+                      role = 'On Mic ${_room.seats[seatIndex].number}';
+                    } else {
+                      role = 'Listener';
+                    }
 
                     return _memberTile(
                       user.name,
-                      user.isHost
-                          ? 'Room Owner'
-                          : user.isAdmin
-                          ? 'Admin'
-                          : 'Member',
+                      role,
                       user.isHost,
                     );
                   },
