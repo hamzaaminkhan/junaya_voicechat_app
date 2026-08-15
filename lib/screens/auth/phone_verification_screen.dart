@@ -9,142 +9,301 @@ import '../../services/auth_service.dart';
 import 'otp_screen.dart';
 
 class PhoneVerificationScreen extends StatefulWidget {
-  const PhoneVerificationScreen({super.key});
+  const PhoneVerificationScreen({
+    super.key,
+  });
 
   @override
   State<PhoneVerificationScreen> createState() =>
       _PhoneVerificationScreenState();
 }
 
-class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _phoneController = TextEditingController();
+class _PhoneVerificationScreenState
+    extends State<PhoneVerificationScreen> {
+  final _formKey =
+  GlobalKey<FormState>();
+
+  final _phoneController =
+  TextEditingController();
+
+  final AuthService _firebaseAuthService =
+      AuthService.instance;
 
   bool _loading = false;
+
+  // ==========================================
+  // DISPOSE
+  // ==========================================
 
   @override
   void dispose() {
     _phoneController.dispose();
+
     super.dispose();
   }
 
+  // ==========================================
+  // NORMALIZE PHONE NUMBER
+  // ==========================================
+
   String _normalizedPhone() {
-    var phone = _phoneController.text.trim().replaceAll(
+    var phone =
+    _phoneController.text
+        .trim()
+        .replaceAll(
       RegExp(r'[\s\-()]'),
       '',
     );
 
     if (phone.startsWith('00')) {
-      phone = '+${phone.substring(2)}';
+      phone =
+      '+${phone.substring(2)}';
     }
 
     return phone;
   }
 
-  String? _validatePhone(String? value) {
-    final phone = (value ?? '').trim().replaceAll(RegExp(r'[\s\-()]'), '');
-    final normalized = phone.startsWith('00')
-        ? '+${phone.substring(2)}'
-        : phone;
+  // ==========================================
+  // PHONE VALIDATION
+  // ==========================================
+
+  String? _validatePhone(
+      String? value,
+      ) {
+    final rawPhone =
+    (value ?? '')
+        .trim()
+        .replaceAll(
+      RegExp(r'[\s\-()]'),
+      '',
+    );
+
+    final normalized =
+    rawPhone.startsWith('00')
+        ? '+${rawPhone.substring(2)}'
+        : rawPhone;
 
     if (normalized.isEmpty) {
       return 'Please enter your phone number.';
     }
 
-    if (!RegExp(r'^\+[1-9]\d{7,14}$').hasMatch(normalized)) {
+    if (!RegExp(
+      r'^\+[1-9]\d{7,14}$',
+    ).hasMatch(normalized)) {
       return 'Use international format, for example +923001234567.';
     }
 
     return null;
   }
 
-  Future<void> _completeAutomaticVerification(
-    PhoneAuthCredential credential,
-  ) async {
+  // ==========================================
+  // AUTOMATIC FIREBASE VERIFICATION
+  // ==========================================
+
+  Future<void>
+  _completeAutomaticVerification(
+      PhoneAuthCredential credential,
+      ) async {
     try {
-      await AuthService.instance.signInWithPhoneCredential(credential);
+      await _firebaseAuthService
+          .signInWithPhoneCredential(
+        credential,
+      );
+
       if (!mounted) return;
+
+      showAuthMessage(
+        context,
+        'Phone number verified successfully.',
+      );
 
       Navigator.pushNamedAndRemoveUntil(
         context,
         AppRoutes.main,
-        (route) => false,
+            (route) => false,
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _loading = false;
+      });
+
+      showAuthMessage(
+        context,
+        _firebasePhoneError(e),
+        isError: true,
       );
     } catch (e) {
       if (!mounted) return;
-      setState(() => _loading = false);
+
+      setState(() {
+        _loading = false;
+      });
+
       showAuthMessage(
         context,
-        e.toString().replaceFirst('Exception: ', ''),
+        e
+            .toString()
+            .replaceFirst(
+          'Exception: ',
+          '',
+        ),
         isError: true,
       );
     }
   }
 
-  Future<void> _sendCode() async {
-    FocusManager.instance.primaryFocus?.unfocus();
+  // ==========================================
+  // SEND SMS CODE
+  // ==========================================
 
-    if (_loading || !_formKey.currentState!.validate()) return;
+  Future<void> _sendCode() async {
+    FocusManager.instance
+        .primaryFocus
+        ?.unfocus();
+
+    if (_loading) return;
+
+    final form =
+        _formKey.currentState;
+
+    if (form == null ||
+        !form.validate()) {
+      return;
+    }
+
+    // ======================================
+    // WEB
+    // ======================================
 
     if (kIsWeb) {
       showAuthMessage(
         context,
-        'Phone sign-in on web requires the Firebase reCAPTCHA flow. Use email sign-in on web for now.',
+        'Phone sign-in on web requires Firebase reCAPTCHA. Use email sign-in on web for now.',
         isError: true,
       );
+
       return;
     }
 
-    setState(() => _loading = true);
-    final phone = _normalizedPhone();
+    setState(() {
+      _loading = true;
+    });
+
+    final phone =
+    _normalizedPhone();
 
     try {
-      await FirebaseAuth.instance.verifyPhoneNumber(
+      await FirebaseAuth.instance
+          .verifyPhoneNumber(
         phoneNumber: phone,
-        timeout: const Duration(seconds: 60),
-        verificationCompleted: (credential) async {
-          await _completeAutomaticVerification(credential);
+
+        timeout:
+        const Duration(
+          seconds: 60,
+        ),
+
+        // ====================================
+        // ANDROID AUTOMATIC VERIFICATION
+        // ====================================
+
+        verificationCompleted:
+            (
+            PhoneAuthCredential
+            credential,
+            ) async {
+          await _completeAutomaticVerification(
+            credential,
+          );
         },
-        verificationFailed: (exception) {
+
+        // ====================================
+        // VERIFICATION FAILED
+        // ====================================
+
+        verificationFailed:
+            (
+            FirebaseAuthException
+            exception,
+            ) {
           if (!mounted) return;
-          setState(() => _loading = false);
+
+          setState(() {
+            _loading = false;
+          });
+
           showAuthMessage(
             context,
-            exception.message ?? 'Unable to verify this phone number.',
+            _firebasePhoneError(
+              exception,
+            ),
             isError: true,
           );
         },
-        codeSent: (verificationId, resendToken) {
+
+        // ====================================
+        // SMS CODE SENT
+        // ====================================
+
+        codeSent:
+            (
+            String verificationId,
+            int? resendToken,
+            ) {
           if (!mounted) return;
-          setState(() => _loading = false);
+
+          setState(() {
+            _loading = false;
+          });
 
           Navigator.pushNamed(
             context,
             AppRoutes.otp,
             arguments: OtpArguments(
-              verificationId: verificationId,
+              verificationId:
+              verificationId,
               phoneNumber: phone,
-              resendToken: resendToken,
+              resendToken:
+              resendToken,
             ),
           );
         },
-        codeAutoRetrievalTimeout: (_) {
-          if (mounted) {
-            setState(() => _loading = false);
-          }
+
+        // ====================================
+        // AUTO-RETRIEVAL TIMEOUT
+        // ====================================
+
+        codeAutoRetrievalTimeout:
+            (
+            String verificationId,
+            ) {
+          if (!mounted) return;
+
+          setState(() {
+            _loading = false;
+          });
         },
       );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-      setState(() => _loading = false);
+
+      setState(() {
+        _loading = false;
+      });
+
       showAuthMessage(
         context,
-        e.message ?? 'Unable to send the verification code.',
+        _firebasePhoneError(e),
         isError: true,
       );
     } catch (_) {
       if (!mounted) return;
-      setState(() => _loading = false);
+
+      setState(() {
+        _loading = false;
+      });
+
       showAuthMessage(
         context,
         'Unable to send the verification code. Please try again.',
@@ -153,96 +312,253 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
     }
   }
 
+  // ==========================================
+  // FIREBASE PHONE ERRORS
+  // ==========================================
+
+  String _firebasePhoneError(
+      FirebaseAuthException e,
+      ) {
+    switch (e.code) {
+      case 'invalid-phone-number':
+        return 'The phone number is invalid.';
+
+      case 'too-many-requests':
+        return 'Too many attempts. Please try again later.';
+
+      case 'quota-exceeded':
+        return 'SMS verification quota has been reached. Please try again later.';
+
+      case 'network-request-failed':
+        return 'Check your internet connection and try again.';
+
+      case 'operation-not-allowed':
+        return 'Phone authentication is not enabled.';
+
+      case 'missing-phone-number':
+        return 'Enter your phone number.';
+
+      case 'app-not-authorized':
+        return 'This app is not authorized to use Firebase Phone Authentication.';
+
+      case 'captcha-check-failed':
+        return 'Phone verification security check failed. Please try again.';
+
+      default:
+        return e.message ??
+            'Unable to verify this phone number.';
+    }
+  }
+
+  // ==========================================
+  // UI
+  // ==========================================
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+      BuildContext context,
+      ) {
     return AuthPageShell(
       child: Form(
         key: _formKey,
-        autovalidateMode: AutovalidateMode.onUserInteraction,
+
+        autovalidateMode:
+        AutovalidateMode
+            .onUserInteraction,
+
         child: Column(
           children: [
+            // ==================================
+            // BACK
+            // ==================================
+
             AuthBackButton(
               enabled: !_loading,
-              onPressed: () => Navigator.maybePop(context),
+              onPressed: () {
+                if (Navigator.canPop(
+                  context,
+                )) {
+                  Navigator.pop(
+                    context,
+                  );
+                } else {
+                  Navigator
+                      .pushNamedAndRemoveUntil(
+                    context,
+                    AppRoutes.login,
+                        (route) => false,
+                  );
+                }
+              },
             ),
-            const SizedBox(height: 4),
-            const AuthLogo(size: 76),
-            const SizedBox(height: 20),
+
+            const SizedBox(
+              height: 4,
+            ),
+
+            const AuthLogo(
+              size: 76,
+            ),
+
+            const SizedBox(
+              height: 20,
+            ),
+
+            // ==================================
+            // TITLE
+            // ==================================
+
             Align(
-              alignment: Alignment.centerLeft,
+              alignment:
+              Alignment.centerLeft,
               child: Text(
                 'Continue with phone',
-                style: GoogleFonts.poppins(
+                style:
+                GoogleFonts.poppins(
                   color: Colors.white,
                   fontSize: 25,
-                  fontWeight: FontWeight.w700,
+                  fontWeight:
+                  FontWeight.w700,
                   height: 1.15,
                 ),
               ),
             ),
-            const SizedBox(height: 7),
+
+            const SizedBox(
+              height: 7,
+            ),
+
             Align(
-              alignment: Alignment.centerLeft,
+              alignment:
+              Alignment.centerLeft,
               child: Text(
                 'Enter your mobile number with country code. We will send a one-time SMS code.',
-                style: GoogleFonts.poppins(
+                style:
+                GoogleFonts.poppins(
                   color: Colors.white54,
                   fontSize: 12.5,
                   height: 1.5,
                 ),
               ),
             ),
-            const SizedBox(height: 24),
-            TextFormField(
-              controller: _phoneController,
-              validator: _validatePhone,
-              keyboardType: TextInputType.phone,
-              textInputAction: TextInputAction.done,
-              autofillHints: const [AutofillHints.telephoneNumber],
-              enabled: !_loading,
-              style: GoogleFonts.poppins(color: Colors.white, fontSize: 13.5),
-              decoration: authInputDecoration(
-                hint: '+923001234567',
-                label: 'Phone number',
-                icon: Icons.phone_outlined,
-              ),
-              onFieldSubmitted: (_) => _sendCode(),
+
+            const SizedBox(
+              height: 24,
             ),
-            const SizedBox(height: 10),
+
+            // ==================================
+            // PHONE INPUT
+            // ==================================
+
+            TextFormField(
+              controller:
+              _phoneController,
+
+              validator:
+              _validatePhone,
+
+              keyboardType:
+              TextInputType.phone,
+
+              textInputAction:
+              TextInputAction.done,
+
+              autofillHints: const [
+                AutofillHints
+                    .telephoneNumber,
+              ],
+
+              enabled: !_loading,
+
+              autocorrect: false,
+
+              style:
+              GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 13.5,
+              ),
+
+              decoration:
+              authInputDecoration(
+                hint:
+                '+923001234567',
+                label:
+                'Phone number',
+                icon:
+                Icons.phone_outlined,
+              ),
+
+              onFieldSubmitted: (_) {
+                _sendCode();
+              },
+            ),
+
+            const SizedBox(
+              height: 10,
+            ),
+
             Align(
-              alignment: Alignment.centerLeft,
+              alignment:
+              Alignment.centerLeft,
               child: Text(
-                'We will only use this number for secure account verification. Standard SMS rates may apply.',
-                style: GoogleFonts.poppins(
+                'Use international format including the country code. Standard SMS rates may apply.',
+                style:
+                GoogleFonts.poppins(
                   color: Colors.white38,
                   fontSize: 10.5,
                   height: 1.45,
                 ),
               ),
             ),
-            const SizedBox(height: 22),
-            AuthPrimaryButton(
-              label: 'Send Verification Code',
-              loading: _loading,
-              onPressed: _sendCode,
+
+            const SizedBox(
+              height: 22,
             ),
-            const SizedBox(height: 16),
+
+            // ==================================
+            // SEND CODE
+            // ==================================
+
+            AuthPrimaryButton(
+              label:
+              'Send Verification Code',
+              loading:
+              _loading,
+              onPressed:
+              _sendCode,
+            ),
+
+            const SizedBox(
+              height: 16,
+            ),
+
+            // ==================================
+            // EMAIL LOGIN
+            // ==================================
+
             TextButton(
-              onPressed: _loading
+              onPressed:
+              _loading
                   ? null
                   : () {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        AppRoutes.login,
-                        (route) => false,
-                      );
-                    },
+                Navigator
+                    .pushNamedAndRemoveUntil(
+                  context,
+                  AppRoutes.login,
+                      (route) =>
+                  false,
+                );
+              },
+
               child: Text(
                 'Use email instead',
-                style: GoogleFonts.poppins(
-                  color: AuthUi.purple,
+                style:
+                GoogleFonts.poppins(
+                  color:
+                  AuthUi.purple,
                   fontSize: 12,
-                  fontWeight: FontWeight.w600,
+                  fontWeight:
+                  FontWeight.w600,
                 ),
               ),
             ),

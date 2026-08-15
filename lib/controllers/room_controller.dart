@@ -11,35 +11,30 @@ class RoomController extends ChangeNotifier {
     required this.currentUserId,
     required this.currentUserName,
     this.currentUserAvatar,
-  }) {
-    _createTemporaryRoom();
-  }
+  });
 
   VoiceRoom? _room;
-
   VoiceRoom? get room => _room;
+  bool get hasRoom => _room != null;
 
   bool _loading = false;
-
   bool get loading => _loading;
 
   String? _error;
-
   String? get error => _error;
 
   bool _speakerEnabled = true;
-
   bool get speakerEnabled => _speakerEnabled;
 
   bool _microphoneEnabled = true;
-
   bool get microphoneEnabled => _microphoneEnabled;
 
   int? get mySeatIndex {
-    if (_room == null) return null;
+    final currentRoom = _room;
+    if (currentRoom == null) return null;
 
-    for (int i = 0; i < _room!.seats.length; i++) {
-      if (_room!.seats[i].user?.id == currentUserId) {
+    for (int i = 0; i < currentRoom.seats.length; i++) {
+      if (currentRoom.seats[i].user?.id == currentUserId) {
         return i;
       }
     }
@@ -48,241 +43,185 @@ class RoomController extends ChangeNotifier {
   }
 
   bool get isOnMic => mySeatIndex != null;
-
   bool get isRoomOwner => _room?.ownerId == currentUserId;
 
-  void _createTemporaryRoom() {
-    final seats = List.generate(15, (index) => RoomSeat(number: index + 1));
-
-    //
-    // Temporary demo HOST
-    //
-    seats[0] = RoomSeat(
-      number: 1,
-      status: RoomSeatStatus.occupied,
-      user: const RoomUser(
-        id: 'owner_001',
-        name: 'Owner',
-        avatar: 'assets/users/profile.png',
-        isHost: true,
-        isSpeaking: true,
-      ),
-    );
-
-    //
-    // Temporary demo member
-    //
-    seats[1] = const RoomSeat(
-      number: 2,
-      status: RoomSeatStatus.occupied,
-      user: RoomUser(id: 'user_ayesha', name: 'Ayesha'),
-    );
-
-    //
-    // Locked seat
-    //
-    seats[14] = const RoomSeat(number: 15, status: RoomSeatStatus.locked);
-
-    _room = VoiceRoom(
-      id: '87012534',
-      name: 'Junaya Official Room',
-      ownerId: 'owner_001',
-      announcement: 'Welcome! Be respectful and enjoy the room.',
-      onlineUsers: 128,
-      roomRank: 8,
-      seats: seats,
-    );
-  }
-
-  // ============================================================
-  // JOIN MIC
-  // ============================================================
-
   bool joinMic(int seatIndex) {
-    if (_room == null) return false;
-
-    if (seatIndex < 0 || seatIndex >= _room!.seats.length) {
+    final currentRoom = _room;
+    if (currentRoom == null) {
+      _setError('Room is not loaded yet.');
       return false;
     }
 
-    final targetSeat = _room!.seats[seatIndex];
-
-    if (targetSeat.status == RoomSeatStatus.locked) {
-      _error = 'This seat is locked.';
-      notifyListeners();
+    if (seatIndex < 0 || seatIndex >= currentRoom.seats.length) {
+      _setError('Invalid mic seat.');
       return false;
     }
 
-    if (targetSeat.status == RoomSeatStatus.occupied) {
-      _error = 'This seat is already occupied.';
-      notifyListeners();
+    final targetSeat = currentRoom.seats[seatIndex];
+
+    if (targetSeat.isLocked) {
+      _setError('This mic seat is locked.');
+      return false;
+    }
+
+    if (targetSeat.isOccupied) {
+      _setError('This mic seat is already occupied.');
       return false;
     }
 
     if (isOnMic) {
-      _error = 'You are already on a mic.';
-      notifyListeners();
+      _setError('You are already on a mic.');
       return false;
     }
 
-    final seats = List<RoomSeat>.from(_room!.seats);
-
-    final currentUser = RoomUser(
-      id: currentUserId,
-      name: currentUserName,
-      avatar: currentUserAvatar,
-      isMuted: !_microphoneEnabled,
-    );
-
+    final seats = List<RoomSeat>.from(currentRoom.seats);
     seats[seatIndex] = RoomSeat(
       number: targetSeat.number,
       status: RoomSeatStatus.occupied,
-      user: currentUser,
+      user: RoomUser(
+        id: currentUserId,
+        name: currentUserName,
+        avatar: currentUserAvatar,
+        isHost: isRoomOwner,
+        isMuted: !_microphoneEnabled,
+      ),
     );
 
-    _room = _room!.copyWith(seats: seats);
-
+    _room = currentRoom.copyWith(seats: seats);
     _error = null;
-
     notifyListeners();
-
     return true;
   }
 
-  // ============================================================
-  // LEAVE MIC
-  // ============================================================
-
   bool leaveMic() {
+    final currentRoom = _room;
     final index = mySeatIndex;
 
-    if (_room == null || index == null) {
+    if (currentRoom == null || index == null) {
+      _setError('You are not on a mic seat.');
       return false;
     }
 
-    final seats = List<RoomSeat>.from(_room!.seats);
-
+    final seats = List<RoomSeat>.from(currentRoom.seats);
     seats[index] = RoomSeat(number: seats[index].number);
 
-    _room = _room!.copyWith(seats: seats);
-
+    _room = currentRoom.copyWith(seats: seats);
+    _error = null;
     notifyListeners();
-
     return true;
   }
-
-  // ============================================================
-  // MICROPHONE
-  // ============================================================
 
   void toggleMicrophone() {
     _microphoneEnabled = !_microphoneEnabled;
 
+    final currentRoom = _room;
     final index = mySeatIndex;
 
-    if (_room != null && index != null) {
-      final seats = List<RoomSeat>.from(_room!.seats);
-
+    if (currentRoom != null && index != null) {
+      final seats = List<RoomSeat>.from(currentRoom.seats);
       final seat = seats[index];
 
       if (seat.user != null) {
         seats[index] = seat.copyWith(
           user: seat.user!.copyWith(isMuted: !_microphoneEnabled),
         );
-
-        _room = _room!.copyWith(seats: seats);
+        _room = currentRoom.copyWith(seats: seats);
       }
     }
 
     notifyListeners();
   }
 
-  // ============================================================
-  // SPEAKER
-  // ============================================================
-
   void toggleSpeaker() {
     _speakerEnabled = !_speakerEnabled;
-
     notifyListeners();
   }
 
-  // ============================================================
-  // HOST CONTROLS
-  // ============================================================
+  bool lockSeat(int seatIndex) {
+    final currentRoom = _room;
+    if (currentRoom == null) return false;
 
-  void lockSeat(int seatIndex) {
-    if (_room == null) return;
-
-    if (seatIndex < 0 || seatIndex >= _room!.seats.length) {
-      return;
+    if (seatIndex < 0 || seatIndex >= currentRoom.seats.length) {
+      return false;
     }
 
-    final seats = List<RoomSeat>.from(_room!.seats);
-
-    final seat = seats[seatIndex];
-
-    if (seat.status == RoomSeatStatus.occupied) {
-      return;
+    final seat = currentRoom.seats[seatIndex];
+    if (seat.isOccupied) {
+      _setError('Occupied mic cannot be locked.');
+      return false;
     }
 
+    final seats = List<RoomSeat>.from(currentRoom.seats);
     seats[seatIndex] = RoomSeat(
       number: seat.number,
       status: RoomSeatStatus.locked,
     );
 
-    _room = _room!.copyWith(seats: seats);
-
+    _room = currentRoom.copyWith(seats: seats);
+    _error = null;
     notifyListeners();
+    return true;
   }
 
-  void unlockSeat(int seatIndex) {
-    if (_room == null) return;
+  bool unlockSeat(int seatIndex) {
+    final currentRoom = _room;
+    if (currentRoom == null) return false;
 
-    if (seatIndex < 0 || seatIndex >= _room!.seats.length) {
-      return;
+    if (seatIndex < 0 || seatIndex >= currentRoom.seats.length) {
+      return false;
     }
 
-    final seats = List<RoomSeat>.from(_room!.seats);
+    final seat = currentRoom.seats[seatIndex];
+    if (!seat.isLocked) return false;
 
-    final seat = seats[seatIndex];
-
-    if (seat.status != RoomSeatStatus.locked) {
-      return;
-    }
-
+    final seats = List<RoomSeat>.from(currentRoom.seats);
     seats[seatIndex] = RoomSeat(number: seat.number);
 
-    _room = _room!.copyWith(seats: seats);
-
+    _room = currentRoom.copyWith(seats: seats);
+    _error = null;
     notifyListeners();
+    return true;
   }
-
-  // ============================================================
-  // REALTIME UPDATE
-  //
-  // Socket.IO will later call this when server sends room:update.
-  // ============================================================
 
   void updateRoomFromServer(Map<String, dynamic> json) {
-    _room = VoiceRoom.fromJson(json);
+    final parsed = VoiceRoom.fromJson(json);
 
+    if (parsed.id.isEmpty) {
+      _setError('Server returned an invalid room.');
+      return;
+    }
+
+    _room = parsed;
+    _loading = false;
+    _error = null;
     notifyListeners();
   }
 
-  // ============================================================
-  // LOADING
-  // ============================================================
+  void clearRoom() {
+    _room = null;
+    _error = null;
+    notifyListeners();
+  }
 
   void setLoading(bool value) {
+    if (_loading == value) return;
     _loading = value;
-
     notifyListeners();
+  }
+
+  void setError(String message) {
+    _setError(message);
   }
 
   void clearError() {
+    if (_error == null) return;
     _error = null;
+    notifyListeners();
+  }
 
+  void _setError(String message) {
+    _error = message;
+    _loading = false;
     notifyListeners();
   }
 }

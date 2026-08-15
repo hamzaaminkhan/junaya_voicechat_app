@@ -1,479 +1,39 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:junaya_voicechat_app/controllers/room_controller.dart';
+import 'package:junaya_voicechat_app/models/voice_room_model.dart';
 import 'package:junaya_voicechat_app/services/livekit_voice_service.dart';
 
 import 'room_profile_screen.dart';
 import 'room_socket_service.dart';
-import 'package:flutter/foundation.dart';
-
-enum RoomSeatStatus { empty, occupied, locked }
-
-class RoomUser {
-  final String id;
-  final String name;
-  final String? avatar;
-  final bool isHost;
-  final bool isAdmin;
-  final bool isMuted;
-  final bool isSpeaking;
-
-  const RoomUser({
-    required this.id,
-    required this.name,
-    this.avatar,
-    this.isHost = false,
-    this.isAdmin = false,
-    this.isMuted = false,
-    this.isSpeaking = false,
-  });
-
-  RoomUser copyWith({
-    String? id,
-    String? name,
-    String? avatar,
-    bool? isHost,
-    bool? isAdmin,
-    bool? isMuted,
-    bool? isSpeaking,
-  }) {
-    return RoomUser(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      avatar: avatar ?? this.avatar,
-      isHost: isHost ?? this.isHost,
-      isAdmin: isAdmin ?? this.isAdmin,
-      isMuted: isMuted ?? this.isMuted,
-      isSpeaking: isSpeaking ?? this.isSpeaking,
-    );
-  }
-
-  factory RoomUser.fromJson(Map<String, dynamic> json) {
-    return RoomUser(
-      id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
-      name: json['name']?.toString() ?? 'User',
-      avatar: json['avatar']?.toString(),
-      isHost: json['isHost'] == true,
-      isAdmin: json['isAdmin'] == true,
-      isMuted: json['isMuted'] == true,
-      isSpeaking: json['isSpeaking'] == true,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'avatar': avatar,
-      'isHost': isHost,
-      'isAdmin': isAdmin,
-      'isMuted': isMuted,
-      'isSpeaking': isSpeaking,
-    };
-  }
-}
-
-class RoomSeat {
-  final int number;
-  final RoomSeatStatus status;
-  final RoomUser? user;
-
-  const RoomSeat({
-    required this.number,
-    this.status = RoomSeatStatus.empty,
-    this.user,
-  });
-
-  bool get isEmpty => status == RoomSeatStatus.empty;
-  bool get isOccupied => status == RoomSeatStatus.occupied && user != null;
-  bool get isLocked => status == RoomSeatStatus.locked;
-
-  RoomSeat copyWith({
-    int? number,
-    RoomSeatStatus? status,
-    RoomUser? user,
-    bool removeUser = false,
-  }) {
-    return RoomSeat(
-      number: number ?? this.number,
-      status: status ?? this.status,
-      user: removeUser ? null : user ?? this.user,
-    );
-  }
-
-  factory RoomSeat.fromJson(Map<String, dynamic> json) {
-    final rawStatus = json['status']?.toString() ?? 'empty';
-
-    RoomSeatStatus parsedStatus;
-    switch (rawStatus) {
-      case 'occupied':
-        parsedStatus = RoomSeatStatus.occupied;
-        break;
-      case 'locked':
-        parsedStatus = RoomSeatStatus.locked;
-        break;
-      default:
-        parsedStatus = RoomSeatStatus.empty;
-    }
-
-    final rawNumber = json['number'];
-    final seatNumber = rawNumber is int
-        ? rawNumber
-        : int.tryParse(rawNumber?.toString() ?? '') ?? 1;
-
-    return RoomSeat(
-      number: seatNumber,
-      status: parsedStatus,
-      user: json['user'] is Map
-          ? RoomUser.fromJson(Map<String, dynamic>.from(json['user'] as Map))
-          : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {'number': number, 'status': status.name, 'user': user?.toJson()};
-  }
-}
-
-class VoiceRoom {
-  final String id;
-  final String name;
-  final String ownerId;
-  final String announcement;
-  final int onlineUsers;
-  final int roomRank;
-  final List<RoomSeat> seats;
-
-  /// Every Socket.IO user currently connected to the room.
-  ///
-  /// This is intentionally separate from [seats]. A room member can be a
-  /// listener without occupying a microphone seat.
-  final List<RoomUser> members;
-
-  const VoiceRoom({
-    required this.id,
-    required this.name,
-    required this.ownerId,
-    required this.announcement,
-    required this.onlineUsers,
-    required this.roomRank,
-    required this.seats,
-    this.members = const [],
-  });
-
-  VoiceRoom copyWith({
-    String? id,
-    String? name,
-    String? ownerId,
-    String? announcement,
-    int? onlineUsers,
-    int? roomRank,
-    List<RoomSeat>? seats,
-    List<RoomUser>? members,
-  }) {
-    return VoiceRoom(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      ownerId: ownerId ?? this.ownerId,
-      announcement: announcement ?? this.announcement,
-      onlineUsers: onlineUsers ?? this.onlineUsers,
-      roomRank: roomRank ?? this.roomRank,
-      seats: seats ?? this.seats,
-      members: members ?? this.members,
-    );
-  }
-
-  factory VoiceRoom.fromJson(Map<String, dynamic> json) {
-    final rawOnline = json['onlineUsers'];
-    final rawRank = json['roomRank'];
-
-    return VoiceRoom(
-      id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
-      name: json['name']?.toString() ?? 'Junaya Voice Room',
-      ownerId: json['ownerId']?.toString() ?? '',
-      announcement: json['announcement']?.toString() ?? 'Welcome to Junaya.',
-      onlineUsers: rawOnline is int
-          ? rawOnline
-          : int.tryParse(rawOnline?.toString() ?? '') ?? 0,
-      roomRank: rawRank is int
-          ? rawRank
-          : int.tryParse(rawRank?.toString() ?? '') ?? 0,
-      seats: (json['seats'] as List<dynamic>? ?? const [])
-          .whereType<Map>()
-          .map((item) => RoomSeat.fromJson(Map<String, dynamic>.from(item)))
-          .toList(),
-      members: (json['members'] as List<dynamic>? ?? const [])
-          .whereType<Map>()
-          .map((item) => RoomUser.fromJson(Map<String, dynamic>.from(item)))
-          .toList(),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'ownerId': ownerId,
-      'announcement': announcement,
-      'onlineUsers': onlineUsers,
-      'roomRank': roomRank,
-      'seats': seats.map((seat) => seat.toJson()).toList(),
-      'members': members.map((user) => user.toJson()).toList(),
-    };
-  }
-}
-
-class RoomController extends ChangeNotifier {
-  final String currentUserId;
-  final String currentUserName;
-  final String? currentUserAvatar;
-
-  RoomController({
-    required this.currentUserId,
-    required this.currentUserName,
-    this.currentUserAvatar,
-  }) {
-    _createTemporaryRoom();
-  }
-
-  VoiceRoom? _room;
-  VoiceRoom? get room => _room;
-
-  bool _loading = false;
-  bool get loading => _loading;
-
-  String? _error;
-  String? get error => _error;
-
-  bool _speakerEnabled = true;
-  bool get speakerEnabled => _speakerEnabled;
-
-  bool _microphoneEnabled = true;
-  bool get microphoneEnabled => _microphoneEnabled;
-
-  int? get mySeatIndex {
-    final currentRoom = _room;
-    if (currentRoom == null) return null;
-
-    for (int i = 0; i < currentRoom.seats.length; i++) {
-      if (currentRoom.seats[i].user?.id == currentUserId) {
-        return i;
-      }
-    }
-    return null;
-  }
-
-  bool get isOnMic => mySeatIndex != null;
-  bool get isRoomOwner => _room?.ownerId == currentUserId;
-
-  void _createTemporaryRoom() {
-    final seats = List<RoomSeat>.generate(
-      15,
-          (index) => RoomSeat(number: index + 1),
-    );
-
-    seats[0] = const RoomSeat(
-      number: 1,
-      status: RoomSeatStatus.occupied,
-      user: RoomUser(
-        id: 'owner_001',
-        name: 'Owner',
-        avatar: 'assets/users/profile.png',
-        isHost: true,
-        isSpeaking: true,
-      ),
-    );
-
-    seats[1] = const RoomSeat(
-      number: 2,
-      status: RoomSeatStatus.occupied,
-      user: RoomUser(id: 'user_ayesha', name: 'Ayesha'),
-    );
-
-    seats[14] = const RoomSeat(number: 15, status: RoomSeatStatus.locked);
-
-    _room = VoiceRoom(
-      id: '87012534',
-      name: 'Junaya Official Room',
-      ownerId: 'owner_001',
-      announcement: 'Welcome! Be respectful and enjoy the room.',
-      onlineUsers: 128,
-      roomRank: 8,
-      seats: seats,
-    );
-  }
-
-  bool joinMic(int seatIndex) {
-    final currentRoom = _room;
-    if (currentRoom == null) return false;
-
-    if (seatIndex < 0 || seatIndex >= currentRoom.seats.length) {
-      _error = 'Invalid mic seat.';
-      notifyListeners();
-      return false;
-    }
-
-    final targetSeat = currentRoom.seats[seatIndex];
-
-    if (targetSeat.isLocked) {
-      _error = 'This mic seat is locked.';
-      notifyListeners();
-      return false;
-    }
-
-    if (targetSeat.isOccupied) {
-      _error = 'This mic seat is already occupied.';
-      notifyListeners();
-      return false;
-    }
-
-    if (isOnMic) {
-      _error = 'You are already on a mic.';
-      notifyListeners();
-      return false;
-    }
-
-    final seats = List<RoomSeat>.from(currentRoom.seats);
-
-    seats[seatIndex] = RoomSeat(
-      number: targetSeat.number,
-      status: RoomSeatStatus.occupied,
-      user: RoomUser(
-        id: currentUserId,
-        name: currentUserName,
-        avatar: currentUserAvatar,
-        isMuted: !_microphoneEnabled,
-      ),
-    );
-
-    _room = currentRoom.copyWith(seats: seats);
-    _error = null;
-    notifyListeners();
-    return true;
-  }
-
-  bool leaveMic() {
-    final currentRoom = _room;
-    final index = mySeatIndex;
-
-    if (currentRoom == null || index == null) {
-      _error = 'You are not on a mic seat.';
-      notifyListeners();
-      return false;
-    }
-
-    final seats = List<RoomSeat>.from(currentRoom.seats);
-    seats[index] = RoomSeat(number: seats[index].number);
-
-    _room = currentRoom.copyWith(seats: seats);
-    _error = null;
-    notifyListeners();
-    return true;
-  }
-
-  void toggleMicrophone() {
-    _microphoneEnabled = !_microphoneEnabled;
-
-    final currentRoom = _room;
-    final index = mySeatIndex;
-
-    if (currentRoom != null && index != null) {
-      final seats = List<RoomSeat>.from(currentRoom.seats);
-      final seat = seats[index];
-
-      if (seat.user != null) {
-        seats[index] = seat.copyWith(
-          user: seat.user!.copyWith(isMuted: !_microphoneEnabled),
-        );
-        _room = currentRoom.copyWith(seats: seats);
-      }
-    }
-
-    notifyListeners();
-  }
-
-  void toggleSpeaker() {
-    _speakerEnabled = !_speakerEnabled;
-    notifyListeners();
-  }
-
-  bool lockSeat(int seatIndex) {
-    final currentRoom = _room;
-    if (currentRoom == null) return false;
-
-    if (seatIndex < 0 || seatIndex >= currentRoom.seats.length) {
-      return false;
-    }
-
-    final seat = currentRoom.seats[seatIndex];
-    if (seat.isOccupied) {
-      _error = 'Occupied mic cannot be locked.';
-      notifyListeners();
-      return false;
-    }
-
-    final seats = List<RoomSeat>.from(currentRoom.seats);
-    seats[seatIndex] = RoomSeat(
-      number: seat.number,
-      status: RoomSeatStatus.locked,
-    );
-
-    _room = currentRoom.copyWith(seats: seats);
-    _error = null;
-    notifyListeners();
-    return true;
-  }
-
-  bool unlockSeat(int seatIndex) {
-    final currentRoom = _room;
-    if (currentRoom == null) return false;
-
-    if (seatIndex < 0 || seatIndex >= currentRoom.seats.length) {
-      return false;
-    }
-
-    final seat = currentRoom.seats[seatIndex];
-    if (!seat.isLocked) return false;
-
-    final seats = List<RoomSeat>.from(currentRoom.seats);
-    seats[seatIndex] = RoomSeat(number: seat.number);
-
-    _room = currentRoom.copyWith(seats: seats);
-    _error = null;
-    notifyListeners();
-    return true;
-  }
-
-  void updateRoomFromServer(Map<String, dynamic> json) {
-    _room = VoiceRoom.fromJson(json);
-    _error = null;
-    notifyListeners();
-  }
-
-  void setLoading(bool value) {
-    _loading = value;
-    notifyListeners();
-  }
-
-  void clearError() {
-    _error = null;
-    notifyListeners();
-  }
-}
 
 class RoomScreen extends StatefulWidget {
-  /// Optional Socket.IO server override.
+  /// Optional Socket.IO override from --dart-define.
   ///
-  /// Leave this empty for automatic development routing:
-  /// - Flutter Web / Chrome -> http://localhost:3000
-  /// - Android emulator     -> http://10.0.2.2:3000
+  /// Real phone:
+  /// flutter run --dart-define=SOCKET_URL=https://altered-compatible-aug-kidney.trycloudflare.com
   ///
-  /// For a real Android phone, pass your PC LAN address, for example:
-  /// RoomScreen(socketServerUrl: 'http://192.168.18.30:3000')
+  /// Emulator:
+  /// flutter run --dart-define=SOCKET_URL=http://10.0.2.2:3000
+  static const String environmentSocketUrl = String.fromEnvironment(
+    'https://altered-compatible-aug-kidney.trycloudflare.com',
+    defaultValue: '',
+  );
+
+  final String roomId;
+  final String? currentUserId;
+  final String? currentUserName;
+  final String? currentUserAvatar;
   final String socketServerUrl;
   final bool enableRealtime;
 
   const RoomScreen({
     super.key,
+    this.roomId = 'junaya-main',
+    this.currentUserId,
+    this.currentUserName,
+    this.currentUserAvatar,
     this.socketServerUrl = '',
     this.enableRealtime = true,
   });
@@ -491,6 +51,8 @@ class _RoomScreenState extends State<RoomScreen> {
   late final RoomController _roomController;
   late final RoomSocketService _socketService;
   late final LiveKitVoiceService _liveKitVoiceService;
+  late final String _resolvedUserId;
+  late final String _resolvedUserName;
 
   bool _socketConnected = false;
   String? _socketError;
@@ -500,27 +62,24 @@ class _RoomScreenState extends State<RoomScreen> {
 
   final List<String> _activityMessages = [
     'Welcome to Junaya Voice Room 👋',
-    'StoneBoy sent 20 treasures 🎁',
-    'Ayesha joined the room',
   ];
 
   final TextEditingController _chatController = TextEditingController();
 
   String get _resolvedSocketServerUrl {
-    final override = widget.socketServerUrl.trim();
+    final widgetOverride = widget.socketServerUrl.trim();
 
-    // Explicit override always wins. Use this for a physical Android phone.
-    if (override.isNotEmpty) {
-      return override;
+    if (widgetOverride.isNotEmpty) {
+      return widgetOverride;
     }
 
-    // Chrome/Flutter Web runs on the same Windows machine as Node.
-    if (kIsWeb) {
-      return 'http://localhost:3000';
+    final envOverride = RoomScreen.environmentSocketUrl.trim();
+
+    if (envOverride.isNotEmpty) {
+      return envOverride;
     }
 
-    // Android Studio emulator reaches the Windows host through 10.0.2.2.
-    return 'http://192.168.00.00:3000';
+    return 'https://altered-compatible-aug-kidney.trycloudflare.com';
   }
 
   final List<_RoomChatEntry> _chatMessages = [
@@ -530,27 +89,30 @@ class _RoomScreenState extends State<RoomScreen> {
       badge: 'ROOM',
       isSystem: true,
     ),
-    const _RoomChatEntry(name: 'Ayesha', message: 'Nice room ❤️'),
-    const _RoomChatEntry(
-      name: 'StoneBoy',
-      message: 'Hello everyone 👋',
-      badge: 'VIP 3',
-    ),
   ];
 
   @override
   void initState() {
     super.initState();
 
+    final suppliedId = widget.currentUserId?.trim() ?? '';
+    final suppliedName = widget.currentUserName?.trim() ?? '';
+    final uniqueSuffix = DateTime.now().microsecondsSinceEpoch.toString();
+    final platformPrefix = kIsWeb ? 'web' : 'android';
+
+    _resolvedUserId = suppliedId.isNotEmpty
+        ? suppliedId
+        : '${platformPrefix}_$uniqueSuffix';
+    _resolvedUserName = suppliedName.isNotEmpty
+        ? suppliedName
+        : 'Guest ${uniqueSuffix.substring(uniqueSuffix.length - 4)}';
+
     _roomController = RoomController(
-      currentUserId: kIsWeb
-          ? 'chrome_test_user'
-          : 'android_test_user',
-      currentUserName: kIsWeb
-          ? 'Chrome User'
-          : 'Android User',
-      currentUserAvatar: 'assets/users/profile.png',
+      currentUserId: _resolvedUserId,
+      currentUserName: _resolvedUserName,
+      currentUserAvatar: widget.currentUserAvatar,
     );
+    _roomController.setLoading(widget.enableRealtime);
 
     _roomController.addListener(_roomUpdated);
 
@@ -586,7 +148,7 @@ class _RoomScreenState extends State<RoomScreen> {
       '🌐 SOCKET CONNECT START: '
           'url=$_resolvedSocketServerUrl '
           'platform=${kIsWeb ? "WEB" : "ANDROID"} '
-          'room=${_room.id} '
+          'room=${widget.roomId} '
           'user=${_roomController.currentUserId}',
     );
 
@@ -607,7 +169,7 @@ class _RoomScreenState extends State<RoomScreen> {
         });
 
         _socketService.joinRoom(
-          roomId: _room.id,
+          roomId: widget.roomId,
           userId: _roomController.currentUserId,
           name: _roomController.currentUserName,
           avatar: _roomController.currentUserAvatar,
@@ -616,19 +178,20 @@ class _RoomScreenState extends State<RoomScreen> {
               '🚪 ROOM JOIN RESULT: '
                   'ok=$ok '
                   'error=$error '
-                  'room=${_room.id} '
+                  'room=${widget.roomId} '
                   'user=${_roomController.currentUserId}',
             );
 
             if (!mounted) return;
 
             if (!ok) {
-              if (error != null) {
-                setState(() => _socketError = error);
-              }
+              final message = error ?? 'Unable to join the room.';
+              setState(() => _socketError = message);
+              _roomController.setError(message);
               return;
             }
 
+            _roomController.setLoading(false);
             _startLiveKit();
           },
         );
@@ -645,12 +208,20 @@ class _RoomScreenState extends State<RoomScreen> {
         setState(() {
           _socketConnected = false;
         });
+
+        if (_roomController.room == null) {
+          _roomController.setError('Room connection was lost.');
+        }
       },
       onError: (message) {
         debugPrint(
           '❌ SOCKET ERROR: '
               '$message '
               'url=$_resolvedSocketServerUrl',
+        );
+        debugPrint(
+          '📱 REAL PHONE CHECK: open '
+              '$_resolvedSocketServerUrl/health in the phone browser.',
         );
 
         if (!mounted) return;
@@ -659,6 +230,8 @@ class _RoomScreenState extends State<RoomScreen> {
           _socketConnected = false;
           _socketError = message;
         });
+
+        _roomController.setError(message);
       },
       onRoomUpdate: (data) {
         debugPrint(
@@ -749,7 +322,7 @@ class _RoomScreenState extends State<RoomScreen> {
     }
 
     _socketService.requestLiveKitToken(
-      roomId: _room.id,
+      roomId: widget.roomId,
       identity: _roomController.currentUserId,
       name: _roomController.currentUserName,
       // Connect with publish permission but keep the mic disabled until
@@ -793,7 +366,7 @@ class _RoomScreenState extends State<RoomScreen> {
                 livekit['wsUrl']?.toString() ??
                 '';
         final token = livekit['token']?.toString() ?? '';
-        final roomName = livekit['roomName']?.toString() ?? _room.id;
+        final roomName = livekit['roomName']?.toString() ?? widget.roomId;
         final identity =
             livekit['identity']?.toString() ?? _roomController.currentUserId;
 
@@ -856,7 +429,7 @@ class _RoomScreenState extends State<RoomScreen> {
     if (!_socketConnected) return;
 
     _socketService.leaveSeat(
-      roomId: _room.id,
+      roomId: widget.roomId,
       userId: _roomController.currentUserId,
       onResult: (_, _) {},
     );
@@ -878,7 +451,7 @@ class _RoomScreenState extends State<RoomScreen> {
   void dispose() {
     if (_socketConnected) {
       _socketService.leaveRoom(
-        roomId: _room.id,
+        roomId: widget.roomId,
         userId: _roomController.currentUserId,
       );
     }
@@ -957,24 +530,12 @@ class _RoomScreenState extends State<RoomScreen> {
     if (message.isEmpty) return;
 
     if (!_socketConnected) {
-      _chatController.clear();
-
-      _addChatEntry(
-        _RoomChatEntry(
-          userId: _roomController.currentUserId,
-          name: _roomController.currentUserName,
-          avatar: _roomController.currentUserAvatar,
-          message: message,
-          isMe: true,
-        ),
-      );
-
-      _showMessage('Offline demo message added');
+      _showMessage('Connect to the room before sending a message.');
       return;
     }
 
     _socketService.sendChatMessage(
-      roomId: _room.id,
+      roomId: widget.roomId,
       userId: _roomController.currentUserId,
       name: _roomController.currentUserName,
       message: message,
@@ -1106,20 +667,12 @@ class _RoomScreenState extends State<RoomScreen> {
 
   void _joinMicRealtime(int index) {
     if (!_socketConnected) {
-      final joined = _roomController.joinMic(index);
-
-      if (joined) {
-        _addActivity('You joined Mic ${index + 1} 🎙️');
-        _showMessage('You joined Mic ${index + 1}');
-      } else {
-        _showMessage(_roomController.error ?? 'Unable to join mic');
-      }
-
+      _showMessage('Room connection is required to take a mic seat.');
       return;
     }
 
     _socketService.joinSeat(
-      roomId: _room.id,
+      roomId: widget.roomId,
       seatNumber: index + 1,
       userId: _roomController.currentUserId,
       name: _roomController.currentUserName,
@@ -1143,18 +696,12 @@ class _RoomScreenState extends State<RoomScreen> {
     _liveKitVoiceService.becomeListener();
 
     if (!_socketConnected) {
-      final left = _roomController.leaveMic();
-
-      if (left) {
-        _addActivity('You left the mic seat.');
-        _showMessage('You left the mic');
-      }
-
+      _showMessage('Room connection is required to leave the mic seat.');
       return;
     }
 
     _socketService.leaveSeat(
-      roomId: _room.id,
+      roomId: widget.roomId,
       userId: _roomController.currentUserId,
       onResult: (ok, error) {
         if (!mounted) return;
@@ -1184,7 +731,7 @@ class _RoomScreenState extends State<RoomScreen> {
 
     if (_socketConnected) {
       _socketService.setMicMuted(
-        roomId: _room.id,
+        roomId: widget.roomId,
         userId: _roomController.currentUserId,
         muted: muted,
         onResult: (ok, error) {
@@ -1202,18 +749,7 @@ class _RoomScreenState extends State<RoomScreen> {
     final seat = _room.seats[index];
 
     if (!_socketConnected) {
-      final changed = lock
-          ? _roomController.lockSeat(index)
-          : _roomController.unlockSeat(index);
-
-      if (changed) {
-        _showMessage(
-          lock ? 'Mic ${seat.number} locked' : 'Mic ${seat.number} unlocked',
-        );
-      } else if (_roomController.error != null) {
-        _showMessage(_roomController.error!);
-      }
-
+      _showMessage('Room connection is required to change mic locks.');
       return;
     }
 
@@ -1231,14 +767,14 @@ class _RoomScreenState extends State<RoomScreen> {
 
     if (lock) {
       _socketService.lockSeat(
-        roomId: _room.id,
+        roomId: widget.roomId,
         seatNumber: seat.number,
         userId: _roomController.currentUserId,
         onResult: onResult,
       );
     } else {
       _socketService.unlockSeat(
-        roomId: _room.id,
+        roomId: widget.roomId,
         seatNumber: seat.number,
         userId: _roomController.currentUserId,
         onResult: onResult,
@@ -1248,6 +784,63 @@ class _RoomScreenState extends State<RoomScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currentRoom = _roomController.room;
+
+    if (currentRoom == null) {
+      return Scaffold(
+        backgroundColor: _bg,
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_roomController.loading)
+                    const CircularProgressIndicator(
+                      color: Color(0xFFFF48ED),
+                    )
+                  else
+                    const Icon(
+                      Icons.cloud_off_rounded,
+                      color: Color(0xFFFFD76A),
+                      size: 42,
+                    ),
+                  const SizedBox(height: 16),
+                  Text(
+                    _roomController.loading
+                        ? 'Joining room...'
+                        : (_roomController.error ??
+                        _socketError ??
+                        'Room could not be loaded.'),
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      color: Colors.white70,
+                      fontSize: 13,
+                    ),
+                  ),
+                  if (!_roomController.loading) ...[
+                    const SizedBox(height: 14),
+                    OutlinedButton.icon(
+                      onPressed: widget.enableRealtime
+                          ? () {
+                        _roomController.clearError();
+                        _roomController.setLoading(true);
+                        _connectRealtimeRoom();
+                      }
+                          : null,
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('Retry'),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: _bg,
       body: SafeArea(

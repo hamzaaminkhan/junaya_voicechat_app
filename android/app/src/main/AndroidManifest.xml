@@ -1,23 +1,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Required for Socket.IO / LiveKit network connections. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
-
-    <!-- Required for LiveKit voice chat microphone capture. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
-    <!--
-      android:usesCleartextTraffic="true" is for local development so the
-      emulator can reach http://10.0.2.2:3000 (or a LAN HTTP server).
-      For production, use HTTPS/WSS and remove this setting.
-    -->
     <application
         android:label="junaya_voicechat_app"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:usesCleartextTraffic="true">
 
         <activity
@@ -30,11 +23,6 @@
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
 
-            <!--
-              Specifies an Android theme to apply to this Activity as soon as
-              the Android process has started. This theme is visible while
-              Flutter initializes.
-            -->
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
@@ -45,13 +33,11 @@
             </intent-filter>
         </activity>
 
-        <!-- Used by Flutter to generate GeneratedPluginRegistrant.java. -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
 
-    <!-- Required by Flutter's ProcessTextPlugin. -->
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT" />
