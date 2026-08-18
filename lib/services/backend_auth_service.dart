@@ -101,13 +101,15 @@ class BackendAuthService {
   // CURRENT USER
   // ==========================================
 
-  Future<Map<String, dynamic>> getCurrentUser() async {
+  Future<Map<String, dynamic>>
+  getCurrentUser() async {
     try {
       final response = await _dio.get(
         '/api/auth/me',
       );
 
-      final data = Map<String, dynamic>.from(
+      final data =
+      Map<String, dynamic>.from(
         response.data as Map,
       );
 
@@ -119,7 +121,9 @@ class BackendAuthService {
         );
       }
 
-      return Map<String, dynamic>.from(user);
+      return Map<String, dynamic>.from(
+        user,
+      );
     } on DioException catch (e) {
       throw Exception(
         _extractMessage(
@@ -131,7 +135,7 @@ class BackendAuthService {
   }
 
   // ==========================================
-  // CHECK BACKEND LOGIN
+  // CHECK LOGIN
   // ==========================================
 
   Future<bool> isLoggedIn() async {
@@ -147,9 +151,102 @@ class BackendAuthService {
       await getCurrentUser();
       return true;
     } catch (_) {
-      // api_client.dart will already attempt
-      // token refresh on a 401.
       return false;
+    }
+  }
+
+  // ==========================================
+  // CHECK EMAIL VERIFICATION
+  // ==========================================
+
+  Future<bool> isEmailVerified() async {
+    final user = await getCurrentUser();
+
+    return user['emailVerified'] == true;
+  }
+
+  // ==========================================
+  // RESEND EMAIL VERIFICATION
+  // ==========================================
+
+  Future<void>
+  resendVerificationEmail() async {
+    try {
+      await _dio.post(
+        '/api/auth/resend-verification',
+      );
+    } on DioException catch (e) {
+      throw Exception(
+        _extractMessage(
+          e,
+          'Unable to resend verification email.',
+        ),
+      );
+    }
+  }
+
+  // ==========================================
+  // FORGOT PASSWORD
+  // ==========================================
+
+  Future<void> forgotPassword({
+    required String email,
+  }) async {
+    try {
+      await _dio.post(
+        '/api/auth/forgot-password',
+        data: {
+          'email':
+          email.trim().toLowerCase(),
+        },
+      );
+    } on DioException catch (e) {
+      throw Exception(
+        _extractMessage(
+          e,
+          'Unable to send password reset instructions.',
+        ),
+      );
+    }
+  }
+
+  // ==========================================
+  // RESET PASSWORD
+  // ==========================================
+
+  Future<void> resetPassword({
+    required String token,
+    required String password,
+  }) async {
+    final cleanToken = token.trim();
+
+    if (cleanToken.isEmpty) {
+      throw Exception(
+        'Password reset token is missing.',
+      );
+    }
+
+    if (password.length < 8) {
+      throw Exception(
+        'Password must be at least 8 characters.',
+      );
+    }
+
+    try {
+      await _dio.post(
+        '/api/auth/reset-password',
+        data: {
+          'token': cleanToken,
+          'password': password,
+        },
+      );
+    } on DioException catch (e) {
+      throw Exception(
+        _extractMessage(
+          e,
+          'Unable to reset password.',
+        ),
+      );
     }
   }
 
@@ -167,13 +264,14 @@ class BackendAuthService {
         await _dio.post(
           '/api/auth/logout',
           data: {
-            'refreshToken': refreshToken,
+            'refreshToken':
+            refreshToken,
           },
         );
       }
     } catch (_) {
-      // Local logout must still succeed even
-      // when backend/tunnel is unavailable.
+      // Local logout must still succeed
+      // if backend is unavailable.
     } finally {
       await TokenStorage.clearTokens();
     }
@@ -193,17 +291,23 @@ class BackendAuthService {
       final message = data['message'];
 
       if (message != null &&
-          message.toString().trim().isNotEmpty) {
+          message
+              .toString()
+              .trim()
+              .isNotEmpty) {
         return message.toString();
       }
     }
 
     if (error.type ==
-        DioExceptionType.connectionTimeout ||
+        DioExceptionType
+            .connectionTimeout ||
         error.type ==
-            DioExceptionType.receiveTimeout ||
+            DioExceptionType
+                .receiveTimeout ||
         error.type ==
-            DioExceptionType.sendTimeout) {
+            DioExceptionType
+                .sendTimeout) {
       return 'Connection timed out. Please try again.';
     }
 
@@ -214,67 +318,4 @@ class BackendAuthService {
 
     return fallback;
   }
-
-  // ==========================================
-// FORGOT PASSWORD
-// ==========================================
-
-  Future<void> forgotPassword({
-    required String email,
-  }) async {
-    try {
-      await _dio.post(
-        '/api/auth/forgot-password',
-        data: {
-          'email': email.trim().toLowerCase(),
-        },
-      );
-    } on DioException catch (e) {
-      throw Exception(
-        _extractMessage(
-          e,
-          'Unable to send password reset instructions.',
-        ),
-      );
-    }
-  }
-
-  // ==========================================
-// CHECK EMAIL VERIFICATION
-// ==========================================
-
-  Future<bool> isEmailVerified() async {
-    try {
-      final user = await getCurrentUser();
-
-      return user['emailVerified'] == true;
-    } on DioException catch (e) {
-      throw Exception(
-        _extractMessage(
-          e,
-          'Unable to check email verification.',
-        ),
-      );
-    }
-  }
-
-// ==========================================
-// RESEND EMAIL VERIFICATION
-// ==========================================
-
-  Future<void> resendVerificationEmail() async {
-    try {
-      await _dio.post(
-        '/api/auth/resend-verification',
-      );
-    } on DioException catch (e) {
-      throw Exception(
-        _extractMessage(
-          e,
-          'Unable to resend verification email.',
-        ),
-      );
-    }
-  }
-
 }

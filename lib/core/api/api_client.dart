@@ -14,7 +14,13 @@ class ApiClient {
 
   Future<void>? _refreshFuture;
 
+  bool _initialized = false;
+
   void initialize() {
+    if (_initialized) return;
+
+    _initialized = true;
+
     dio = Dio(
       BaseOptions(
         baseUrl: AppConfig.apiBaseUrl,
@@ -76,6 +82,19 @@ class ApiClient {
           final requestOptions =
               error.requestOptions;
 
+          final path = requestOptions.path;
+
+          final skipRefresh =
+              path == '/api/auth/login' ||
+                  path == '/api/auth/register' ||
+                  path == '/api/auth/forgot-password' ||
+                  path == '/api/auth/reset-password' ||
+                  path == '/api/auth/verify-email';
+
+          if (skipRefresh) {
+            return handler.next(error);
+          }
+
           // Prevent infinite retry loop
           final alreadyRetried =
               requestOptions.extra['retried'] ==
@@ -122,9 +141,17 @@ class ApiClient {
             );
 
             return handler.resolve(response);
-          } catch (_) {
-            await TokenStorage.clearTokens();
+          } on DioException catch (refreshError) {
+            final refreshStatus =
+                refreshError.response?.statusCode;
 
+            if (refreshStatus == 401 ||
+                refreshStatus == 403) {
+              await TokenStorage.clearTokens();
+            }
+
+            return handler.next(error);
+          } catch (_) {
             return handler.next(error);
           }
         },
