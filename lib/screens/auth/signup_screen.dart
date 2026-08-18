@@ -223,9 +223,10 @@ class _SignupScreenState extends State<SignupScreen> {
 
       Navigator.pushNamedAndRemoveUntil(
         context,
-        AppRoutes.main,
+        AppRoutes.emailVerification,
             (route) => false,
       );
+
     } catch (e) {
       if (!mounted) return;
 
