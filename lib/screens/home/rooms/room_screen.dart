@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:junaya_voicechat_app/core/config/app_config.dart';
 import 'package:junaya_voicechat_app/controllers/room_controller.dart';
 import 'package:junaya_voicechat_app/models/voice_room_model.dart';
 import 'package:junaya_voicechat_app/services/livekit_voice_service.dart';
@@ -12,12 +13,12 @@ class RoomScreen extends StatefulWidget {
   /// Optional Socket.IO override from --dart-define.
   ///
   /// Real phone:
-  /// flutter run --dart-define=SOCKET_URL=https://altered-compatible-aug-kidney.trycloudflare.com
+  /// flutter run --dart-define=SOCKET_URL=https://your-domain.example
   ///
   /// Emulator:
-  /// flutter run --dart-define=SOCKET_URL=http://10.0.2.2:3000
+  /// flutter run --dart-define=SOCKET_URL=http://10.0.2.2:5000
   static const String environmentSocketUrl = String.fromEnvironment(
-    'https://altered-compatible-aug-kidney.trycloudflare.com',
+    'SOCKET_URL',
     defaultValue: '',
   );
 
@@ -79,7 +80,7 @@ class _RoomScreenState extends State<RoomScreen> {
       return envOverride;
     }
 
-    return 'https://altered-compatible-aug-kidney.trycloudflare.com';
+    return AppConfig.socketBaseUrl;
   }
 
   final List<_RoomChatEntry> _chatMessages = [

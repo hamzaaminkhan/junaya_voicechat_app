@@ -1,9 +1,19 @@
 class AppConfig {
   AppConfig._();
 
-  static const String apiBaseUrl =
-      'https://drag-veterans-boxed-targets.trycloudflare.com';
+  /// Node/Express backend.
+  ///
+  /// Android emulator uses 10.0.2.2 to reach the Windows host machine.
+  /// Override for a physical phone or production build with:
+  /// flutter run --dart-define=API_BASE_URL=https://your-domain.example
+  static const String apiBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://10.0.2.2:5000',
+  );
 
-  static const String socketBaseUrl =
-      'https://candidate-tide-guarantees-treatment.trycloudflare.com';
+  /// Socket.IO runs on the same HTTP server as the API.
+  static const String socketBaseUrl = String.fromEnvironment(
+    'SOCKET_URL',
+    defaultValue: 'http://10.0.2.2:5000',
+  );
 }

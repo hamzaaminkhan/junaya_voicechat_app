@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../routes/app_routes.dart';
-import '../../services/auth_service.dart';
+import '../../services/backend_auth_service.dart';
+import '../../core/storage/token_storage.dart';
 import '../../widgets/space_background.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -52,39 +53,58 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _continueAfterSplash() async {
-    await Future.delayed(const Duration(milliseconds: 1800));
+    await Future.delayed(
+      const Duration(milliseconds: 1800),
+    );
 
     if (!mounted) return;
 
-    final auth = FirebaseAuth.instance;
-    var user = auth.currentUser;
+    final hasBackendTokens =
+    await TokenStorage.hasTokens();
 
-    if (user == null) {
-      Navigator.pushReplacementNamed(context, AppRoutes.intro);
+    if (hasBackendTokens) {
+      try {
+        final user = await BackendAuthService
+            .instance
+            .getCurrentUser();
+
+        if (!mounted) return;
+
+        final isVerified =
+            user['emailVerified'] == true;
+
+        Navigator.pushReplacementNamed(
+          context,
+          isVerified
+              ? AppRoutes.main
+              : AppRoutes.emailVerification,
+        );
+
+        return;
+      } catch (_) {
+        // A stale/invalid backend session should return to login.
+        // Tokens are cleared by the API refresh flow when appropriate.
+      }
+    }
+
+    // Temporary compatibility with the current Firebase phone flow.
+    final firebaseUser =
+        FirebaseAuth.instance.currentUser;
+
+    if (firebaseUser != null &&
+        (firebaseUser.phoneNumber?.isNotEmpty ??
+            false)) {
+      Navigator.pushReplacementNamed(
+        context,
+        AppRoutes.main,
+      );
       return;
     }
 
-    // Refresh when possible, but do not throw away a valid cached session
-    // just because the device is temporarily offline.
-    try {
-      await user.reload();
-      user = auth.currentUser ?? user;
-    } catch (_) {
-      // Continue with the cached Firebase user.
-    }
-
-    if (!mounted) return;
-
-    if (user?.email != null && !user!.emailVerified) {
-      Navigator.pushReplacementNamed(context, AppRoutes.emailVerification);
-      return;
-    }
-
-    await AuthService.instance.syncCurrentUserState();
-
-    if (!mounted) return;
-
-    Navigator.pushReplacementNamed(context, AppRoutes.main);
+    Navigator.pushReplacementNamed(
+      context,
+      AppRoutes.intro,
+    );
   }
 
   @override

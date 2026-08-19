@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:junaya_voicechat_app/routes/app_routes.dart';
 import 'package:junaya_voicechat_app/services/auth_service.dart';
+import 'package:junaya_voicechat_app/services/backend_auth_service.dart';
 import '../auth/forgot_password_screen.dart' as auth;
 
 import 'account_screen.dart';
@@ -31,9 +32,7 @@ class SettingsScreen extends StatelessWidget {
           _item(context, 'Clear Cache', null),
           _item(context, 'Rate Us', null),
           _item(context, 'About', null),
-
           const SizedBox(height: 20),
-
           _logoutButton(context),
         ],
       ),
@@ -53,11 +52,11 @@ class SettingsScreen extends StatelessWidget {
         onTap: page == null
             ? null
             : () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => page),
-                );
-              },
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => page),
+          );
+        },
       ),
     );
   }
@@ -76,17 +75,16 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
         onPressed: () async {
+          // Email auth uses backend JWTs while phone auth still uses Firebase.
+          // Clear both so a previous Firebase session cannot immediately pass
+          // AuthGuard after a backend logout (and vice versa).
+          await BackendAuthService.instance.logout();
+
           try {
             await AuthService.instance.signOut();
-          } catch (e) {
-            if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(e.toString().replaceFirst('Exception: ', '')),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-            return;
+          } catch (_) {
+            // Backend/local logout is already complete. Firebase presence
+            // cleanup is best effort here.
           }
 
           if (!context.mounted) return;
@@ -94,7 +92,7 @@ class SettingsScreen extends StatelessWidget {
           Navigator.pushNamedAndRemoveUntil(
             context,
             AppRoutes.login,
-            (route) => false,
+                (route) => false,
           );
         },
         icon: const Icon(Icons.logout_rounded, size: 20),

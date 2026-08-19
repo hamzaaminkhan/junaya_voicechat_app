@@ -176,7 +176,7 @@ class _SignupScreenState extends State<SignupScreen> {
       // CREATE POSTGRESQL USER
       // ======================================
 
-      await _authService.register(
+      final response = await _authService.register(
         username:
         _usernameController.text.trim(),
         email:
@@ -187,40 +187,18 @@ class _SignupScreenState extends State<SignupScreen> {
 
       if (!mounted) return;
 
-      // ======================================
-      // AUTO LOGIN
-      //
-      // Register currently does not return JWT
-      // tokens, so log in immediately afterward.
-      // ======================================
-
-      await _authService.login(
-        email:
-        _emailController.text.trim(),
-        password:
-        _passwordController.text,
-        rememberMe: true,
-      );
-
-      if (!mounted) return;
+      final verificationEmailSent =
+          response['verificationEmailSent'] != false;
 
       showAuthMessage(
         context,
-        'Account created successfully.',
+        verificationEmailSent
+            ? 'Account created. Check your email to verify it.'
+            : 'Account created. You can resend the verification email.',
       );
 
-      // ======================================
-      // CURRENT TEMPORARY FLOW
-      //
-      // Email verification backend endpoints
-      // are not implemented yet.
-      //
-      // Once verification APIs are ready,
-      // change AppRoutes.main below to:
-      //
-      // AppRoutes.emailVerification
-      // ======================================
-
+      // Registration already returns and stores the backend JWT tokens.
+      // Do not perform a second login request here.
       Navigator.pushNamedAndRemoveUntil(
         context,
         AppRoutes.emailVerification,

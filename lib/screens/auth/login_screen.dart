@@ -111,14 +111,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
+      final isVerified =
+          user is Map &&
+              user['emailVerified'] == true;
+
       showAuthMessage(
         context,
-        'Welcome back!',
+        isVerified
+            ? 'Welcome back!'
+            : 'Please verify your email to continue.',
       );
 
       Navigator.pushNamedAndRemoveUntil(
         context,
-        AppRoutes.main,
+        isVerified
+            ? AppRoutes.main
+            : AppRoutes.emailVerification,
             (route) => false,
       );
     } catch (e) {

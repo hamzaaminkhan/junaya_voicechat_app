@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../core/api/api_client.dart';
 import '../core/storage/token_storage.dart';
@@ -25,15 +26,36 @@ class BackendAuthService {
         '/api/auth/register',
         data: {
           'email': email.trim().toLowerCase(),
-          'username': username.trim().toLowerCase(),
+          'username': username.trim(),
           'password': password,
         },
       );
 
-      return Map<String, dynamic>.from(
+      final data = Map<String, dynamic>.from(
         response.data as Map,
       );
+
+      // The backend registration contract returns JWT tokens so the
+      // unverified user can access /me and resend-verification.
+      final accessToken = data['accessToken']?.toString();
+      final refreshToken = data['refreshToken']?.toString();
+
+      if (accessToken != null &&
+          accessToken.isNotEmpty &&
+          refreshToken != null &&
+          refreshToken.isNotEmpty) {
+        await TokenStorage.saveTokens(
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+        );
+      }
+
+      return data;
     } on DioException catch (e) {
+      debugPrint(
+        'REGISTER ${e.response?.statusCode}: ${e.response?.data}',
+      );
+
       throw Exception(
         _extractMessage(
           e,
@@ -288,7 +310,10 @@ class BackendAuthService {
     final data = error.response?.data;
 
     if (data is Map) {
-      final message = data['message'];
+      final message =
+          data['message'] ??
+              data['error'] ??
+              data['detail'];
 
       if (message != null &&
           message
@@ -296,6 +321,18 @@ class BackendAuthService {
               .trim()
               .isNotEmpty) {
         return message.toString();
+      }
+    }
+
+    if (data is String && data.trim().isNotEmpty) {
+      final clean = data.trim();
+
+      // Avoid dumping an entire HTML error page into the UI.
+      if (!clean.toLowerCase().contains('<html') &&
+          !clean.toLowerCase().contains('<!doctype')) {
+        return clean.length > 220
+            ? '${clean.substring(0, 220)}...'
+            : clean;
       }
     }
 
