@@ -21,6 +21,7 @@ class RoomSocketService {
     SocketDataCallback? onRoomUpdate,
     SocketDataCallback? onUserJoined,
     SocketDataCallback? onUserLeft,
+    SocketDataCallback? onRoomEnded,
     SocketDataCallback? onChatMessage,
   }) {
     dispose();
@@ -83,6 +84,13 @@ class RoomSocketService {
       final parsed = _toMap(data);
       if (parsed != null) {
         onUserLeft?.call(parsed);
+      }
+    });
+
+    socket.on('room:ended', (data) {
+      final parsed = _toMap(data);
+      if (parsed != null) {
+        onRoomEnded?.call(parsed);
       }
     });
 
@@ -182,6 +190,18 @@ class RoomSocketService {
   }) {
     _emitWithResult(
       'room:leave',
+      {'roomId': roomId, 'userId': userId},
+      onResult,
+    );
+  }
+
+  void endRoom({
+    required String roomId,
+    required String userId,
+    void Function(bool ok, String? error)? onResult,
+  }) {
+    _emitWithResult(
+      'room:end',
       {'roomId': roomId, 'userId': userId},
       onResult,
     );

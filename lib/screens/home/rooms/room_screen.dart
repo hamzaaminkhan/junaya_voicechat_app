@@ -61,6 +61,10 @@ class _RoomScreenState extends State<RoomScreen> {
   bool _liveKitConnected = false;
   String? _liveKitError;
 
+  bool _exitSheetOpen = false;
+  bool _isLeavingRoom = false;
+  bool _roomExitHandled = false;
+
   final List<String> _activityMessages = [
     'Welcome to Junaya Voice Room 👋',
   ];
@@ -198,6 +202,8 @@ class _RoomScreenState extends State<RoomScreen> {
         );
       },
       onDisconnected: (reason) {
+        if (_roomExitHandled) return;
+
         debugPrint(
           '⚠️ SOCKET DISCONNECTED: '
               'reason=$reason '
@@ -270,6 +276,9 @@ class _RoomScreenState extends State<RoomScreen> {
             isSystem: true,
           ),
         );
+      },
+      onRoomEnded: (data) {
+        _handleRoomEnded(data);
       },
       onChatMessage: (data) {
         final rawUser = data['user'];
@@ -448,9 +457,314 @@ class _RoomScreenState extends State<RoomScreen> {
     }
   }
 
+  Future<void> _showExitRoomSheet() async {
+    if (!mounted || _exitSheetOpen || _isLeavingRoom) return;
+
+    final room = _roomController.room;
+
+    if (room == null) {
+      await _finishRoomExit();
+      return;
+    }
+
+    _exitSheetOpen = true;
+
+    try {
+      await showModalBottomSheet<void>(
+        context: context,
+        backgroundColor: Colors.transparent,
+        isScrollControlled: true,
+        builder: (sheetContext) {
+          final isOwner = _roomController.isRoomOwner;
+          final isOnMic = _roomController.isOnMic;
+
+          return SafeArea(
+            child: Container(
+              margin: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 18),
+              decoration: BoxDecoration(
+                color: const Color(0xFF190837),
+                borderRadius: BorderRadius.circular(26),
+                border: Border.all(color: _pink.withValues(alpha: .22)),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black38,
+                    blurRadius: 28,
+                    offset: Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 44,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _pink.withValues(alpha: .12),
+                    ),
+                    child: const Icon(
+                      Icons.logout_rounded,
+                      color: Color(0xFFFF8DF4),
+                      size: 27,
+                    ),
+                  ),
+                  const SizedBox(height: 13),
+                  Text(
+                    isOwner ? 'Leave your room?' : 'Leave voice room?',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 7),
+                  Text(
+                    isOwner
+                        ? 'Leave and pass host to the next member, or end the room for everyone.'
+                        : isOnMic
+                        ? 'Your mic seat will be released and your voice connection will stop.'
+                        : 'You will disconnect from this room and stop hearing the conversation.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      color: Colors.white60,
+                      fontSize: 11.5,
+                      height: 1.45,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  _exitActionTile(
+                    icon: isOwner
+                        ? Icons.person_off_outlined
+                        : Icons.logout_rounded,
+                    title: isOwner ? 'Leave & transfer host' : 'Leave room',
+                    subtitle: isOwner
+                        ? 'The next member becomes room host.'
+                        : 'Disconnect from this voice room.',
+                    color: const Color(0xFFFFC857),
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+                      _leaveRoomProfessionally();
+                    },
+                  ),
+                  if (isOwner) ...[
+                    const SizedBox(height: 9),
+                    _exitActionTile(
+                      icon: Icons.power_settings_new_rounded,
+                      title: 'End room for everyone',
+                      subtitle: 'All members will be disconnected.',
+                      color: const Color(0xFFFF5E7A),
+                      onTap: () {
+                        Navigator.pop(sheetContext);
+                        _endRoomForEveryone();
+                      },
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(sheetContext),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        side: BorderSide(
+                          color: Colors.white.withValues(alpha: .15),
+                        ),
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                      ),
+                      child: Text(
+                        'Stay in room',
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    } finally {
+      _exitSheetOpen = false;
+    }
+  }
+
+  Widget _exitActionTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: .08),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: color.withValues(alpha: .22)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: .14),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white54,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: color.withValues(alpha: .9),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _leaveRoomProfessionally() {
+    if (_isLeavingRoom || _roomExitHandled) return;
+
+    setState(() => _isLeavingRoom = true);
+
+    if (!_socketConnected) {
+      _finishRoomExit();
+      return;
+    }
+
+    _socketService.leaveRoom(
+      roomId: widget.roomId,
+      userId: _roomController.currentUserId,
+      onResult: (ok, error) {
+        if (!mounted || _roomExitHandled) return;
+
+        if (!ok) {
+          setState(() => _isLeavingRoom = false);
+          _showMessage(error ?? 'Unable to leave the room.');
+          return;
+        }
+
+        _finishRoomExit();
+      },
+    );
+  }
+
+  void _endRoomForEveryone() {
+    if (_isLeavingRoom || _roomExitHandled) return;
+
+    if (!_roomController.isRoomOwner) {
+      _showMessage('Only the room owner can end the room.');
+      return;
+    }
+
+    if (!_socketConnected) {
+      _showMessage('Room connection is required to end the room.');
+      return;
+    }
+
+    setState(() => _isLeavingRoom = true);
+
+    _socketService.endRoom(
+      roomId: widget.roomId,
+      userId: _roomController.currentUserId,
+      onResult: (ok, error) {
+        if (!mounted || _roomExitHandled) return;
+
+        if (!ok) {
+          setState(() => _isLeavingRoom = false);
+          _showMessage(error ?? 'Unable to end the room.');
+          return;
+        }
+
+        _finishRoomExit();
+      },
+    );
+  }
+
+  Future<void> _handleRoomEnded(Map<String, dynamic> data) async {
+    if (!mounted || _roomExitHandled) return;
+
+    final rawEndedBy = data['endedBy'];
+    String endedById = '';
+
+    if (rawEndedBy is Map) {
+      endedById = rawEndedBy['id']?.toString() ?? '';
+    }
+
+    if (endedById != _roomController.currentUserId) {
+      _showMessage('The host ended this room.');
+      await Future<void>.delayed(const Duration(milliseconds: 450));
+    }
+
+    await _finishRoomExit();
+  }
+
+  Future<void> _finishRoomExit() async {
+    if (_roomExitHandled) return;
+
+    _roomExitHandled = true;
+
+    try {
+      await _liveKitVoiceService.leaveRoom();
+    } catch (_) {
+      // Dispose will perform a final cleanup if LiveKit is already gone.
+    }
+
+    if (!mounted) return;
+
+    Navigator.of(context).maybePop();
+  }
+
   @override
   void dispose() {
-    if (_socketConnected) {
+    if (_socketConnected && !_roomExitHandled) {
       _socketService.leaveRoom(
         roomId: widget.roomId,
         userId: _roomController.currentUserId,
@@ -788,53 +1102,61 @@ class _RoomScreenState extends State<RoomScreen> {
     final currentRoom = _roomController.room;
 
     if (currentRoom == null) {
-      return Scaffold(
-        backgroundColor: _bg,
-        body: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (_roomController.loading)
-                    const CircularProgressIndicator(
-                      color: Color(0xFFFF48ED),
-                    )
-                  else
-                    const Icon(
-                      Icons.cloud_off_rounded,
-                      color: Color(0xFFFFD76A),
-                      size: 42,
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop) {
+            _showExitRoomSheet();
+          }
+        },
+        child: Scaffold(
+          backgroundColor: _bg,
+          body: SafeArea(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_roomController.loading)
+                      const CircularProgressIndicator(
+                        color: Color(0xFFFF48ED),
+                      )
+                    else
+                      const Icon(
+                        Icons.cloud_off_rounded,
+                        color: Color(0xFFFFD76A),
+                        size: 42,
+                      ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _roomController.loading
+                          ? 'Joining room...'
+                          : (_roomController.error ??
+                          _socketError ??
+                          'Room could not be loaded.'),
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white70,
+                        fontSize: 13,
+                      ),
                     ),
-                  const SizedBox(height: 16),
-                  Text(
-                    _roomController.loading
-                        ? 'Joining room...'
-                        : (_roomController.error ??
-                        _socketError ??
-                        'Room could not be loaded.'),
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      color: Colors.white70,
-                      fontSize: 13,
-                    ),
-                  ),
-                  if (!_roomController.loading) ...[
-                    const SizedBox(height: 14),
-                    OutlinedButton.icon(
-                      onPressed: widget.enableRealtime
-                          ? () {
-                        _roomController.clearError();
-                        _roomController.setLoading(true);
-                        _connectRealtimeRoom();
-                      }
-                          : null,
-                      icon: const Icon(Icons.refresh_rounded),
-                      label: const Text('Retry'),
-                    ),
+                    if (!_roomController.loading) ...[
+                      const SizedBox(height: 14),
+                      OutlinedButton.icon(
+                        onPressed: widget.enableRealtime
+                            ? () {
+                          _roomController.clearError();
+                          _roomController.setLoading(true);
+                          _connectRealtimeRoom();
+                        }
+                            : null,
+                        icon: const Icon(Icons.refresh_rounded),
+                        label: const Text('Retry'),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),
@@ -842,41 +1164,49 @@ class _RoomScreenState extends State<RoomScreen> {
       );
     }
 
-    return Scaffold(
-      backgroundColor: _bg,
-      body: SafeArea(
-        bottom: false,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final double screenWidth = constraints.maxWidth > 430
-                ? 400
-                : constraints.maxWidth;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          _showExitRoomSheet();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: _bg,
+        body: SafeArea(
+          bottom: false,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final double screenWidth = constraints.maxWidth > 430
+                  ? 400
+                  : constraints.maxWidth;
 
-            return Center(
-              child: SizedBox(
-                width: screenWidth,
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        child: Column(
-                          children: [
-                            _buildStageHeader(),
-                            _buildMicGrid(),
-                            _buildTabs(),
-                            _buildRoomActions(),
-                            const SizedBox(height: 16),
-                          ],
+              return Center(
+                child: SizedBox(
+                  width: screenWidth,
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          child: Column(
+                            children: [
+                              _buildStageHeader(),
+                              _buildMicGrid(),
+                              _buildTabs(),
+                              _buildRoomActions(),
+                              const SizedBox(height: 16),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    _buildBottomBar(),
-                  ],
+                      _buildBottomBar(),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -1055,7 +1385,7 @@ class _RoomScreenState extends State<RoomScreen> {
                 ),
                 _headerIconButton(
                   icon: Icons.keyboard_arrow_up_rounded,
-                  onTap: () => Navigator.maybePop(context),
+                  onTap: _showExitRoomSheet,
                 ),
               ],
             ),
@@ -1179,17 +1509,20 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 
   Widget _buildMicGrid() {
+    final seatCount = _room.seats.length;
+    final columns = seatCount >= 12 ? 4 : 5;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 2, 18, 2),
       child: GridView.builder(
-        itemCount: _room.seats.length,
+        itemCount: seatCount,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 5,
-          mainAxisSpacing: 7,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: columns,
+          mainAxisSpacing: 8,
           crossAxisSpacing: 8,
-          childAspectRatio: .88,
+          childAspectRatio: .92,
         ),
         itemBuilder: (context, index) {
           return _buildMicSeat(index);
