@@ -1,12 +1,21 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 
+import '../../../services/backend_auth_service.dart';
 import '../../../widgets/space_background.dart';
 
 class EditProfileDetailsScreen extends StatefulWidget {
   final String? backgroundAsset;
+  final Map<String, dynamic>? initialProfile;
 
-  const EditProfileDetailsScreen({super.key, this.backgroundAsset});
+  const EditProfileDetailsScreen({
+    super.key,
+    this.backgroundAsset,
+    this.initialProfile,
+  });
 
   @override
   State<EditProfileDetailsScreen> createState() =>
@@ -14,18 +23,151 @@ class EditProfileDetailsScreen extends StatefulWidget {
 }
 
 class _EditProfileDetailsScreenState extends State<EditProfileDetailsScreen> {
-  String username = 'MR.ALEX';
-  String gender = 'Male';
-  String birthday = '2002-01-20';
-  String country = 'Pakistan';
-  String province = 'Punjab';
-  String height = 'Click to set';
-  String weight = '64 kg';
-  String job = 'Click to set';
-  String signature = 'Click to set';
-
   static const Color gold = Color(0xFFFFC94D);
   static const Color purple = Color(0xFFB25CFF);
+
+  final _formKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
+  final _bioController = TextEditingController();
+  final _picker = ImagePicker();
+
+  Map<String, dynamic>? _profile;
+  XFile? _selectedAvatar;
+  bool _loading = true;
+  bool _saving = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialProfile;
+    if (initial != null) {
+      _applyProfile(initial);
+      _loading = false;
+    } else {
+      _loadProfile();
+    }
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _bioController.dispose();
+    super.dispose();
+  }
+
+  void _applyProfile(Map<String, dynamic> profile) {
+    _profile = profile;
+    _usernameController.text = profile['username']?.toString() ?? '';
+    _bioController.text = profile['bio']?.toString() ?? '';
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final profile = await BackendAuthService.instance.getProfile();
+      if (!mounted) return;
+      setState(() {
+        _applyProfile(profile);
+        _loading = false;
+        _error = null;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = error.toString().replaceFirst('Exception: ', '');
+      });
+    }
+  }
+
+  Future<void> _pickAvatar() async {
+    if (_saving) return;
+
+    final image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 88,
+      maxWidth: 1400,
+      maxHeight: 1400,
+    );
+
+    if (image == null || !mounted) return;
+    setState(() => _selectedAvatar = image);
+  }
+
+  Future<void> _save() async {
+    if (_saving || !_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+
+    try {
+      var profile = _profile ?? <String, dynamic>{};
+      final oldUsername = profile['username']?.toString().trim() ?? '';
+      final oldBio = profile['bio']?.toString().trim() ?? '';
+      final newUsername = _usernameController.text.trim();
+      final newBio = _bioController.text.trim();
+
+      if (newUsername != oldUsername || newBio != oldBio) {
+        profile = await BackendAuthService.instance.updateProfile(
+          username: newUsername,
+          bio: newBio,
+        );
+      }
+
+      if (_selectedAvatar != null) {
+        profile = await BackendAuthService.instance.uploadAvatar(
+          _selectedAvatar!.path,
+        );
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _applyProfile(profile);
+        _selectedAvatar = null;
+        _saving = false;
+      });
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully')),
+        );
+
+      Navigator.pop(context, true);
+    } catch (error) {
+      if (!mounted) return;
+      final message = error.toString().replaceFirst('Exception: ', '');
+      setState(() {
+        _saving = false;
+        _error = message;
+      });
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
+  String _value(String key, [String fallback = '']) {
+    final value = _profile?[key];
+    if (value == null) return fallback;
+    final text = value.toString().trim();
+    return text.isEmpty ? fallback : text;
+  }
+
+  ImageProvider? _avatarProvider() {
+    if (_selectedAvatar != null) {
+      return FileImage(File(_selectedAvatar!.path));
+    }
+
+    final avatarUrl = _value('avatarUrl');
+    if (avatarUrl.isNotEmpty) {
+      return NetworkImage(avatarUrl);
+    }
+
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,26 +178,7 @@ class _EditProfileDetailsScreenState extends State<EditProfileDetailsScreen> {
           child: Column(
             children: [
               _buildTopBar(),
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildProfileHeader(),
-                      const SizedBox(height: 14),
-                      _buildPhotoAction(),
-                      const SizedBox(height: 14),
-                      _buildProfileNoticeCard(),
-                      const SizedBox(height: 12),
-                      _buildVoiceCard(),
-                      const SizedBox(height: 12),
-                      _buildDetailsCard(),
-                    ],
-                  ),
-                ),
-              ),
+              Expanded(child: _buildBody()),
             ],
           ),
         ),
@@ -65,41 +188,29 @@ class _EditProfileDetailsScreenState extends State<EditProfileDetailsScreen> {
 
   Widget _buildBackground({required Widget child}) {
     final asset = widget.backgroundAsset?.trim();
-
     if (asset != null && asset.isNotEmpty) {
       return Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset(
-            asset,
-            fit: BoxFit.cover,
-            errorBuilder: (_, _, _) {
-              return SpaceBackground(child: child);
-            },
-          ),
-          Container(color: Colors.black.withValues(alpha: .18)),
+          Image.asset(asset, fit: BoxFit.cover),
+          Container(color: Colors.black.withValues(alpha: .42)),
           child,
         ],
       );
     }
-
     return SpaceBackground(child: child);
   }
 
   Widget _buildTopBar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 4, 12, 4),
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
       child: SizedBox(
-        height: 46,
+        height: 48,
         child: Row(
           children: [
             IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(
-                Icons.arrow_back_rounded,
-                color: Colors.white,
-                size: 26,
-              ),
+              onPressed: _saving ? null : () => Navigator.pop(context),
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
             ),
             Expanded(
               child: Text(
@@ -112,109 +223,207 @@ class _EditProfileDetailsScreenState extends State<EditProfileDetailsScreen> {
                 ),
               ),
             ),
-            const SizedBox(width: 48),
+            SizedBox(
+              width: 66,
+              child: TextButton(
+                onPressed: _loading || _saving ? null : _save,
+                child: _saving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: gold,
+                        ),
+                      )
+                    : Text(
+                        'Save',
+                        style: GoogleFonts.poppins(
+                          color: gold,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildProfileHeader() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: _cardDecoration(),
-      child: Row(
-        children: [
-          Stack(
+  Widget _buildBody() {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator(color: purple));
+    }
+
+    if (_profile == null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.cloud_off, color: gold, size: 42),
+              const SizedBox(height: 12),
+              Text(
+                _error ?? 'Unable to load profile.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(color: Colors.white70),
+              ),
+              const SizedBox(height: 14),
+              OutlinedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _loading = true;
+                    _error = null;
+                  });
+                  _loadProfile();
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 30),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          children: [
+            _avatarSection(),
+            const SizedBox(height: 18),
+            _accountIdentityCard(),
+            const SizedBox(height: 14),
+            _editableCard(),
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  color: const Color(0xFFFF7D96),
+                  fontSize: 12,
+                ),
+              ),
+            ],
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: _saving ? null : _save,
+                style: FilledButton.styleFrom(
+                  backgroundColor: gold,
+                  foregroundColor: const Color(0xFF24102E),
+                  minimumSize: const Size.fromHeight(52),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+                icon: const Icon(Icons.save_outlined),
+                label: Text(
+                  'Save profile',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _avatarSection() {
+    final avatar = _avatarProvider();
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: _pickAvatar,
+          child: Stack(
             clipBehavior: Clip.none,
             children: [
               Container(
-                width: 78,
-                height: 78,
-                padding: const EdgeInsets.all(2.5),
+                padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: purple.withValues(alpha: .85),
-                    width: 2,
-                  ),
+                  border: Border.all(color: purple, width: 2.5),
                 ),
-                child: const CircleAvatar(
-                  backgroundColor: Color(0xFF20152D),
-                  child: Icon(
-                    Icons.person_rounded,
-                    color: Colors.white70,
-                    size: 42,
-                  ),
+                child: CircleAvatar(
+                  radius: 52,
+                  backgroundColor: const Color(0xFF21152E),
+                  backgroundImage: avatar,
+                  child: avatar == null
+                      ? const Icon(Icons.person, size: 54, color: Colors.white70)
+                      : null,
                 ),
               ),
               Positioned(
                 right: -2,
-                bottom: 2,
-                child: GestureDetector(
-                  onTap: _showPhotoMessage,
-                  child: Container(
-                    width: 27,
-                    height: 27,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: gold,
-                      border: Border.all(
-                        color: const Color(0xFF180A20),
-                        width: 2,
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.camera_alt_rounded,
-                      color: Color(0xFF180A20),
-                      size: 15,
-                    ),
+                bottom: 3,
+                child: Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: gold,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFF1A082D), width: 2),
+                  ),
+                  child: const Icon(
+                    Icons.photo_camera_outlined,
+                    color: Color(0xFF24102E),
+                    size: 18,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Profile photo',
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Upload up to 6 photos. Review may take up to 72 hours.',
-                  style: GoogleFonts.poppins(
-                    color: Colors.white54,
-                    fontSize: 11.5,
-                    height: 1.4,
-                  ),
-                ),
-              ],
+        ),
+        const SizedBox(height: 8),
+        TextButton(
+          onPressed: _saving ? null : _pickAvatar,
+          child: Text(
+            'Change Avatar',
+            style: GoogleFonts.poppins(
+              color: gold,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
             ),
           ),
+        ),
+        Text(
+          'JPG, PNG or WEBP • maximum 5 MB',
+          style: GoogleFonts.poppins(color: Colors.white38, fontSize: 10),
+        ),
+      ],
+    );
+  }
+
+  Widget _accountIdentityCard() {
+    final id = _value('junayaId', _value('id', '—'));
+    final vip = _value('vipLevel', '0');
+    final diamonds = _value('diamonds', '0');
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: _cardDecoration(),
+      child: Column(
+        children: [
+          _readOnlyRow(Icons.badge_outlined, 'User ID', id),
+          const Divider(color: Colors.white10),
+          _readOnlyRow(Icons.workspace_premium_outlined, 'VIP', 'VIP $vip'),
+          const Divider(color: Colors.white10),
+          _readOnlyRow(Icons.diamond_outlined, 'Diamonds', diamonds),
         ],
       ),
     );
   }
 
-  Widget _buildPhotoAction() {
-    return _ActionButton(
-      icon: Icons.add_a_photo_outlined,
-      label: 'Add profile photo',
-      color: gold,
-      onTap: _showPhotoMessage,
-    );
-  }
-
-  Widget _buildProfileNoticeCard() {
+  Widget _editableCard() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
@@ -222,42 +431,48 @@ class _EditProfileDetailsScreenState extends State<EditProfileDetailsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionHeader(
-            icon: Icons.info_outline_rounded,
-            title: 'Profile photo rules',
+          Text(
+            'Account profile',
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
           ),
-          const SizedBox(height: 11),
-          _ruleRow(
-            'VIP 6–10 and Emperor users can set a GIF avatar under 5MB.',
-          ),
-          const SizedBox(height: 8),
-          _ruleRow(
-            'After changing your avatar, wait 48 hours before editing it again.',
+          const SizedBox(height: 13),
+          TextFormField(
+            controller: _usernameController,
+            enabled: !_saving,
+            maxLength: 30,
+            style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+            decoration: _inputDecoration(
+              label: 'Username',
+              icon: Icons.person_outline_rounded,
+              helper: 'Must be unique. Letters, numbers, dots and underscores.',
+            ),
+            validator: (value) {
+              final username = value?.trim() ?? '';
+              if (username.length < 3 || username.length > 30) {
+                return 'Username must be between 3 and 30 characters';
+              }
+              if (!RegExp(r'^[a-zA-Z0-9._]+$').hasMatch(username)) {
+                return 'Use only letters, numbers, dots and underscores';
+              }
+              return null;
+            },
           ),
           const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(11),
-            decoration: BoxDecoration(
-              color: gold.withValues(alpha: .06),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: gold.withValues(alpha: .14)),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.shield_outlined, color: gold, size: 18),
-                const SizedBox(width: 9),
-                Expanded(
-                  child: Text(
-                    'Avoid inappropriate content and personal information such as phone numbers, addresses, account numbers, or children’s photos. Content may be reviewed and removed if it violates policy.',
-                    style: GoogleFonts.poppins(
-                      color: Colors.white60,
-                      fontSize: 10.8,
-                      height: 1.45,
-                    ),
-                  ),
-                ),
-              ],
+          TextFormField(
+            controller: _bioController,
+            enabled: !_saving,
+            minLines: 2,
+            maxLines: 4,
+            maxLength: 300,
+            style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+            decoration: _inputDecoration(
+              label: 'Bio',
+              icon: Icons.notes_rounded,
+              helper: 'Optional',
             ),
           ),
         ],
@@ -265,570 +480,80 @@ class _EditProfileDetailsScreenState extends State<EditProfileDetailsScreen> {
     );
   }
 
-  Widget _ruleRow(String text) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          margin: const EdgeInsets.only(top: 6),
-          width: 6,
-          height: 6,
-          decoration: const BoxDecoration(
-            color: purple,
-            shape: BoxShape.circle,
-          ),
-        ),
-        const SizedBox(width: 9),
-        Expanded(
-          child: Text(
-            text,
-            style: GoogleFonts.poppins(
-              color: Colors.white70,
-              fontSize: 11.3,
-              height: 1.4,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildVoiceCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: _cardDecoration(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _readOnlyRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 7),
+      child: Row(
         children: [
-          _sectionHeader(icon: Icons.graphic_eq_rounded, title: 'Voice card'),
-          const SizedBox(height: 11),
-          _ActionButton(
-            icon: Icons.mic_none_rounded,
-            label: 'Add voice card',
-            color: const Color(0xFFA8E86F),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Voice recording will be connected next.'),
-                ),
-              );
-            },
+          Icon(icon, color: gold, size: 20),
+          const SizedBox(width: 10),
+          Text(
+            label,
+            style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12),
+          ),
+          const Spacer(),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDetailsCard() {
-    return Container(
-      decoration: _cardDecoration(),
-      child: Column(
-        children: [
-          _ProfileTile(
-            icon: Icons.person_outline_rounded,
-            label: 'Username',
-            value: username,
-            subtitle: 'Can only be changed once',
-            onTap: () {
-              _editTextValue(
-                title: 'Username',
-                currentValue: username,
-                onSaved: (value) {
-                  username = value;
-                },
-              );
-            },
-          ),
-          _ProfileTile(
-            icon: Icons.male_rounded,
-            label: 'Gender',
-            value: gender,
-            onTap: _selectGender,
-          ),
-          _ProfileTile(
-            icon: Icons.calendar_today_outlined,
-            label: 'Birthday',
-            value: birthday,
-            onTap: _selectBirthday,
-          ),
-          _ProfileTile(
-            icon: Icons.flag_outlined,
-            label: 'Country',
-            value: country,
-            onTap: () {
-              _editTextValue(
-                title: 'Country',
-                currentValue: country,
-                onSaved: (value) {
-                  country = value;
-                },
-              );
-            },
-          ),
-          _ProfileTile(
-            icon: Icons.location_city_outlined,
-            label: 'Province',
-            value: province,
-            onTap: () {
-              _editTextValue(
-                title: 'Province',
-                currentValue: province,
-                onSaved: (value) {
-                  province = value;
-                },
-              );
-            },
-          ),
-          _ProfileTile(
-            icon: Icons.height_rounded,
-            label: 'Height',
-            value: height,
-            onTap: () {
-              _editTextValue(
-                title: 'Height',
-                currentValue: height,
-                hintText: 'Example: 175 cm',
-                onSaved: (value) {
-                  height = value;
-                },
-              );
-            },
-          ),
-          _ProfileTile(
-            icon: Icons.monitor_weight_outlined,
-            label: 'Weight',
-            value: weight,
-            onTap: () {
-              _editTextValue(
-                title: 'Weight',
-                currentValue: weight,
-                hintText: 'Example: 64 kg',
-                onSaved: (value) {
-                  weight = value;
-                },
-              );
-            },
-          ),
-          _ProfileTile(
-            icon: Icons.work_outline_rounded,
-            label: 'Job',
-            value: job,
-            onTap: () {
-              _editTextValue(
-                title: 'Job',
-                currentValue: job,
-                onSaved: (value) {
-                  job = value;
-                },
-              );
-            },
-          ),
-          _ProfileTile(
-            icon: Icons.edit_note_rounded,
-            label: 'Signature',
-            value: signature,
-            onTap: () {
-              _editTextValue(
-                title: 'Signature',
-                currentValue: signature,
-                maxLines: 3,
-                onSaved: (value) {
-                  signature = value;
-                },
-              );
-            },
-          ),
-          _ProfileTile(
-            icon: Icons.workspace_premium_outlined,
-            label: 'Title',
-            value: 'Manage',
-            showBottomBorder: false,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Title management will be added next.'),
-                ),
-              );
-            },
-          ),
-        ],
+  InputDecoration _inputDecoration({
+    required String label,
+    required IconData icon,
+    required String helper,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      helperText: helper,
+      labelStyle: GoogleFonts.poppins(color: Colors.white60, fontSize: 12),
+      helperStyle: GoogleFonts.poppins(color: Colors.white38, fontSize: 9.5),
+      prefixIcon: Icon(icon, color: gold, size: 19),
+      counterStyle: GoogleFonts.poppins(color: Colors.white30, fontSize: 9),
+      filled: true,
+      fillColor: Colors.black.withValues(alpha: .25),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(13),
+        borderSide: BorderSide(color: purple.withValues(alpha: .36)),
       ),
-    );
-  }
-
-  Widget _sectionHeader({required IconData icon, required String title}) {
-    return Row(
-      children: [
-        Container(
-          width: 30,
-          height: 30,
-          decoration: BoxDecoration(
-            color: purple.withValues(alpha: .10),
-            borderRadius: BorderRadius.circular(9),
-          ),
-          child: Icon(icon, color: purple, size: 18),
-        ),
-        const SizedBox(width: 9),
-        Text(
-          title,
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontSize: 14.5,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(13),
+        borderSide: const BorderSide(color: gold),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(13),
+        borderSide: const BorderSide(color: Color(0xFFFF6D86)),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(13),
+        borderSide: const BorderSide(color: Color(0xFFFF6D86)),
+      ),
     );
   }
 
   BoxDecoration _cardDecoration() {
     return BoxDecoration(
-      color: Colors.black.withValues(alpha: .14),
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: Colors.white.withValues(alpha: .08)),
-    );
-  }
-
-  void _showPhotoMessage() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Profile image picker will be connected next.'),
-      ),
-    );
-  }
-
-  Future<void> _selectGender() async {
-    final String? result = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: const Color(0xFF0E0714),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 38,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white24,
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  'Select gender',
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _genderOption(icon: Icons.male_rounded, label: 'Male'),
-                _genderOption(icon: Icons.female_rounded, label: 'Female'),
-                _genderOption(
-                  icon: Icons.person_outline_rounded,
-                  label: 'Prefer not to say',
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-
-    if (result != null) {
-      setState(() {
-        gender = result;
-      });
-    }
-  }
-
-  Widget _genderOption({required IconData icon, required String label}) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-      leading: Icon(icon, color: purple, size: 21),
-      title: Text(
-        label,
-        style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
-      ),
-      onTap: () => Navigator.pop(context, label),
-    );
-  }
-
-  Future<void> _selectBirthday() async {
-    final DateTime initialDate =
-        DateTime.tryParse(birthday) ?? DateTime(2002, 1, 20);
-
-    final DateTime? selectedDate = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(1940),
-      lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: purple,
-              surface: Color(0xFF120A18),
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (selectedDate != null) {
-      setState(() {
-        birthday =
-            '${selectedDate.year.toString().padLeft(4, '0')}-'
-            '${selectedDate.month.toString().padLeft(2, '0')}-'
-            '${selectedDate.day.toString().padLeft(2, '0')}';
-      });
-    }
-  }
-
-  Future<void> _editTextValue({
-    required String title,
-    required String currentValue,
-    required ValueChanged<String> onSaved,
-    String? hintText,
-    int maxLines = 1,
-  }) async {
-    final bool isEmptyValue = currentValue == 'Click to set';
-
-    final TextEditingController controller = TextEditingController(
-      text: isEmptyValue ? '' : currentValue,
-    );
-
-    final String? result = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF120A18),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-          title: Text(
-            'Edit $title',
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          content: TextField(
-            controller: controller,
-            maxLines: maxLines,
-            autofocus: true,
-            style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
-            decoration: InputDecoration(
-              hintText: hintText ?? 'Enter $title',
-              hintStyle: GoogleFonts.poppins(
-                color: Colors.white38,
-                fontSize: 12,
-              ),
-              filled: true,
-              fillColor: Colors.white.withValues(alpha: .04),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: .10),
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: gold),
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.white54),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext, controller.text.trim());
-              },
-              child: const Text('Save', style: TextStyle(color: gold)),
-            ),
-          ],
-        );
-      },
-    );
-
-    controller.dispose();
-
-    if (result != null && result.trim().isNotEmpty) {
-      setState(() {
-        onSaved(result.trim());
-      });
-    }
-  }
-}
-
-class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _ActionButton({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(13),
-        child: Container(
-          width: double.infinity,
-          height: 44,
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: .10),
-            borderRadius: BorderRadius.circular(13),
-            border: Border.all(color: color.withValues(alpha: .24)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: color, size: 19),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  color: Colors.white.withValues(alpha: .86),
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
+      color: const Color(0xFF16082B).withValues(alpha: .86),
+      borderRadius: BorderRadius.circular(17),
+      border: Border.all(color: purple.withValues(alpha: .42)),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: .18),
+          blurRadius: 16,
+          offset: const Offset(0, 8),
         ),
-      ),
-    );
-  }
-}
-
-class _ProfileTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final String? subtitle;
-  final VoidCallback onTap;
-  final bool showBottomBorder;
-
-  const _ProfileTile({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.onTap,
-    this.subtitle,
-    this.showBottomBorder = true,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final bool unset = value == 'Click to set';
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          height: subtitle == null ? 54 : 62,
-          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
-          decoration: BoxDecoration(
-            border: showBottomBorder
-                ? Border(
-                    bottom: BorderSide(
-                      color: Colors.white.withValues(alpha: .065),
-                    ),
-                  )
-                : null,
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFB25CFF).withValues(alpha: .08),
-                  borderRadius: BorderRadius.circular(9),
-                ),
-                child: Icon(icon, color: const Color(0xFFB25CFF), size: 17),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      label,
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: 12.7,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle!,
-                        style: GoogleFonts.poppins(
-                          color: Colors.white38,
-                          fontSize: 9.5,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // VALUE COLUMN — shifted to the far right
-              SizedBox(
-                width: 118,
-                child: Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.right,
-                  style: GoogleFonts.poppins(
-                    color: unset ? Colors.white38 : Colors.white70,
-                    fontSize: 11.5,
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 3),
-
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: Colors.white30,
-                size: 19,
-              ),
-            ],
-          ),
-        ),
-      ),
+      ],
     );
   }
 }

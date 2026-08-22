@@ -14,7 +14,7 @@ class RoomSocketService {
 
   void connect({
     required String serverUrl,
-    String? token,
+    required String token,
     SocketVoidCallback? onConnected,
     SocketTextCallback? onDisconnected,
     SocketTextCallback? onError,
@@ -27,27 +27,29 @@ class RoomSocketService {
     dispose();
     _onRoomUpdate = onRoomUpdate;
 
-    final headers = <String, String>{};
-
-    if (token != null && token.trim().isNotEmpty) {
-      headers['Authorization'] = 'Bearer ${token.trim()}';
+    final cleanToken = token.trim();
+    if (cleanToken.isEmpty) {
+      onError?.call('Authentication token is missing. Please sign in again.');
+      return;
     }
 
+    final bearerToken = 'Bearer $cleanToken';
+
+    // Socket.IO auth works on mobile and web. Extra headers are also supplied
+    // for native clients; the backend accepts either location.
     final builder = IO.OptionBuilder()
         .setTransports(['websocket'])
         .disableAutoConnect()
         .enableReconnection()
-        .enableForceNew();
-
-    if (headers.isNotEmpty) {
-      builder.setExtraHeaders(headers);
-    }
+        .enableForceNew()
+        .setAuth({'token': bearerToken})
+        .setExtraHeaders({'Authorization': bearerToken});
 
     _socket = IO.io(serverUrl.trim(), builder.build());
     final socket = _socket!;
 
     socket.onConnect((_) {
-      debugPrint('✅ Socket.IO connected: id=${socket.id} server=$serverUrl');
+      debugPrint('✅ Authenticated Socket.IO connected: id=${socket.id}');
       onConnected?.call();
     });
 
@@ -57,48 +59,40 @@ class RoomSocketService {
     });
 
     socket.onConnectError((error) {
-      debugPrint('❌ Socket.IO connect error: $error');
-      onError?.call(error?.toString() ?? 'Connection error');
+      final message = _friendlyConnectionError(error);
+      debugPrint('❌ Socket.IO connect error: $message');
+      onError?.call(message);
     });
 
     socket.onError((error) {
-      debugPrint('❌ Socket.IO error: $error');
-      onError?.call(error?.toString() ?? 'Socket error');
+      final message = error?.toString() ?? 'Socket error';
+      debugPrint('❌ Socket.IO error: $message');
+      onError?.call(message);
     });
 
     socket.on('room:update', (data) {
       final parsed = _toMap(data);
-      if (parsed != null) {
-        _onRoomUpdate?.call(parsed);
-      }
+      if (parsed != null) _onRoomUpdate?.call(parsed);
     });
 
     socket.on('user:joined', (data) {
       final parsed = _toMap(data);
-      if (parsed != null) {
-        onUserJoined?.call(parsed);
-      }
+      if (parsed != null) onUserJoined?.call(parsed);
     });
 
     socket.on('user:left', (data) {
       final parsed = _toMap(data);
-      if (parsed != null) {
-        onUserLeft?.call(parsed);
-      }
+      if (parsed != null) onUserLeft?.call(parsed);
     });
 
     socket.on('room:ended', (data) {
       final parsed = _toMap(data);
-      if (parsed != null) {
-        onRoomEnded?.call(parsed);
-      }
+      if (parsed != null) onRoomEnded?.call(parsed);
     });
 
     socket.on('chat:message', (data) {
       final parsed = _toMap(data);
-      if (parsed != null) {
-        onChatMessage?.call(parsed);
-      }
+      if (parsed != null) onChatMessage?.call(parsed);
     });
 
     socket.connect();
@@ -128,24 +122,16 @@ class RoomSocketService {
         final ok = result['ok'] == true;
         final room = _toMap(result['room']);
 
-        if (ok && room != null) {
-          _onRoomUpdate?.call(room);
-        }
+        if (ok && room != null) _onRoomUpdate?.call(room);
 
-        onResult?.call(
-          ok,
-          room,
-          ok ? null : result['error']?.toString(),
-        );
+        onResult?.call(ok, room, ok ? null : result['error']?.toString());
       },
     );
   }
 
   void joinRoom({
     required String roomId,
-    required String userId,
-    required String name,
-    String? avatar,
+    String? roomName,
     void Function(bool ok, String? error)? onResult,
   }) {
     final socket = _socket;
@@ -159,7 +145,8 @@ class RoomSocketService {
       'room:join',
       {
         'roomId': roomId,
-        'user': {'id': userId, 'name': name, 'avatar': avatar},
+        if (roomName != null && roomName.trim().isNotEmpty)
+          'roomName': roomName.trim(),
       },
       ack: (data) {
         final result = _toMap(data);
@@ -173,9 +160,7 @@ class RoomSocketService {
 
         if (ok) {
           final room = _toMap(result['room']);
-          if (room != null) {
-            _onRoomUpdate?.call(room);
-          }
+          if (room != null) _onRoomUpdate?.call(room);
         }
 
         onResult?.call(ok, ok ? null : result['error']?.toString());
@@ -185,68 +170,45 @@ class RoomSocketService {
 
   void leaveRoom({
     required String roomId,
-    required String userId,
     void Function(bool ok, String? error)? onResult,
   }) {
-    _emitWithResult(
-      'room:leave',
-      {'roomId': roomId, 'userId': userId},
-      onResult,
-    );
+    _emitWithResult('room:leave', {'roomId': roomId}, onResult);
   }
 
   void endRoom({
     required String roomId,
-    required String userId,
     void Function(bool ok, String? error)? onResult,
   }) {
-    _emitWithResult(
-      'room:end',
-      {'roomId': roomId, 'userId': userId},
-      onResult,
-    );
+    _emitWithResult('room:end', {'roomId': roomId}, onResult);
   }
 
   void joinSeat({
     required String roomId,
     required int seatNumber,
-    required String userId,
-    required String name,
-    String? avatar,
     void Function(bool ok, String? error)? onResult,
   }) {
     _emitWithResult(
       'seat:join',
-      {
-        'roomId': roomId,
-        'seatNumber': seatNumber,
-        'user': {'id': userId, 'name': name, 'avatar': avatar},
-      },
+      {'roomId': roomId, 'seatNumber': seatNumber},
       onResult,
     );
   }
 
   void leaveSeat({
     required String roomId,
-    required String userId,
     void Function(bool ok, String? error)? onResult,
   }) {
-    _emitWithResult(
-      'seat:leave',
-      {'roomId': roomId, 'userId': userId},
-      onResult,
-    );
+    _emitWithResult('seat:leave', {'roomId': roomId}, onResult);
   }
 
   void setMicMuted({
     required String roomId,
-    required String userId,
     required bool muted,
     void Function(bool ok, String? error)? onResult,
   }) {
     _emitWithResult(
       'mic:set',
-      {'roomId': roomId, 'userId': userId, 'muted': muted},
+      {'roomId': roomId, 'muted': muted},
       onResult,
     );
   }
@@ -254,12 +216,11 @@ class RoomSocketService {
   void lockSeat({
     required String roomId,
     required int seatNumber,
-    required String userId,
     void Function(bool ok, String? error)? onResult,
   }) {
     _emitWithResult(
       'seat:lock',
-      {'roomId': roomId, 'seatNumber': seatNumber, 'userId': userId},
+      {'roomId': roomId, 'seatNumber': seatNumber},
       onResult,
     );
   }
@@ -267,26 +228,22 @@ class RoomSocketService {
   void unlockSeat({
     required String roomId,
     required int seatNumber,
-    required String userId,
     void Function(bool ok, String? error)? onResult,
   }) {
     _emitWithResult(
       'seat:unlock',
-      {'roomId': roomId, 'seatNumber': seatNumber, 'userId': userId},
+      {'roomId': roomId, 'seatNumber': seatNumber},
       onResult,
     );
   }
 
   void requestLiveKitToken({
     required String roomId,
-    required String identity,
-    required String name,
-    String role = 'subscriber',
     required void Function(
-        bool ok,
-        Map<String, dynamic>? livekit,
-        String? error,
-        ) onResult,
+      bool ok,
+      Map<String, dynamic>? livekit,
+      String? error,
+    ) onResult,
   }) {
     final socket = _socket;
 
@@ -297,12 +254,7 @@ class RoomSocketService {
 
     socket.emitWithAck(
       'livekit:token',
-      {
-        'roomId': roomId,
-        'identity': identity,
-        'name': name,
-        'role': role,
-      },
+      {'roomId': roomId},
       ack: (data) {
         final result = _toMap(data);
 
@@ -312,7 +264,6 @@ class RoomSocketService {
         }
 
         final ok = result['ok'] == true;
-
         if (!ok) {
           onResult(
             false,
@@ -322,57 +273,34 @@ class RoomSocketService {
           return;
         }
 
-        Map<String, dynamic>? livekit;
         final rawLiveKit = result['livekit'];
-
-        if (rawLiveKit is Map) {
-          livekit = Map<String, dynamic>.from(rawLiveKit);
-        } else {
-          final token = result['token']?.toString() ?? '';
-          final serverUrl =
-              result['serverUrl']?.toString() ??
-                  result['url']?.toString() ??
-                  result['wsUrl']?.toString() ??
-                  '';
-
-          if (token.isNotEmpty && serverUrl.isNotEmpty) {
-            livekit = Map<String, dynamic>.from(result);
-          }
-        }
-
-        if (livekit == null) {
+        if (rawLiveKit is! Map) {
           onResult(false, null, 'LiveKit token payload is missing.');
           return;
         }
 
-        onResult(true, livekit, null);
+        onResult(true, Map<String, dynamic>.from(rawLiveKit), null);
       },
     );
   }
 
   void sendChatMessage({
     required String roomId,
-    required String userId,
-    required String name,
     required String message,
     void Function(bool ok, String? error)? onResult,
   }) {
     _emitWithResult(
       'chat:send',
-      {
-        'roomId': roomId,
-        'user': {'id': userId, 'name': name},
-        'message': message,
-      },
+      {'roomId': roomId, 'message': message},
       onResult,
     );
   }
 
   void _emitWithResult(
-      String event,
-      Map<String, dynamic> payload,
-      void Function(bool ok, String? error)? onResult,
-      ) {
+    String event,
+    Map<String, dynamic> payload,
+    void Function(bool ok, String? error)? onResult,
+  ) {
     final socket = _socket;
 
     if (socket == null || !socket.connected) {
@@ -397,31 +325,36 @@ class RoomSocketService {
     );
   }
 
+  String _friendlyConnectionError(dynamic error) {
+    final raw = error?.toString() ?? 'Connection error';
+
+    if (raw.contains('AUTH_TOKEN_EXPIRED')) {
+      return 'Your session expired. Please retry the room connection.';
+    }
+    if (raw.contains('AUTH_REQUIRED') || raw.contains('AUTH_INVALID')) {
+      return 'Secure room authentication failed. Please sign in again.';
+    }
+    if (raw.contains('AUTH_USER_NOT_FOUND')) {
+      return 'Your Junaya account could not be found.';
+    }
+
+    return raw;
+  }
+
   Map<String, dynamic>? _toMap(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data;
-    }
-
-    if (data is Map) {
-      return Map<String, dynamic>.from(data);
-    }
-
+    if (data is Map<String, dynamic>) return data;
+    if (data is Map) return Map<String, dynamic>.from(data);
     return null;
   }
 
   void disconnect() {
-    final socket = _socket;
-    if (socket == null) return;
-    socket.disconnect();
+    _socket?.disconnect();
   }
 
   void dispose() {
     final socket = _socket;
     _socket = null;
     _onRoomUpdate = null;
-
-    if (socket != null) {
-      socket.dispose();
-    }
+    socket?.dispose();
   }
 }

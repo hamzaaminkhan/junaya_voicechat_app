@@ -58,7 +58,7 @@ flutter:
     - assets/users/
     - assets/banners/
     - assets/images/moments/
-    #- assets/rooms/
+    - assets/rooms/
     #- assets/gifts/
    # - assets/icons/
 

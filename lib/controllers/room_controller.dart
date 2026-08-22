@@ -3,15 +3,26 @@ import 'package:flutter/material.dart';
 import '../models/voice_room_model.dart';
 
 class RoomController extends ChangeNotifier {
-  final String currentUserId;
-  final String currentUserName;
-  final String? currentUserAvatar;
+  String currentUserId;
+  String currentUserName;
+  String? currentUserAvatar;
 
   RoomController({
     required this.currentUserId,
     required this.currentUserName,
     this.currentUserAvatar,
   });
+
+  void setAuthenticatedUser({
+    required String id,
+    required String name,
+    String? avatar,
+  }) {
+    currentUserId = id;
+    currentUserName = name;
+    currentUserAvatar = avatar;
+    notifyListeners();
+  }
 
   VoiceRoom? _room;
   VoiceRoom? get room => _room;

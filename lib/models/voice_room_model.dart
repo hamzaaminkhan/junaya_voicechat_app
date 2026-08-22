@@ -4,6 +4,8 @@ class RoomUser {
   final String id;
   final String name;
   final String? avatar;
+  final String? junayaId;
+  final int vipLevel;
   final bool isHost;
   final bool isAdmin;
   final bool isMuted;
@@ -13,6 +15,8 @@ class RoomUser {
     required this.id,
     required this.name,
     this.avatar,
+    this.junayaId,
+    this.vipLevel = 0,
     this.isHost = false,
     this.isAdmin = false,
     this.isMuted = false,
@@ -23,6 +27,8 @@ class RoomUser {
     String? id,
     String? name,
     String? avatar,
+    String? junayaId,
+    int? vipLevel,
     bool? isHost,
     bool? isAdmin,
     bool? isMuted,
@@ -32,6 +38,8 @@ class RoomUser {
       id: id ?? this.id,
       name: name ?? this.name,
       avatar: avatar ?? this.avatar,
+      junayaId: junayaId ?? this.junayaId,
+      vipLevel: vipLevel ?? this.vipLevel,
       isHost: isHost ?? this.isHost,
       isAdmin: isAdmin ?? this.isAdmin,
       isMuted: isMuted ?? this.isMuted,
@@ -44,6 +52,8 @@ class RoomUser {
       id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? 'User',
       avatar: json['avatar']?.toString(),
+      junayaId: json['junayaId']?.toString(),
+      vipLevel: _parseInt(json['vipLevel']),
       isHost: json['isHost'] == true,
       isAdmin: json['isAdmin'] == true,
       isMuted: json['isMuted'] == true,
@@ -56,6 +66,8 @@ class RoomUser {
       'id': id,
       'name': name,
       'avatar': avatar,
+      'junayaId': junayaId,
+      'vipLevel': vipLevel,
       'isHost': isHost,
       'isAdmin': isAdmin,
       'isMuted': isMuted,
@@ -107,13 +119,8 @@ class RoomSeat {
         parsedStatus = RoomSeatStatus.empty;
     }
 
-    final rawNumber = json['number'];
-    final seatNumber = rawNumber is int
-        ? rawNumber
-        : int.tryParse(rawNumber?.toString() ?? '') ?? 1;
-
     return RoomSeat(
-      number: seatNumber,
+      number: _parseInt(json['number'], fallback: 1),
       status: parsedStatus,
       user: json['user'] is Map
           ? RoomUser.fromJson(Map<String, dynamic>.from(json['user'] as Map))
@@ -174,20 +181,14 @@ class VoiceRoom {
   }
 
   factory VoiceRoom.fromJson(Map<String, dynamic> json) {
-    final rawOnline = json['onlineUsers'];
-    final rawRank = json['roomRank'];
-
     return VoiceRoom(
       id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? 'Junaya Voice Room',
       ownerId: json['ownerId']?.toString() ?? '',
-      announcement: json['announcement']?.toString() ?? 'Welcome to Junaya.',
-      onlineUsers: rawOnline is int
-          ? rawOnline
-          : int.tryParse(rawOnline?.toString() ?? '') ?? 0,
-      roomRank: rawRank is int
-          ? rawRank
-          : int.tryParse(rawRank?.toString() ?? '') ?? 0,
+      announcement:
+          json['announcement']?.toString() ?? 'Welcome to Junaya Voice Room.',
+      onlineUsers: _parseInt(json['onlineUsers']),
+      roomRank: _parseInt(json['roomRank']),
       seats: (json['seats'] as List<dynamic>? ?? const [])
           .whereType<Map>()
           .map((item) => RoomSeat.fromJson(Map<String, dynamic>.from(item)))
@@ -211,4 +212,9 @@ class VoiceRoom {
       'members': members.map((user) => user.toJson()).toList(),
     };
   }
+}
+
+int _parseInt(dynamic value, {int fallback = 0}) {
+  if (value is int) return value;
+  return int.tryParse(value?.toString() ?? '') ?? fallback;
 }

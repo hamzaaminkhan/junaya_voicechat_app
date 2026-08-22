@@ -157,6 +157,87 @@ class BackendAuthService {
   }
 
   // ==========================================
+  // ACCOUNT PROFILE
+  // ==========================================
+
+  Future<Map<String, dynamic>> getProfile() async {
+    try {
+      final response = await _dio.get('/api/profile');
+      final data = Map<String, dynamic>.from(response.data as Map);
+      final user = data['user'];
+
+      if (user is! Map) {
+        throw Exception('Invalid profile response from server.');
+      }
+
+      return Map<String, dynamic>.from(user);
+    } on DioException catch (e) {
+      throw Exception(_extractMessage(e, 'Unable to load profile.'));
+    }
+  }
+
+  Future<Map<String, dynamic>> updateProfile({
+    String? username,
+    String? bio,
+  }) async {
+    final payload = <String, dynamic>{};
+
+    if (username != null) {
+      payload['username'] = username.trim();
+    }
+    if (bio != null) {
+      payload['bio'] = bio.trim();
+    }
+
+    if (payload.isEmpty) {
+      return getProfile();
+    }
+
+    try {
+      final response = await _dio.patch('/api/profile', data: payload);
+      final data = Map<String, dynamic>.from(response.data as Map);
+      final user = data['user'];
+
+      if (user is! Map) {
+        throw Exception('Invalid profile response from server.');
+      }
+
+      return Map<String, dynamic>.from(user);
+    } on DioException catch (e) {
+      throw Exception(_extractMessage(e, 'Unable to update profile.'));
+    }
+  }
+
+  Future<Map<String, dynamic>> uploadAvatar(String filePath) async {
+    try {
+      final fileName = filePath.split(RegExp(r'[\\/]')).last;
+      final formData = FormData.fromMap({
+        'avatar': await MultipartFile.fromFile(
+          filePath,
+          filename: fileName.isEmpty ? 'avatar.jpg' : fileName,
+        ),
+      });
+
+      final response = await _dio.post(
+        '/api/profile/avatar',
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+
+      final data = Map<String, dynamic>.from(response.data as Map);
+      final user = data['user'];
+
+      if (user is! Map) {
+        throw Exception('Invalid avatar response from server.');
+      }
+
+      return Map<String, dynamic>.from(user);
+    } on DioException catch (e) {
+      throw Exception(_extractMessage(e, 'Unable to upload avatar.'));
+    }
+  }
+
+  // ==========================================
   // CHECK LOGIN
   // ==========================================
 

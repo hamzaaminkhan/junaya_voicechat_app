@@ -32,7 +32,7 @@ class AppConfig {
       return 'http://localhost:5000';
     }
 
-    return 'http://10.0.2.2:5000';
+    return 'http://192.168.100.183:5000';
   }
 
   /// Socket.IO uses the same Node.js server.
@@ -45,7 +45,7 @@ class AppConfig {
       return 'http://localhost:5000';
     }
 
-    return 'http://10.0.2.2:5000';
+    return 'http://192.168.100.183:5000';
   }
 
   static String get apiUrl => '$apiBaseUrl/api';

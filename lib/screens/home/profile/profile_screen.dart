@@ -1,24 +1,63 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:junaya_voicechat_app/routes/app_routes.dart';
-import 'package:junaya_voicechat_app/screens/home/profile/edit_profile_screen.dart';
 import 'package:junaya_voicechat_app/screens/home/profile/edit_profile_details_screen.dart';
+import 'package:junaya_voicechat_app/services/backend_auth_service.dart';
 import 'package:junaya_voicechat_app/widgets/space_background.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   final VoidCallback? onBack;
 
   const ProfileScreen({super.key, this.onBack});
 
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  Map<String, dynamic>? _profile;
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
+
+    try {
+      final profile = await BackendAuthService.instance.getProfile();
+      if (!mounted) return;
+      setState(() {
+        _profile = profile;
+        _loading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = error.toString().replaceFirst('Exception: ', '');
+      });
+    }
+  }
+
   void _handleBack(BuildContext context) {
-    if (onBack != null) {
-      onBack!();
+    if (widget.onBack != null) {
+      widget.onBack!();
       return;
     }
 
     final navigator = Navigator.of(context);
-
     if (navigator.canPop()) {
       navigator.pop();
     } else {
@@ -26,13 +65,71 @@ class ProfileScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _openEditor() async {
+    final changed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditProfileDetailsScreen(initialProfile: _profile),
+      ),
+    );
+
+    if (!mounted) return;
+    if (changed == true) {
+      await _loadProfile();
+    }
+  }
+
+  String _value(String key, [String fallback = '']) {
+    final value = _profile?[key];
+    if (value == null) return fallback;
+    final text = value.toString().trim();
+    return text.isEmpty ? fallback : text;
+  }
+
+  int get _vipLevel => int.tryParse(_value('vipLevel', '0')) ?? 0;
+
+  String _formatNumber(String raw) {
+    final clean = raw.replaceAll(',', '').trim();
+    final number = BigInt.tryParse(clean);
+    if (number == null) return raw;
+
+    final digits = number.toString();
+    final buffer = StringBuffer();
+    for (var i = 0; i < digits.length; i++) {
+      if (i > 0 && (digits.length - i) % 3 == 0) {
+        buffer.write(',');
+      }
+      buffer.write(digits[i]);
+    }
+    return buffer.toString();
+  }
+
+  ImageProvider _avatarProvider() {
+    final avatarUrl = _value('avatarUrl');
+    if (avatarUrl.isNotEmpty) {
+      return NetworkImage(avatarUrl);
+    }
+    return const AssetImage('assets/users/profile.png');
+  }
+
+  Future<void> _copyJunayaId() async {
+    final id = _value('junayaId', _value('id'));
+    if (id.isEmpty) return;
+
+    await Clipboard.setData(ClipboardData(text: id));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('User ID copied')));
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: onBack == null,
+      canPop: widget.onBack == null,
       onPopInvokedWithResult: (didPop, result) {
-        if (!didPop && onBack != null) {
-          onBack!();
+        if (!didPop && widget.onBack != null) {
+          widget.onBack!();
         }
       },
       child: Scaffold(
@@ -75,35 +172,12 @@ class ProfileScreen extends StatelessWidget {
                             color: Colors.white,
                             size: 27,
                           ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const EditProfileScreen(),
-                              ),
-                            );
-                          },
+                          onPressed: _profile == null ? null : _openEditor,
                         ),
                       ],
                     ),
                   ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 2),
-                          _profileHeader(),
-                          const SizedBox(height: 12),
-                          _statsSection(),
-                          const SizedBox(height: 12),
-                          _editButton(context),
-                          const SizedBox(height: 14),
-                          _menuList(context),
-                          const SizedBox(height: 24),
-                        ],
-                      ),
-                    ),
-                  ),
+                  Expanded(child: _buildBody()),
                 ],
               ),
             ),
@@ -113,13 +187,72 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // PROFILE HEADER
+  Widget _buildBody() {
+    if (_loading && _profile == null) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.purpleAccent),
+      );
+    }
+
+    if (_error != null && _profile == null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.cloud_off, color: Colors.amber, size: 42),
+              const SizedBox(height: 12),
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(color: Colors.white70),
+              ),
+              const SizedBox(height: 14),
+              OutlinedButton.icon(
+                onPressed: _loadProfile,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadProfile,
+      color: Colors.purpleAccent,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 2),
+            _profileHeader(),
+            const SizedBox(height: 12),
+            _statsSection(),
+            const SizedBox(height: 12),
+            _editButton(),
+            const SizedBox(height: 14),
+            _menuList(context),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _profileHeader() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final bool veryNarrow = constraints.maxWidth < 350;
-
-        final double avatarRadius = veryNarrow ? 42 : 47;
+        final veryNarrow = constraints.maxWidth < 350;
+        final avatarRadius = veryNarrow ? 42.0 : 47.0;
+        final username = _value('username', 'Junaya User');
+        final userId = _value('junayaId', _value('id', '—'));
+        final coins = _formatNumber(_value('coins', '0'));
+        final diamonds = _formatNumber(_value('diamonds', '0'));
 
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: veryNarrow ? 12 : 16),
@@ -134,82 +267,74 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 child: CircleAvatar(
                   radius: avatarRadius,
-                  backgroundImage: const AssetImage('assets/users/profile.png'),
+                  backgroundColor: const Color(0xFF21152E),
+                  backgroundImage: _avatarProvider(),
                 ),
               ),
-
               SizedBox(width: veryNarrow ? 10 : 13),
-
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            'MR. ALEX',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: veryNarrow ? 17 : 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          Icons.male,
-                          color: Colors.blueAccent,
-                          size: veryNarrow ? 18 : 20,
-                        ),
-                      ],
+                    Text(
+                      username,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: veryNarrow ? 17 : 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-
                     const SizedBox(height: 4),
-
                     Wrap(
                       spacing: 6,
                       runSpacing: 4,
                       children: [
                         _smallBadge(
                           Icons.workspace_premium,
-                          '0',
+                          'VIP $_vipLevel',
                           Colors.orange,
                         ),
-                        _smallBadge(Icons.diamond, '0', Colors.pinkAccent),
+                        _smallBadge(Icons.diamond, diamonds, Colors.pinkAccent),
                       ],
                     ),
-
                     const SizedBox(height: 5),
-
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            'ID :137804327',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.poppins(
-                              color: Colors.white70,
-                              fontSize: veryNarrow ? 10.5 : 12,
+                    InkWell(
+                      onTap: _copyJunayaId,
+                      borderRadius: BorderRadius.circular(6),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'ID: $userId',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white70,
+                                  fontSize: veryNarrow ? 10.5 : 12,
+                                ),
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 5),
+                            const Icon(
+                              Icons.copy,
+                              color: Colors.white70,
+                              size: 14,
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 5),
-                        const Icon(Icons.copy, color: Colors.white70, size: 14),
-                      ],
+                      ),
                     ),
-
                     const SizedBox(height: 6),
-
                     Row(
                       children: [
                         Expanded(
                           child: _headerMoneyCard(
                             Icons.monetization_on,
-                            '128,540',
+                            coins,
                             'Coins',
                             Colors.orange,
                           ),
@@ -218,7 +343,7 @@ class ProfileScreen extends StatelessWidget {
                         Expanded(
                           child: _headerMoneyCard(
                             Icons.diamond,
-                            '12,900',
+                            diamonds,
                             'Diamonds',
                             Colors.purpleAccent,
                           ),
@@ -260,7 +385,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // STATS SECTION
   Widget _statsSection() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 14),
@@ -272,10 +396,10 @@ class ProfileScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _statItem(Icons.person, '124', 'Friends'),
-          _statItem(Icons.person_add, '124', 'Following'),
-          _statItem(Icons.groups, '124', 'Followers'),
-          _statItem(Icons.remove_red_eye, '124', 'Visitors'),
+          _statItem(Icons.person, '0', 'Friends'),
+          _statItem(Icons.person_add, '0', 'Following'),
+          _statItem(Icons.groups, '0', 'Followers'),
+          _statItem(Icons.remove_red_eye, '0', 'Visitors'),
         ],
       ),
     );
@@ -307,8 +431,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // EDIT PROFILE BUTTON
-  Widget _editButton(BuildContext context) {
+  Widget _editButton() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 14),
       height: 46,
@@ -318,12 +441,7 @@ class ProfileScreen extends StatelessWidget {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const EditProfileDetailsScreen()),
-          );
-        },
+        onTap: _profile == null ? null : _openEditor,
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -339,7 +457,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // MENU LIST
   Widget _menuList(BuildContext context) {
     return Column(
       children: [
@@ -402,36 +519,24 @@ class ProfileScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
       child: Material(
         color: const Color(0xff12071F),
-
-        // ONLY use shape here.
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
           side: BorderSide(color: Colors.purpleAccent.withValues(alpha: .45)),
         ),
-
         clipBehavior: Clip.antiAlias,
-
         child: ListTile(
           dense: true,
-
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 1,
-          ),
-
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 1),
           leading: Icon(icon, color: Colors.amber, size: 21),
-
           title: Text(
             title,
             style: GoogleFonts.poppins(color: Colors.white, fontSize: 14),
           ),
-
           trailing: const Icon(
             Icons.arrow_forward_ios,
             color: Colors.white54,
             size: 15,
           ),
-
           onTap: onTap,
         ),
       ),
