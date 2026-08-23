@@ -39,6 +39,10 @@ dependencies:
   dio: ^5.11.0
   flutter_secure_storage: ^11.0.0
 
+  lottie: ^3.3.1
+  rive: ^0.13.20
+  video_player: ^2.10.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -54,13 +58,31 @@ flutter:
 
   assets:
     - assets/logo.png
+
+    # backgrounds
     - assets/backgrounds/
+
+    # users
     - assets/users/
+
+    # banners
     - assets/banners/
+
+    # moments
     - assets/images/moments/
+
+    # rooms
     - assets/rooms/
-    #- assets/gifts/
-   # - assets/icons/
+
+    # gifts and animations
+    - assets/gifts/
+    - assets/animations/
+    - assets/animations/gifts/
+    - assets/animations/entrance/
+    - assets/animations/vip/
+
+    # icons
+    - assets/icons/
 
 
 

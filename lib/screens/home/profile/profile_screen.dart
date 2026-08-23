@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:junaya_voicechat_app/routes/app_routes.dart';
 import 'package:junaya_voicechat_app/screens/home/profile/edit_profile_details_screen.dart';
+import 'package:junaya_voicechat_app/screens/home/profile/sections/vip_purchase_screen.dart';
 import 'package:junaya_voicechat_app/services/backend_auth_service.dart';
 import 'package:junaya_voicechat_app/widgets/space_background.dart';
 
@@ -293,7 +294,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         _smallBadge(
                           Icons.workspace_premium,
-                          'VIP $_vipLevel',
+                          '$_vipLevel',
                           Colors.orange,
                         ),
                         _smallBadge(Icons.diamond, diamonds, Colors.pinkAccent),
@@ -469,6 +470,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Icons.shopping_bag,
           'Store',
           onTap: () => Navigator.pushNamed(context, AppRoutes.store),
+        ),
+        _menuTile(
+          Icons.workspace_premium,
+          'VIP Purchase',
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const VipPurchaseScreen()),
+          ),
         ),
         _menuTile(
           Icons.person_add,
