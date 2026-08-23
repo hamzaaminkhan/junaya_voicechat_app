@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
-class HomeTopTabs extends StatefulWidget {
+class HomeTopTabs extends StatelessWidget {
+
   final int selectedIndex;
   final ValueChanged<int>? onChanged;
+
 
   const HomeTopTabs({
     super.key,
@@ -10,222 +12,255 @@ class HomeTopTabs extends StatefulWidget {
     this.onChanged,
   });
 
-  @override
-  State<HomeTopTabs> createState() => _HomeTopTabsState();
-}
-
-class _HomeTopTabsState extends State<HomeTopTabs>
-    with SingleTickerProviderStateMixin {
-
-  final List<String> tabs = [
-    "Related",
-    "Hot",
-    "Party",
-  ];
 
   @override
   Widget build(BuildContext context) {
 
-    return Row(
-      children: [
+    final tabs = [
+      "Related",
+      "Hot",
+      "Party",
+    ];
 
-        Expanded(
-          child: Container(
-            height: 42,
 
-            padding:
-            const EdgeInsets.all(4),
+    return Padding(
 
-            decoration: BoxDecoration(
+      padding:
+      const EdgeInsets.symmetric(horizontal:15),
 
-              color:
-              Colors.white.withValues(alpha: .06),
+      child: Row(
 
-              borderRadius:
-              BorderRadius.circular(24),
+        children:[
 
-              border:
-              Border.all(
+
+          Expanded(
+
+            child: Container(
+
+              height:38,
+
+
+              padding:
+              const EdgeInsets.all(3),
+
+
+              decoration:BoxDecoration(
+
                 color:
-                Colors.white.withValues(alpha: .08),
+                Colors.white.withValues(alpha:.06),
+
+
+                borderRadius:
+                BorderRadius.circular(22),
+
+
+                border:Border.all(
+
+                  color:
+                  Colors.white.withValues(alpha:.10),
+
+                ),
+
               ),
-            ),
 
 
-            child: Row(
+              child:Row(
 
-              children:
+                children:
 
-              List.generate(
-                tabs.length,
+                List.generate(
 
-                    (index){
+                  tabs.length,
 
-                  final active =
-                      widget.selectedIndex == index;
+                      (index){
 
-
-                  return Expanded(
-
-                    child:
-                    GestureDetector(
-
-                      onTap: (){
-
-                        widget.onChanged
-                            ?.call(index);
-
-                      },
+                    final active =
+                        selectedIndex == index;
 
 
-                      child:
-                      AnimatedContainer(
+                    return Expanded(
 
-                        duration:
-                        const Duration(
-                          milliseconds:250,
-                        ),
+                      child:GestureDetector(
 
-                        curve:
-                        Curves.easeOut,
+                        onTap:(){
 
-                        alignment:
-                        Alignment.center,
+                          onChanged?.call(index);
+
+                        },
 
 
-                        decoration:
-                        BoxDecoration(
-
-                          borderRadius:
-                          BorderRadius.circular(20),
-
-
-                          gradient:
-                          active
-
-                              ?
-
-                          const LinearGradient(
-                            colors:[
-                              Color(0xff00D9B5),
-                              Color(0xff00A98F),
-                            ],
-                          )
-
-                              :
-
-                          null,
-                        ),
-
-
-                        child:
-                        AnimatedDefaultTextStyle(
+                        child:AnimatedContainer(
 
                           duration:
                           const Duration(
-                            milliseconds:200,
+                            milliseconds:220,
                           ),
 
-                          style:
 
-                          TextStyle(
+                          alignment:
+                          Alignment.center,
 
-                            color:
+
+                          decoration:BoxDecoration(
+
+                            borderRadius:
+                            BorderRadius.circular(20),
+
+
+                            gradient:
 
                             active
 
                                 ?
-                            Colors.black
+
+                            const LinearGradient(
+
+                              colors:[
+
+                                Color(0xff00D9B5),
+
+                                Color(0xff00A98F),
+
+                              ],
+
+                            )
 
                                 :
-                            Colors.white70,
+
+                            null,
 
 
-                            fontSize:
-                            14,
-
-
-                            fontWeight:
+                            boxShadow:
 
                             active
 
                                 ?
-                            FontWeight.w700
+
+                            [
+
+                              BoxShadow(
+
+                                color:
+                                const Color(0xff00D9B5)
+                                    .withValues(alpha:.35),
+
+                                blurRadius:12,
+
+                              ),
+
+                            ]
 
                                 :
-                            FontWeight.w500,
+
+                            [],
+
                           ),
 
 
-                          child:
-                          Text(
+                          child:Text(
+
                             tabs[index],
+
+
+                            style:TextStyle(
+
+                              color:
+
+                              active
+
+                                  ?
+
+                              Colors.black
+
+                                  :
+
+                              Colors.white70,
+
+
+                              fontSize:13,
+
+
+                              fontWeight:
+
+                              active
+
+                                  ?
+
+                              FontWeight.w700
+
+                                  :
+
+                              FontWeight.w500,
+
+                            ),
+
                           ),
+
                         ),
+
                       ),
-                    ),
-                  );
-                },
+
+                    );
+
+                  },
+
+                ),
+
               ),
+
             ),
+
           ),
-        ),
 
 
-        const SizedBox(width:12),
+          const SizedBox(width:10),
 
 
-        GestureDetector(
-
-          onTap: (){
-
-            // open search page
-
-          },
-
-
-          child:
           Container(
 
-            height:42,
+            height:38,
 
-            width:42,
+            width:38,
 
 
-            decoration:
-            BoxDecoration(
+            decoration:BoxDecoration(
 
               color:
-              Colors.white.withValues(alpha: .06),
+              Colors.white.withValues(alpha:.06),
 
 
               shape:
               BoxShape.circle,
 
 
-              border:
-              Border.all(
+              border:Border.all(
 
                 color:
-                Colors.white.withValues(alpha: .1),
+                Colors.white.withValues(alpha:.10),
 
               ),
+
             ),
 
 
-            child:
-            const Icon(
+            child:const Icon(
 
               Icons.search_rounded,
 
-              color:
-              Colors.white,
+              color:Colors.white,
 
-              size:22,
+              size:20,
+
             ),
+
           ),
-        ),
-      ],
+
+        ],
+
+      ),
+
     );
+
   }
+
 }
