@@ -45,7 +45,7 @@ class RoomScreen extends StatefulWidget {
     this.currentUserName,
     this.currentUserAvatar,
     this.socketServerUrl = '',
-    this.backgroundAsset = 'assets/rooms/mralex.png',
+    this.backgroundAsset = 'assets/rooms/mralex.jpeg',
     this.enableRealtime = true,
   });
 
