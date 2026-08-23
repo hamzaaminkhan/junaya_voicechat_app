@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../theme/junaya_fonts.dart';
 
 import 'package:junaya_voicechat_app/widgets/room_card.dart';
 import 'package:junaya_voicechat_app/widgets/space_background.dart';
@@ -154,24 +155,34 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SliverToBoxAdapter(child: SizedBox(height: 15)),
                 SliverToBoxAdapter(
-                  child: sectionTitle('Popular Rooms', trailing: 'Live now'),
+                  child: sectionTitle('Popular Rooms', trailing: 'LIVE NOW'),
                 ),
                 const SliverToBoxAdapter(child: SizedBox(height: 6)),
-                SliverList.separated(
-                  itemCount: rooms.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final room = rooms[index];
-                    return JunaidRoomCard(
-                      flag: room['flag'] as String,
-                      roomName: room['name'] as String,
-                      description: room['desc'] as String,
-                      vip: room['vip'] as String,
-                      level: room['level'] as String,
-                      role: room['role'] as String,
-                      likes: room['likes'] as int,
-                    );
-                  },
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  sliver: SliverGrid(
+                    delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                        final room = rooms[index];
+                        return JunaidRoomCard(
+                          flag: room['flag'] as String,
+                          roomName: room['name'] as String,
+                          description: room['desc'] as String,
+                          vip: room['vip'] as String,
+                          level: room['level'] as String,
+                          role: room['role'] as String,
+                          likes: room['likes'] as int,
+                        );
+                      },
+                      childCount: rooms.length,
+                    ),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 15,
+                      childAspectRatio: .72,
+                    ),
+                  ),
                 ),
                 const SliverToBoxAdapter(child: SizedBox(height: 130)),
               ],
@@ -407,7 +418,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget homeBannerSlider() {
     return SizedBox(
-      height: 170,
+      height: 185,
       child: PageView.builder(
         controller: bannerController,
         itemCount: _bannerAssets.length,
