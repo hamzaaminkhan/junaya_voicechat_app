@@ -1,163 +1,116 @@
 import 'package:flutter/material.dart';
 
+
 class HomeTopTabs extends StatelessWidget {
 
+
   final int selectedIndex;
+
   final ValueChanged<int>? onChanged;
 
 
+
   const HomeTopTabs({
+
     super.key,
+
     this.selectedIndex = 0,
+
     this.onChanged,
+
   });
+
+
 
 
   @override
   Widget build(BuildContext context) {
 
+
     final tabs = [
+
       "Related",
+
       "Hot",
-      "Party",
+
+      "Follow",
+
     ];
+
 
 
     return Padding(
 
       padding:
-      const EdgeInsets.symmetric(horizontal:15),
+      const EdgeInsets.symmetric(horizontal:18),
 
-      child: Row(
+
+      child:Row(
+
+        crossAxisAlignment:
+        CrossAxisAlignment.center,
+
 
         children:[
 
 
-          Expanded(
 
-            child: Container(
+          Row(
 
-              height:38,
+            children:
 
+            List.generate(
 
-              padding:
-              const EdgeInsets.all(3),
+              tabs.length,
 
-
-              decoration:BoxDecoration(
-
-                color:
-                Colors.white.withValues(alpha:.06),
+                  (index){
 
 
-                borderRadius:
-                BorderRadius.circular(22),
+                final active =
+                    selectedIndex == index;
 
 
-                border:Border.all(
 
-                  color:
-                  Colors.white.withValues(alpha:.10),
+                return Padding(
 
-                ),
+                  padding:
 
-              ),
+                  EdgeInsets.only(
 
+                    right:
+                    index == tabs.length-1
+                        ? 0
+                        : 26,
 
-              child:Row(
-
-                children:
-
-                List.generate(
-
-                  tabs.length,
-
-                      (index){
-
-                    final active =
-                        selectedIndex == index;
+                  ),
 
 
-                    return Expanded(
 
-                      child:GestureDetector(
+                  child:GestureDetector(
 
-                        onTap:(){
+                    onTap:(){
 
-                          onChanged?.call(index);
+                      onChanged?.call(index);
 
-                        },
-
-
-                        child:AnimatedContainer(
-
-                          duration:
-                          const Duration(
-                            milliseconds:220,
-                          ),
+                    },
 
 
-                          alignment:
-                          Alignment.center,
+                    child:SizedBox(
+
+                      height:35,
 
 
-                          decoration:BoxDecoration(
+                      child:Column(
 
-                            borderRadius:
-                            BorderRadius.circular(20),
-
-
-                            gradient:
-
-                            active
-
-                                ?
-
-                            const LinearGradient(
-
-                              colors:[
-
-                                Color(0xff00D9B5),
-
-                                Color(0xff00A98F),
-
-                              ],
-
-                            )
-
-                                :
-
-                            null,
+                        mainAxisAlignment:
+                        MainAxisAlignment.center,
 
 
-                            boxShadow:
-
-                            active
-
-                                ?
-
-                            [
-
-                              BoxShadow(
-
-                                color:
-                                const Color(0xff00D9B5)
-                                    .withValues(alpha:.35),
-
-                                blurRadius:12,
-
-                              ),
-
-                            ]
-
-                                :
-
-                            [],
-
-                          ),
+                        children:[
 
 
-                          child:Text(
+
+                          Text(
 
                             tabs[index],
 
@@ -170,14 +123,14 @@ class HomeTopTabs extends StatelessWidget {
 
                                   ?
 
-                              Colors.black
+                              Colors.white
 
                                   :
 
                               Colors.white70,
 
 
-                              fontSize:13,
+                              fontSize:17,
 
 
                               fontWeight:
@@ -186,74 +139,123 @@ class HomeTopTabs extends StatelessWidget {
 
                                   ?
 
-                              FontWeight.w700
+                              FontWeight.w800
 
                                   :
 
-                              FontWeight.w500,
+                              FontWeight.w600,
 
                             ),
 
                           ),
 
-                        ),
+
+
+
+                          const SizedBox(height:7),
+
+
+
+
+                          AnimatedContainer(
+
+                            duration:
+                            const Duration(
+                              milliseconds:200,
+                            ),
+
+
+                            height:4,
+
+
+                            width:
+
+                            active
+                                ? 32
+                                : 0,
+
+
+                            decoration:
+                            BoxDecoration(
+
+                              color:
+                              const Color(
+                                0xffC06CFF,
+                              ),
+
+
+                              borderRadius:
+                              BorderRadius.circular(20),
+
+
+                              boxShadow:[
+
+
+                                BoxShadow(
+
+                                  color:
+                                  const Color(
+                                    0xffC06CFF,
+                                  )
+                                      .withValues(
+                                    alpha:.7,
+                                  ),
+
+
+                                  blurRadius:10,
+
+                                ),
+
+                              ],
+
+                            ),
+
+                          ),
+
+
+                        ],
 
                       ),
 
-                    );
+                    ),
 
-                  },
+                  ),
 
-                ),
-
-              ),
-
-            ),
-
-          ),
+                );
 
 
-          const SizedBox(width:10),
-
-
-          Container(
-
-            height:38,
-
-            width:38,
-
-
-            decoration:BoxDecoration(
-
-              color:
-              Colors.white.withValues(alpha:.06),
-
-
-              shape:
-              BoxShape.circle,
-
-
-              border:Border.all(
-
-                color:
-                Colors.white.withValues(alpha:.10),
-
-              ),
-
-            ),
-
-
-            child:const Icon(
-
-              Icons.search_rounded,
-
-              color:Colors.white,
-
-              size:20,
+              },
 
             ),
 
           ),
+
+
+
+
+          const Spacer(),
+
+
+
+
+          _icon(
+
+            Icons.search_rounded,
+
+          ),
+
+
+
+          const SizedBox(width:12),
+
+
+
+          _icon(
+
+            Icons.home_rounded,
+
+          ),
+
 
         ],
 
@@ -261,6 +263,32 @@ class HomeTopTabs extends StatelessWidget {
 
     );
 
+
   }
+
+
+
+
+
+  Widget _icon(IconData icon){
+
+
+    return Icon(
+
+      icon,
+
+
+      color:
+      const Color(0xffE2D4FF),
+
+
+      size:30,
+
+
+    );
+
+
+  }
+
 
 }

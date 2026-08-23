@@ -73,13 +73,14 @@ flutter:
 
     # rooms
     - assets/rooms/
+    - assets/categories/
 
     # gifts and animations
-    - assets/gifts/
-    - assets/animations/
-    - assets/animations/gifts/
-    - assets/animations/entrance/
-    - assets/animations/vip/
+  #  - assets/gifts/
+ #   - assets/animations/
+ #   - assets/animations/gifts/
+#    - assets/animations/entrance/
+#    - assets/animations/vip/
 
     # icons
     - assets/icons/

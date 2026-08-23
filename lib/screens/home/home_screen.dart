@@ -35,34 +35,23 @@ int selectedCountry = 0;
 
 final List<EventBannerItem> banners = [
 
+  EventBannerItem(
+    image:'assets/banners/welcome.png',
+    title:'Junaya Party 🎉',
+    subtitle:'Join thousands of live rooms',
+  ),
 
-EventBannerItem(
-image: 'assets/banners/welcome.png',
-title: 'Junaya Party 🎉',
-subtitle: 'Join thousands of live rooms',
-),
+  EventBannerItem(
+    image:'assets/banners/welcome2.png',
+    title:'VIP Rooms 🔥',
+    subtitle:'Exclusive voice experience',
+  ),
 
-
-EventBannerItem(
-image: 'assets/banners/welcome2.png',
-title: 'VIP Rooms 🔥',
-subtitle: 'Exclusive voice experiences',
-),
-
-
-EventBannerItem(
-image: 'assets/banners/welcome3.png',
-title: 'Top Hosts 👑',
-subtitle: 'Meet popular creators',
-),
-
-
-EventBannerItem(
-image: 'assets/banners/welcome4.png',
-title: 'Voice Events 🎤',
-subtitle: 'Join live conversations',
-),
-
+  EventBannerItem(
+    image:'assets/banners/welcome3.png',
+    title:'Top Hosts 👑',
+    subtitle:'Meet new friends',
+  ),
 
 ];
 
@@ -232,17 +221,9 @@ const BouncingScrollPhysics(),
 
 
 slivers:[
-
-
-SliverToBoxAdapter(
-child:header(),
-),
-
-
-const SliverToBoxAdapter(
-child:SizedBox(height:12),
-),
-
+  const SliverToBoxAdapter(
+    child:SizedBox(height:12),
+  ),
 
 SliverToBoxAdapter(
 
@@ -266,7 +247,7 @@ selectedTab=index;
 
 
 const SliverToBoxAdapter(
-child:SizedBox(height:15),
+child:SizedBox(height:20),
 ),
 
 
@@ -282,7 +263,7 @@ banners:banners,
 
 
 const SliverToBoxAdapter(
-child:SizedBox(height:15),
+child:SizedBox(height:10),
 ),
   SliverToBoxAdapter(
 
@@ -305,7 +286,7 @@ child:SizedBox(height:15),
 
   const SliverToBoxAdapter(
 
-    child:AnnouncementBar(messages: [],),
+    child:AnnouncementBar( ),
 
   ),
 

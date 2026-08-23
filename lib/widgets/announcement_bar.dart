@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
-
 class AnnouncementBar extends StatefulWidget {
 
   final List<String> messages;
@@ -13,7 +12,17 @@ class AnnouncementBar extends StatefulWidget {
 
     super.key,
 
-    required this.messages,
+    this.messages = const [
+
+      "Welcome to Junaya 🎉",
+
+      "VIP rooms are live now 🔥",
+
+      "Join your favourite voice rooms 🎤",
+
+      "New events and rewards available 🏆",
+
+    ],
 
     this.onTap,
 
@@ -30,7 +39,6 @@ class AnnouncementBar extends StatefulWidget {
 
 
 
-
 class _AnnouncementBarState
     extends State<AnnouncementBar> {
 
@@ -42,7 +50,7 @@ class _AnnouncementBarState
 
 
   @override
-  void initState(){
+  void initState() {
 
     super.initState();
 
@@ -55,26 +63,31 @@ class _AnnouncementBarState
     timer =
         Timer.periodic(
 
-          const Duration(
-              milliseconds:40),
-
+          const Duration(milliseconds:40),
 
               (_) {
 
 
-            if(!controller.hasClients){
+            if(!mounted ||
+                !controller.hasClients){
+
               return;
+
             }
 
 
-            if(controller.offset >=
+
+            if(controller.position.pixels >=
                 controller.position.maxScrollExtent){
 
+
               controller.jumpTo(0);
+
 
             }
 
             else{
+
 
               controller.animateTo(
 
@@ -91,11 +104,14 @@ class _AnnouncementBarState
 
             }
 
+
           },
 
         );
 
+
   }
+
 
 
 
@@ -115,47 +131,49 @@ class _AnnouncementBarState
 
 
 
+
   @override
   Widget build(BuildContext context){
 
 
+
     final text =
     widget.messages.join(
-        "     •     ");
+        "     •     "
+    );
 
 
 
     return GestureDetector(
 
+
       onTap:
       widget.onTap,
 
 
-      child:
-
-      Container(
-
-        height:42,
+      child:Container(
 
 
-        padding:
+        height:48,
+
+
+        margin:
         const EdgeInsets.symmetric(
-          horizontal:14,
-        ),
+            horizontal:15),
 
 
 
-        decoration:
-        BoxDecoration(
+        decoration:BoxDecoration(
 
 
           color:
-          Colors.white.withValues(alpha: .06),
+          Colors.white.withValues(
+              alpha:.06),
 
 
 
           borderRadius:
-          BorderRadius.circular(22),
+          BorderRadius.circular(18),
 
 
 
@@ -163,28 +181,50 @@ class _AnnouncementBarState
           Border.all(
 
             color:
-            Colors.white.withValues(alpha: .1),
+            Colors.white.withValues(
+                alpha:.10),
 
           ),
+
+
+
+          boxShadow:[
+
+
+            BoxShadow(
+
+              color:
+              const Color(0xff00D9B5)
+                  .withValues(alpha:.08),
+
+              blurRadius:20,
+
+            )
+
+          ],
+
 
         ),
 
 
 
-
-        child:
-
-        Row(
+        child:Row(
 
           children:[
 
 
 
+            const SizedBox(width:12),
+
+
+
+
             Container(
 
-              height:26,
 
-              width:26,
+              height:28,
+
+              width:28,
 
 
               decoration:
@@ -196,7 +236,7 @@ class _AnnouncementBarState
 
                 color:
                 const Color(0xff00D9B5)
-                    .withValues(alpha: .18),
+                    .withValues(alpha:.18),
 
               ),
 
@@ -204,7 +244,7 @@ class _AnnouncementBarState
               child:
               const Icon(
 
-                Icons.campaign_rounded,
+                Icons.volume_up_rounded,
 
                 size:16,
 
@@ -213,25 +253,22 @@ class _AnnouncementBarState
 
               ),
 
+
             ),
 
 
 
-            const SizedBox(
-                width:10),
+
+            const SizedBox(width:10),
 
 
 
 
             Expanded(
 
-              child:
+              child:ClipRect(
 
-              ClipRect(
-
-                child:
-
-                SingleChildScrollView(
+                child:SingleChildScrollView(
 
                   controller:
                   controller,
@@ -246,30 +283,39 @@ class _AnnouncementBarState
 
 
 
-                  child:
+                  child:Row(
 
-                  Text(
-
-                    text,
+                    children:[
 
 
-                    maxLines:1,
+                      Text(
+
+                        text,
 
 
-                    style:
-                    const TextStyle(
+                        style:
+                        const TextStyle(
 
-                      color:
-                      Colors.white70,
-
-
-                      fontSize:13,
+                          color:
+                          Colors.white70,
 
 
-                      fontWeight:
-                      FontWeight.w500,
+                          fontSize:13,
 
-                    ),
+
+                          fontWeight:
+                          FontWeight.w500,
+
+                        ),
+
+                      ),
+
+
+                      const SizedBox(
+                          width:100),
+
+
+                    ],
 
                   ),
 
@@ -277,7 +323,9 @@ class _AnnouncementBarState
 
               ),
 
-            )
+            ),
+
+
 
           ],
 
