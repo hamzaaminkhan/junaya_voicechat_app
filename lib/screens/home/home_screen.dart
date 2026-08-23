@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../theme/junaya_fonts.dart';
 
 import 'package:junaya_voicechat_app/widgets/room_card.dart';
 import 'package:junaya_voicechat_app/widgets/space_background.dart';
@@ -145,17 +144,32 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SliverToBoxAdapter(child: SizedBox(height: 12)),
                 const SliverToBoxAdapter(child: HomeTopTabs()),
                 const SliverToBoxAdapter(child: SizedBox(height: 14)),
-                const SliverToBoxAdapter(
+                SliverToBoxAdapter(
                   child: EventBanner(
-                    image: 'assets/banners/welcome.png',
+                    banners: [
+                      EventBannerItem(
+                        image: 'assets/banners/welcome.png',
+                        title: 'Junaya Party 🎉',
+                        subtitle: 'Join thousands of live rooms',
+                      ),
+                      EventBannerItem(
+                        image: 'assets/banners/welcome2.png',
+                        title: 'VIP Rooms',
+                        subtitle: 'Exclusive voice experiences',
+                      ),
+                    ],
                   ),
                 ),
                 const SliverToBoxAdapter(child: SizedBox(height: 15)),
                 const SliverToBoxAdapter(child: CategoryShortcuts()),
                 const SliverToBoxAdapter(child: SizedBox(height: 15)),
-                const SliverToBoxAdapter(
+                SliverToBoxAdapter(
                   child: AnnouncementBar(
-                    text: 'Welcome to Junaya voice rooms',
+                    messages: [
+                      'Welcome to Junaya voice rooms 🎉',
+                      'VIP rooms are live now 🔥',
+                      'Join your favourite hosts',
+                    ],
                   ),
                 ),
                 const SliverToBoxAdapter(child: SizedBox(height: 15)),
