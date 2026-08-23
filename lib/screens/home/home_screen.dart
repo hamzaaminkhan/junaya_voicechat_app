@@ -6,6 +6,10 @@ import '../../theme/junaya_fonts.dart';
 
 import 'package:junaya_voicechat_app/widgets/room_card.dart';
 import 'package:junaya_voicechat_app/widgets/space_background.dart';
+import '../../widgets/home_top_tabs.dart';
+import '../../widgets/event_banner.dart';
+import '../../widgets/category_shortcuts.dart';
+import '../../widgets/announcement_bar.dart';
 
 import '../../widgets/banner_indicator.dart';
 import '../../widgets/category_chip.dart';
@@ -138,11 +142,23 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               slivers: [
                 SliverToBoxAdapter(child: header()),
-                const SliverToBoxAdapter(child: SizedBox(height: 7)),
-                SliverToBoxAdapter(child: rankingSection()),
-                const SliverToBoxAdapter(child: SizedBox(height: 10)),
-                SliverToBoxAdapter(child: tabSection()),
-                const SliverToBoxAdapter(child: SizedBox(height: 7)),
+                const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                const SliverToBoxAdapter(child: HomeTopTabs()),
+                const SliverToBoxAdapter(child: SizedBox(height: 14)),
+                const SliverToBoxAdapter(
+                  child: EventBanner(
+                    image: 'assets/banners/welcome.png',
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 15)),
+                const SliverToBoxAdapter(child: CategoryShortcuts()),
+                const SliverToBoxAdapter(child: SizedBox(height: 15)),
+                const SliverToBoxAdapter(
+                  child: AnnouncementBar(
+                    text: 'Welcome to Junaya voice rooms',
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 15)),
                 SliverToBoxAdapter(child: countrySection()),
                 const SliverToBoxAdapter(child: SizedBox(height: 11)),
                 SliverToBoxAdapter(child: homeBannerSlider()),
