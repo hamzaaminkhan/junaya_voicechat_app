@@ -227,44 +227,45 @@ slivers:[
 
 SliverToBoxAdapter(
 
-child:HomeTopTabs(
+ child:HomeTopTabs(
 
-selectedIndex:selectedTab,
+  selectedIndex:selectedTab,
 
-onChanged:(index){
+  onChanged:(index){
 
-setState((){
+    setState((){
 
-selectedTab=index;
+    selectedTab=index;
 
-});
+        }
+      );
 
-},
+    },
 
-),
+  ),
 
-),
-
-
-const SliverToBoxAdapter(
-child:SizedBox(height:20),
-),
+ ),
 
 
-SliverToBoxAdapter(
-
-child:EventBanner(
-
-banners:banners,
-
-),
-
-),
+   const SliverToBoxAdapter(
+    child:SizedBox(height:20),
+    ),
 
 
-const SliverToBoxAdapter(
-child:SizedBox(height:10),
-),
+   SliverToBoxAdapter(
+
+  child:EventBanner(
+
+  banners:banners,
+
+   ),
+
+  ),
+
+
+   const SliverToBoxAdapter(
+  child:SizedBox(height:10),
+  ),
   SliverToBoxAdapter(
 
     child:CategoryShortcuts(
@@ -584,7 +585,7 @@ Widget header(){
 
 
 
-Widget _headerButton(
+ Widget _headerButton(
     IconData icon,
     VoidCallback onTap,
     ){

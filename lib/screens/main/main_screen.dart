@@ -4,7 +4,7 @@ import '../chat/chat_list_screen.dart';
 import '../home/home_screen.dart';
 import '../home/profile/profile_screen.dart';
 import '../home/rooms/room_screen.dart';
-import '../moments/moments_screen.dart';
+import '../moments/screens/moments_screen.dart';
 import '../../widgets/space_background.dart';
 
 class MainScreen extends StatefulWidget {
