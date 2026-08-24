@@ -1,17 +1,16 @@
 import 'package:junaya_voicechat_app/services/moment_storage.dart';
-
 import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
+
 
 class MomentRepository {
 
-
   final MomentStorage storage;
-
 
 
   MomentRepository({
     required this.storage,
   });
+
 
 
 
@@ -93,24 +92,31 @@ class MomentRepository {
       ) async {
 
 
-    final updated =
+    final bool newLiked =
+    !moment.isLiked;
+
+
+
+    final Moment updated =
     moment.copyWith(
 
       isLiked:
-      !moment.isLiked,
+      newLiked,
 
 
       likesCount:
 
-      moment.isLiked
+      newLiked
 
           ?
 
-      moment.likesCount - 1
+      moment.likesCount + 1
 
           :
 
-      moment.likesCount + 1,
+      (moment.likesCount > 0
+          ? moment.likesCount - 1
+          : 0),
 
     );
 
@@ -123,7 +129,6 @@ class MomentRepository {
 
 
     return updated;
-
 
   }
 

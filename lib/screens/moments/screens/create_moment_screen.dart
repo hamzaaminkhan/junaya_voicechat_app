@@ -1,32 +1,25 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:junaya_voicechat_app/services/moment_storage.dart';
-
 import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
-import '../data/moment_repository.dart';
+import 'package:junaya_voicechat_app/screens/moments/providers/moments_provider.dart';
 
-
-
-class CreateMomentScreen extends StatefulWidget {
+class CreateMomentScreen extends ConsumerStatefulWidget {
 
   const CreateMomentScreen({
     super.key,
   });
 
-
   @override
-  State<CreateMomentScreen> createState() =>
+  ConsumerState<CreateMomentScreen> createState() =>
       _CreateMomentScreenState();
-
 }
 
 
-
-
 class _CreateMomentScreenState
-    extends State<CreateMomentScreen> {
+extends ConsumerState<CreateMomentScreen>{
 
 
   static const Color purple =
@@ -49,9 +42,6 @@ class _CreateMomentScreenState
   [];
 
 
-  late final MomentRepository _repository;
-
-
   bool _posting = false;
 
 
@@ -59,12 +49,6 @@ class _CreateMomentScreenState
   void initState() {
     super.initState();
 
-
-    _repository =
-        MomentRepository(
-          storage:
-          MomentStorage(),
-        );
   }
 
 
@@ -219,20 +203,22 @@ class _CreateMomentScreenState
       );
 
 
-      await _repository.createMoment(
+        await ref
+            .read(
+        momentsProvider.notifier,
+)
+    .createMoment(
 
-        moment:
-        moment,
+moment: moment,
 
+imagePaths:
+_selectedImages
+    .map(
+(image) => image.path,
+)
+    .toList(),
 
-        imagePaths:
-        _selectedImages
-            .map(
-              (image) => image.path,
-        )
-            .toList(),
-
-      );
+);
 
 
       if (!mounted) return;

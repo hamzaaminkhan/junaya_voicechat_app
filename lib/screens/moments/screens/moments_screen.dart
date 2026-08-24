@@ -1,126 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:junaya_voicechat_app/services/moment_storage.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../data/moment_model.dart';
-import '../data/moment_repository.dart';
-import '../widgets/moment_card.dart';
-import 'create_moment_screen.dart';
+import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
+import 'package:junaya_voicechat_app/screens/moments/providers/moments_provider.dart';
+import 'package:junaya_voicechat_app/screens/moments/screens/create_moment_screen.dart';
+import 'package:junaya_voicechat_app/screens/moments/widgets/create_button.dart';
+import 'package:junaya_voicechat_app/screens/moments/widgets/moment_card.dart';
 
 
-
-class MomentsScreen extends StatefulWidget {
+class MomentsScreen extends ConsumerWidget {
 
   const MomentsScreen({
     super.key,
   });
 
 
-  @override
-  State<MomentsScreen> createState() =>
-      _MomentsScreenState();
 
-}
-
-
-
-class _MomentsScreenState
-    extends State<MomentsScreen> {
-
-
-
-  late final MomentRepository repository;
-
-
-  List<Moment> moments = [];
-
-  bool loading = true;
-
-
-
-  @override
-  void initState() {
-
-    super.initState();
-
-
-    repository =
-        MomentRepository(
-          storage:
-          MomentStorage(),
-        );
-
-
-    _loadMoments();
-
-  }
-
-
-
-
-
-  Future<void> _loadMoments() async {
-
-
-    setState(() {
-
-      loading = true;
-
-    });
-
-
-
-    final result =
-    await repository.getMoments();
-
-
-
-    if(!mounted) return;
-
-
-
-    setState(() {
-
-      moments = result.cast<Moment>();
-
-      loading = false;
-
-    });
-
-
-  }
-
-
-
-
-
-
-
-
-  Future<void> _deleteMoment(
-      Moment moment,
+  Future<void> _createMoment(
+      BuildContext context,
+      WidgetRef ref,
       ) async {
-
-
-    await repository
-        .deleteMoment(
-      moment.id,
-    );
-
-
-
-    await _loadMoments();
-
-
-  }
-
-
-
-
-
-
-
-
-  Future<void> _createMoment() async {
 
 
     final bool? created =
@@ -133,13 +32,13 @@ class _MomentsScreenState
     );
 
 
-
     if(created == true){
 
-      _loadMoments();
+      ref
+          .read(momentsProvider.notifier)
+          .refresh();
 
     }
-
 
   }
 
@@ -149,154 +48,203 @@ class _MomentsScreenState
 
 
 
+  Future<void> _deleteMoment(
+      WidgetRef ref,
+      Moment moment,
+      ) async {
+
+
+    await ref
+        .read(momentsProvider.notifier)
+        .deleteMoment(
+      moment.id,
+    );
+
+  }
+
+
+
+
+
+
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+
+
+    final momentsState =
+    ref.watch(
+      momentsProvider,
+    );
+
 
 
     return Scaffold(
-
 
       backgroundColor:
       const Color(0xff090909),
 
 
 
-      appBar: AppBar(
+      appBar:
+      AppBar(
 
         backgroundColor:
         Colors.transparent,
 
+        elevation:
+        0,
 
-        elevation:0,
-
-
-        title: const Text(
+        title:
+        const Text(
 
           "Moments",
 
-          style: TextStyle(
+          style:
+          TextStyle(
+
             fontWeight:
             FontWeight.bold,
+
           ),
 
         ),
 
-
       ),
-
 
 
 
 
       floatingActionButton:
-      FloatingActionButton.extended(
-
-        onPressed:
-        _createMoment,
-
-
-        backgroundColor:
-        Colors.purpleAccent,
-
-
-        icon:
-        const Icon(
-          Icons.add,
-        ),
-
-
-        label:
-        const Text(
-          "Moment",
-        ),
-
-      ),
-
-
-
-
-
-
+      const CreateMomentButton(),
 
 
       body:
-      RefreshIndicator(
+      momentsState.when(
 
+        loading:
 
-        onRefresh:
-        _loadMoments,
-
-
-
-        child:
-
-        loading
-
-            ?
-
+            () =>
         const Center(
+
           child:
           CircularProgressIndicator(),
-        )
-
-            :
-
-        moments.isEmpty
-
-            ?
-
-        _emptyState()
-
-
-
-            :
-
-        ListView.builder(
-
-          padding:
-          const EdgeInsets.only(
-            top:10,
-            bottom:100,
-          ),
-
-
-          itemCount:
-          moments.length,
-
-
-          itemBuilder:
-              (context,index){
-
-
-            final moment =
-            moments[index];
-
-
-
-            return MomentCard(
-
-              moment:
-              moment,
-
-
-              onDelete:
-                  ()=>
-                  _deleteMoment(
-                    moment,
-                  ),
-
-            );
-
-
-          },
 
         ),
 
 
 
-      ),
 
+        error:
+
+            (error, stackTrace) =>
+            Center(
+
+              child:
+              Text(
+
+                "Failed loading moments",
+
+                style:
+                const TextStyle(
+                  color:
+                  Colors.white,
+                ),
+
+              ),
+
+            ),
+
+
+
+
+
+        data:
+
+            (moments) {
+
+
+          if(moments.isEmpty){
+
+            return _emptyState();
+
+          }
+
+
+
+
+          return RefreshIndicator(
+
+            onRefresh:
+
+                () =>
+                ref
+                    .read(
+                  momentsProvider.notifier,
+                )
+                    .refresh(),
+
+
+
+            child:
+
+            ListView.builder(
+
+              padding:
+              const EdgeInsets.only(
+
+                top:
+                10,
+
+                bottom:
+                100,
+
+              ),
+
+
+
+              itemCount:
+              moments.length,
+
+
+
+              itemBuilder:
+                  (context,index){
+
+
+                final moment =
+                moments[index];
+
+
+
+                return MomentCard(
+
+                  moment:
+                  moment,
+
+
+
+                  onDelete:
+
+                      () =>
+                      _deleteMoment(
+                        ref,
+                        moment,
+                      ),
+
+                );
+
+
+              },
+
+            ),
+
+          );
+
+
+        },
+
+      ),
 
     );
 
@@ -314,7 +262,6 @@ class _MomentsScreenState
 
     return Center(
 
-
       child:
       Column(
 
@@ -325,11 +272,12 @@ class _MomentsScreenState
         children:[
 
 
-          Icon(
+          const Icon(
 
             Icons.auto_awesome,
 
-            size:80,
+            size:
+            80,
 
             color:
             Colors.purpleAccent,
@@ -339,8 +287,10 @@ class _MomentsScreenState
 
 
           const SizedBox(
-            height:20,
+            height:
+            20,
           ),
+
 
 
 
@@ -348,20 +298,30 @@ class _MomentsScreenState
 
             "No moments yet",
 
-            style:TextStyle(
-              color:Colors.white,
-              fontSize:20,
+            style:
+            TextStyle(
+
+              color:
+              Colors.white,
+
+              fontSize:
+              20,
+
               fontWeight:
               FontWeight.bold,
+
             ),
 
           ),
 
 
 
+
           const SizedBox(
-            height:8,
+            height:
+            8,
           ),
+
 
 
 
@@ -369,9 +329,12 @@ class _MomentsScreenState
 
             "Create your first memory",
 
-            style:TextStyle(
+            style:
+            TextStyle(
+
               color:
               Colors.white54,
+
             ),
 
           ),
@@ -381,12 +344,10 @@ class _MomentsScreenState
 
       ),
 
-
     );
 
 
   }
-
 
 
 }

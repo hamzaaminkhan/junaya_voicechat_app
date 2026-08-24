@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -64,7 +64,9 @@ class MomentStorage {
 
     final Moment updated =
     moment.copyWith(
-      media: media,
+      media: media.isEmpty
+          ? moment.media
+          : media,
     );
 
 
@@ -77,10 +79,11 @@ class MomentStorage {
     await _writeMoments(
       [
         updated,
-        ...moments,
+        ...moments.where(
+              (item)=>item.id != updated.id,
+        ),
       ],
     );
-
 
 
     return updated;
@@ -358,31 +361,18 @@ class MomentStorage {
       liked,
 
 
-      likesCount:
-      liked
-          ?
-      moment.likesCount + 1
-          :
-      moment.likesCount - 1,
+        likesCount:
+        liked
+            ? moment.likesCount + 1
+            : (moment.likesCount > 0
+            ? moment.likesCount - 1
+            : 0),
+
 
     );
-
-
-
     await updateMoment(
-      updated,
-    );
-
-
+      updated);
   }
-
-
-
-
-
-
-
-
 
   // CLEAR DATABASE
 
@@ -396,13 +386,6 @@ class MomentStorage {
 
 
   }
-
-
-
-
-
-
-
 
 
   // IMAGE STORAGE
@@ -523,13 +506,6 @@ class MomentStorage {
     return results;
 
   }
-
-
-
-
-
-
-
 
 
   // WRITE

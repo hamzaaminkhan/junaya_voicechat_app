@@ -515,9 +515,9 @@ class Moment {
 
     return Moment(
 
-      id:id,
+      id: id,
 
-      author:author,
+      author: author,
 
       caption:
       caption ?? this.caption,
@@ -534,10 +534,8 @@ class Moment {
       visibility:
       visibility ?? this.visibility,
 
-
       location:
       location ?? this.location,
-
 
       hashtags:
       hashtags ?? this.hashtags,
