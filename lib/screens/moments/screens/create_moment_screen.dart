@@ -2,67 +2,118 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:junaya_voicechat_app/services/moment_storage.dart';
 
-class CreatedMoment {
-  final String text;
-  final List<String> imagePaths;
+import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
+import '../data/moment_repository.dart';
 
-  const CreatedMoment({required this.text, required this.imagePaths});
-}
+
 
 class CreateMomentScreen extends StatefulWidget {
-  const CreateMomentScreen({super.key});
+
+  const CreateMomentScreen({
+    super.key,
+  });
+
 
   @override
-  State<CreateMomentScreen> createState() => _CreateMomentScreenState();
+  State<CreateMomentScreen> createState() =>
+      _CreateMomentScreenState();
+
 }
 
-class _CreateMomentScreenState extends State<CreateMomentScreen> {
-  static const Color backgroundColor = Colors.transparent;
-  static const Color purpleColor = Color(0xFF9D3BFF);
-  static const Color lightPurpleColor = Color(0xFFD27AFF);
-  static const Color goldColor = Color(0xFFFFD36A);
 
-  final TextEditingController _textController = TextEditingController();
-  final ImagePicker _imagePicker = ImagePicker();
 
-  final List<XFile> _selectedImages = [];
 
-  bool _isSending = false;
+class _CreateMomentScreenState
+    extends State<CreateMomentScreen> {
+
+
+  static const Color purple =
+  Color(0xFF9D3BFF);
+
+
+  static const Color gold =
+  Color(0xFFFFD36A);
+
+
+  final TextEditingController _captionController =
+  TextEditingController();
+
+
+  final ImagePicker _picker =
+  ImagePicker();
+
+
+  final List<XFile> _selectedImages =
+  [];
+
+
+  late final MomentRepository _repository;
+
+
+  bool _posting = false;
+
+
+  @override
+  void initState() {
+    super.initState();
+
+
+    _repository =
+        MomentRepository(
+          storage:
+          MomentStorage(),
+        );
+  }
+
 
   @override
   void dispose() {
-    _textController.dispose();
+    _captionController.dispose();
+
     super.dispose();
   }
 
+
   Future<void> _pickImages() async {
     try {
-      final List<XFile> pickedImages = await _imagePicker.pickMultiImage(
+      final List<XFile> images =
+      await _picker.pickMultiImage(
         imageQuality: 88,
       );
 
-      if (!mounted || pickedImages.isEmpty) return;
 
-      final int remainingSlots = 4 - _selectedImages.length;
+      if (images.isEmpty) return;
 
-      if (remainingSlots <= 0) {
-        _showMessage('You can select a maximum of 4 images.');
+
+      final int available =
+          4 - _selectedImages.length;
+
+
+      if (available <= 0) {
+        _showMessage(
+          "Maximum 4 images allowed",
+        );
+
         return;
       }
 
-      setState(() {
-        _selectedImages.addAll(pickedImages.take(remainingSlots));
-      });
 
-      if (pickedImages.length > remainingSlots) {
-        _showMessage('Only 4 images can be added.');
-      }
-    } catch (error) {
-      if (!mounted) return;
-      _showMessage('Unable to open the gallery.');
+      setState(() {
+        _selectedImages.addAll(
+          images.take(
+            available,
+          ),
+        );
+      });
+    } catch (_) {
+      _showMessage(
+        "Unable to open gallery",
+      );
     }
   }
+
 
   void _removeImage(int index) {
     setState(() {
@@ -70,723 +121,1324 @@ class _CreateMomentScreenState extends State<CreateMomentScreen> {
     });
   }
 
-  Future<void> _sendMoment() async {
-    final String text = _textController.text.trim();
 
-    if (text.isEmpty && _selectedImages.isEmpty) {
-      _showMessage('Write something or add an image.');
+  Future<void> _postMoment() async {
+    final String caption =
+    _captionController.text.trim();
+
+
+    if (
+    caption.isEmpty &&
+        _selectedImages.isEmpty
+    ) {
+      _showMessage(
+        "Write something or add photos",
+      );
+
       return;
     }
 
-    FocusScope.of(context).unfocus();
 
     setState(() {
-      _isSending = true;
+      _posting = true;
     });
 
-    await Future<void>.delayed(const Duration(milliseconds: 350));
 
-    if (!mounted) return;
+    try {
+      final Moment moment =
+      Moment(
 
-    Navigator.pop(
-      context,
-      CreatedMoment(
-        text: text,
-        imagePaths: _selectedImages.map((image) => image.path).toList(),
-      ),
-    );
-  }
+        id:
+        DateTime
+            .now()
+            .microsecondsSinceEpoch
+            .toString(),
 
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.transparent,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      resizeToAvoidBottomInset: false,
-      body: Stack(
-        children: [
-          const Positioned.fill(child: _EditScreenBackground()),
+        author:
+        const MomentUser(
 
-          SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  keyboardDismissBehavior:
-                      ScrollViewKeyboardDismissBehavior.onDrag,
-                  padding: EdgeInsets.only(
-                    left: 18,
-                    right: 18,
-                    bottom: MediaQuery.of(context).viewInsets.bottom + 30,
-                  ),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 12),
+          id:
+          "local_user",
 
-                        _buildHeader(),
 
-                        const SizedBox(height: 28),
+          username:
+          "junaya",
 
-                        _buildTextBox(),
 
-                        const SizedBox(height: 24),
+          displayName:
+          "Junaya User",
 
-                        _buildImageSection(),
 
-                        const SizedBox(height: 260),
+          avatar:
+          "",
 
-                        const _BottomOrnament(),
-
-                        const SizedBox(height: 16),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return SizedBox(
-      height: 82,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: _GlowBackButton(onTap: () => Navigator.pop(context)),
-          ),
-
-          const Align(
-            alignment: Alignment.center,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Edit',
-                  style: TextStyle(
-                    color: goldColor,
-                    fontSize: 27,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.6,
-                  ),
-                ),
-                SizedBox(height: 5),
-                SizedBox(width: 180, child: _DiamondDivider()),
-              ],
-            ),
-          ),
-
-          Align(
-            alignment: Alignment.centerRight,
-            child: _GlowSendButton(
-              loading: _isSending,
-              onTap: _isSending ? null : _sendMoment,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTextBox() {
-    return Container(
-      height: 215,
-      decoration: BoxDecoration(
-        color: const Color(0xB30A0015),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: purpleColor.withValues(alpha: 0.65),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: purpleColor.withValues(alpha: 0.07),
-            blurRadius: 1,
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          TextField(
-            controller: _textController,
-            maxLength: 1000,
-            maxLines: null,
-            expands: true,
-            keyboardType: TextInputType.multiline,
-            textAlignVertical: TextAlignVertical.top,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              height: 1.4,
-            ),
-            cursorColor: goldColor,
-            onChanged: (_) => setState(() {}),
-            decoration: const InputDecoration(
-              hintText: 'Say something',
-              hintStyle: TextStyle(color: Color(0xFFB8B3BF), fontSize: 20),
-              counterText: '',
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.fromLTRB(18, 18, 18, 42),
-            ),
-          ),
-
-          Positioned(
-            right: 18,
-            bottom: 15,
-            child: Text(
-              '${_textController.text.length}/1000',
-              style: const TextStyle(color: Color(0xFFC5C0CA), fontSize: 16),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildImageSection() {
-    if (_selectedImages.isEmpty) {
-      return _UploadTile(width: 160, height: 180, onTap: _pickImages);
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: _selectedImages.length < 4
-              ? _selectedImages.length + 1
-              : 4,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 0.92,
-          ),
-          itemBuilder: (context, index) {
-            if (index == _selectedImages.length && _selectedImages.length < 4) {
-              return _UploadTile(onTap: _pickImages);
-            }
-
-            return _SelectedImageTile(
-              imagePath: _selectedImages[index].path,
-              onRemove: () => _removeImage(index),
-            );
-          },
         ),
 
-        const SizedBox(height: 10),
 
-        Text(
-          '${_selectedImages.length}/4 images selected',
-          style: TextStyle(
-            color: lightPurpleColor.withValues(alpha: 0.85),
-            fontSize: 13,
-          ),
-        ),
-      ],
-    );
-  }
-}
+        caption:
+        caption,
 
-class _GlowBackButton extends StatelessWidget {
-  final VoidCallback onTap;
 
-  const _GlowBackButton({required this.onTap});
+        media:
+        const [],
 
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: Ink(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: const Color(0xFF170020),
-            border: Border.all(color: const Color(0xFFFFD36A)),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF9D3BFF).withValues(alpha: 0.5),
-                blurRadius: 1,
-              ),
-              BoxShadow(
-                color: const Color(0xFFFFD36A).withValues(alpha: 0.25),
-                blurRadius: 1,
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: Color(0xFFFFD36A),
-            size: 25,
-          ),
-        ),
-      ),
-    );
-  }
-}
 
-class _GlowSendButton extends StatelessWidget {
-  final bool loading;
-  final VoidCallback? onTap;
+        createdAt:
+        DateTime.now(),
 
-  const _GlowSendButton({required this.loading, required this.onTap});
 
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(30),
-        child: Ink(
-          width: 92,
-          height: 48,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(30),
-            gradient: const LinearGradient(
-              colors: [Color(0xFF42105E), Color(0xFF7317A5), Color(0xFF291039)],
-            ),
-            border: Border.all(color: const Color(0xFFFFD36A)),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFA52EFF).withValues(alpha: 0.55),
-                blurRadius: 1,
-              ),
-              BoxShadow(
-                color: const Color(0xFFFFD36A).withValues(alpha: 0.22),
-                blurRadius: 10,
-              ),
-            ],
-          ),
-          child: Center(
-            child: loading
-                ? const SizedBox(
-                    width: 21,
-                    height: 21,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Color(0xFFFFD36A),
-                    ),
-                  )
-                : const Text(
-                    'Send',
-                    style: TextStyle(
-                      color: Color(0xFFFFE2A0),
-                      fontWeight: FontWeight.w700,
-                      fontSize: 17,
-                    ),
-                  ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+        visibility:
+        MomentVisibility.public,
 
-class _UploadTile extends StatelessWidget {
-  final double? width;
-  final double? height;
-  final VoidCallback onTap;
 
-  const _UploadTile({this.width, this.height, required this.onTap});
+        hashtags:
+        const [],
 
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: width,
-      height: height,
-      child: CustomPaint(
-        painter: _DashedRoundedBorderPainter(),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(18),
-            child: Center(
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 66,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: const Color(0xFFFFD36A),
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(
-                            0xFFA837FF,
-                          ).withValues(alpha: 0.55),
-                          blurRadius: 1,
-                        ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: CircleAvatar(
-                        radius: 14,
-                        backgroundColor: Color(0xFF50106E),
-                        child: CircleAvatar(
-                          radius: 8,
-                          backgroundColor: Color(0xFFFFD36A),
-                          child: CircleAvatar(
-                            radius: 5,
-                            backgroundColor: Color(0xFF8B21C5),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
 
-                  Positioned(
-                    right: -12,
-                    bottom: -12,
-                    child: Container(
-                      width: 34,
-                      height: 34,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFF35104C),
-                        border: Border.all(
-                          color: const Color(0xFFFFD36A),
-                          width: 1.5,
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.add_rounded,
-                        color: Color(0xFFFFE7AE),
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+        likesCount:
+        0,
 
-class _SelectedImageTile extends StatelessWidget {
-  final String imagePath;
-  final VoidCallback onRemove;
 
-  const _SelectedImageTile({required this.imagePath, required this.onRemove});
+        commentsCount:
+        0,
 
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(18),
-            child: Image.file(
-              File(imagePath),
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) {
-                return Container(
-                  color: const Color(0xFF261030),
-                  child: const Icon(
-                    Icons.broken_image_outlined,
-                    color: Colors.white54,
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
 
-        Positioned.fill(
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFFB34FFF)),
-            ),
-          ),
-        ),
+        isLiked:
+        false,
 
-        Positioned(
-          top: 7,
-          right: 7,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onRemove,
-              customBorder: const CircleBorder(),
-              child: Container(
-                width: 31,
-                height: 31,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.black.withValues(alpha: 0.72),
-                  border: Border.all(color: const Color(0xFFFFD36A)),
-                ),
-                child: const Icon(
-                  Icons.close_rounded,
-                  color: Colors.white,
-                  size: 19,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
 
-class _DiamondDivider extends StatelessWidget {
-  const _DiamondDivider();
+        reactions:
+        const [],
 
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            height: 1,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.transparent,
-                  const Color(0xFFFFD36A).withValues(alpha: 0.9),
-                ],
-              ),
-            ),
-          ),
-        ),
 
-        const SizedBox(width: 7),
+        isPinned:
+        false,
 
-        Transform.rotate(
-          angle: 0.785398,
-          child: Container(
-            width: 16,
-            height: 16,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [
-                  Color(0xFFFFD36A),
-                  Color(0xFFA32EFF),
-                  Color(0xFF4F086F),
-                ],
-              ),
-              border: Border.all(color: const Color(0xFFFFDF86)),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFA52FFF).withValues(alpha: 0.8),
-                  blurRadius: 1,
-                ),
-              ],
-            ),
-          ),
-        ),
 
-        const SizedBox(width: 7),
-
-        Expanded(
-          child: Container(
-            height: 1,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFFFFD36A).withValues(alpha: 0.9),
-                  Colors.transparent,
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _BottomOrnament extends StatelessWidget {
-  const _BottomOrnament();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 40),
-      child: _DiamondDivider(),
-    );
-  }
-}
-
-class _DashedRoundedBorderPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    const double dashLength = 7;
-    const double gapLength = 5;
-
-    final Paint paint = Paint()
-      ..color = const Color(0xFFD271FF).withValues(alpha: 0.85)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5
-      ..strokeCap = StrokeCap.round;
-
-    final Path path = Path()
-      ..addRRect(
-        RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(18)),
       );
 
-    for (final metric in path.computeMetrics()) {
-      double distance = 0;
 
-      while (distance < metric.length) {
-        final double nextDistance = (distance + dashLength).clamp(
-          0,
-          metric.length,
-        );
+      await _repository.createMoment(
 
-        canvas.drawPath(metric.extractPath(distance, nextDistance), paint);
+        moment:
+        moment,
 
-        distance = nextDistance + gapLength;
+
+        imagePaths:
+        _selectedImages
+            .map(
+              (image) => image.path,
+        )
+            .toList(),
+
+      );
+
+
+      if (!mounted) return;
+
+
+      Navigator.pop(
+        context,
+        true,
+      );
+    } catch (error) {
+      _showMessage(
+        "Failed creating moment",
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _posting = false;
+        });
       }
     }
   }
 
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
 
-class _EditScreenBackground extends StatelessWidget {
-  const _EditScreenBackground();
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context)
+
+      ..hideCurrentSnackBar()
+
+      ..showSnackBar(
+
+        SnackBar(
+
+          content:
+          Text(message),
+
+        ),
+
+      );
+  }
+
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _EditBackgroundPainter(),
-      child: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF0D0017)],
+    return Scaffold(
+
+
+      backgroundColor:
+      const Color(0xff09000F),
+
+
+      body:
+      Stack(
+
+
+        children: [
+
+
+          const Positioned.fill(
+
+            child:
+            JunayaBackground(),
+
           ),
-        ),
+
+
+          SafeArea(
+
+
+            child:
+            SingleChildScrollView(
+
+
+              padding:
+              const EdgeInsets.all(18),
+
+
+              child:
+              Column(
+
+
+                crossAxisAlignment:
+                CrossAxisAlignment.start,
+
+
+                children: [
+
+
+                  _header(),
+
+
+                  const SizedBox(
+                    height: 30,
+                  ),
+
+
+                  _captionBox(),
+
+
+                  const SizedBox(
+                    height: 25,
+                  ),
+
+
+                  _imageSection(),
+
+
+                ],
+
+
+              ),
+
+
+            ),
+
+
+          ),
+
+
+        ],
+
+
       ),
+
+
     );
   }
+
+
+  Widget _header() {
+    return Row(
+
+
+      mainAxisAlignment:
+      MainAxisAlignment.spaceBetween,
+
+
+      children: [
+
+
+        IconButton(
+
+          onPressed:
+              () => Navigator.pop(context),
+
+
+          icon:
+          const Icon(
+
+            Icons.close,
+
+            color:
+            Colors.white,
+
+          ),
+
+        ),
+
+
+        const Text(
+
+          "Create Moment",
+
+          style:
+          TextStyle(
+
+            color:
+            gold,
+
+            fontSize:
+            25,
+
+            fontWeight:
+            FontWeight.bold,
+
+          ),
+
+        ),
+
+
+        ElevatedButton(
+
+          onPressed:
+          _posting
+              ?
+          null
+              :
+          _postMoment,
+
+
+          child:
+          _posting
+
+              ?
+
+          const SizedBox(
+
+            width:
+            18,
+
+            height:
+            18,
+
+            child:
+            CircularProgressIndicator(
+              strokeWidth: 2,
+            ),
+
+          )
+
+
+              :
+
+          const Text(
+            "Post",
+          ),
+
+
+        ),
+
+
+      ],
+
+    );
+  }
+
+
+  Widget _captionBox() {
+    return Container(
+
+      height:
+      220,
+
+
+      decoration:
+      BoxDecoration(
+
+        color:
+        Colors.black26,
+
+
+        borderRadius:
+        BorderRadius.circular(20),
+
+
+        border:
+        Border.all(
+
+          color:
+          purple,
+
+        ),
+
+      ),
+
+
+      child:
+      TextField(
+
+        controller:
+        _captionController,
+
+
+        expands:
+        true,
+
+
+        maxLines:
+        null,
+
+
+        style:
+        const TextStyle(
+
+          color:
+          Colors.white,
+
+          fontSize:
+          17,
+
+        ),
+
+
+        decoration:
+        const InputDecoration(
+
+          hintText:
+          "Say something...",
+
+
+          hintStyle:
+          TextStyle(
+            color:
+            Colors.white54,
+          ),
+
+
+          border:
+          InputBorder.none,
+
+
+          contentPadding:
+          EdgeInsets.all(18),
+
+
+        ),
+
+      ),
+
+    );
+  }
+
+  Widget _imageSection() {
+    return Column(
+
+      crossAxisAlignment:
+      CrossAxisAlignment.start,
+
+
+      children: [
+
+
+        const Text(
+
+          "Photos",
+
+          style:
+          TextStyle(
+
+            color:
+            Colors.white,
+
+            fontSize:
+            18,
+
+            fontWeight:
+            FontWeight.bold,
+
+          ),
+
+        ),
+
+
+        const SizedBox(
+          height: 15,
+        ),
+
+
+        GridView.builder(
+
+          shrinkWrap:
+          true,
+
+
+          physics:
+          const NeverScrollableScrollPhysics(),
+
+
+          itemCount:
+          _selectedImages.length < 4
+
+              ?
+
+          _selectedImages.length + 1
+
+              :
+
+          4,
+
+
+          gridDelegate:
+          const SliverGridDelegateWithFixedCrossAxisCount(
+
+            crossAxisCount:
+            2,
+
+
+            crossAxisSpacing:
+            12,
+
+
+            mainAxisSpacing:
+            12,
+
+
+            childAspectRatio:
+            .95,
+
+
+          ),
+
+
+          itemBuilder:
+              (context, index) {
+            if (
+            index == _selectedImages.length &&
+                _selectedImages.length < 4
+            ) {
+              return _uploadTile();
+            }
+
+
+            return _imagePreview(
+              index,
+            );
+          },
+
+
+        ),
+
+
+        const SizedBox(
+          height: 10,
+        ),
+
+
+        Text(
+
+          "${_selectedImages.length}/4 images selected",
+
+          style:
+          const TextStyle(
+
+            color:
+            Colors.white54,
+
+            fontSize:
+            13,
+
+          ),
+
+        ),
+
+
+      ],
+
+    );
+  }
+
+
+  Widget _uploadTile() {
+    return InkWell(
+
+      onTap:
+      _pickImages,
+
+
+      borderRadius:
+      BorderRadius.circular(20),
+
+
+      child:
+      Container(
+
+
+        decoration:
+        BoxDecoration(
+
+
+          color:
+          const Color(
+            0xff170020,
+          ),
+
+
+          borderRadius:
+          BorderRadius.circular(20),
+
+
+          border:
+          Border.all(
+
+            color:
+            const Color(
+              0xffD27AFF,
+            ),
+
+
+            width:
+            1.5,
+
+          ),
+
+
+        ),
+
+
+        child:
+        Column(
+
+
+          mainAxisAlignment:
+          MainAxisAlignment.center,
+
+
+          children: [
+
+
+            Container(
+
+              width:
+              70,
+
+
+              height:
+              55,
+
+
+              decoration:
+              BoxDecoration(
+
+
+                borderRadius:
+                BorderRadius.circular(12),
+
+
+                border:
+                Border.all(
+
+                  color:
+                  gold,
+
+                  width:
+                  2,
+
+                ),
+
+
+              ),
+
+
+              child:
+              const Icon(
+
+                Icons.add_photo_alternate_outlined,
+
+
+                color:
+                gold,
+
+
+                size:
+                32,
+
+
+              ),
+
+
+            ),
+
+
+            const SizedBox(
+              height: 12,
+            ),
+
+
+            const Text(
+
+              "Add photo",
+
+              style:
+              TextStyle(
+
+                color:
+                Colors.white70,
+
+
+              ),
+
+
+            ),
+
+
+          ],
+
+
+        ),
+
+
+      ),
+
+
+    );
+  }
+
+
+  Widget _imagePreview(int index,) {
+    final XFile image =
+    _selectedImages[index];
+
+
+    return Stack(
+
+
+      children: [
+
+
+        Positioned.fill(
+
+
+          child:
+          ClipRRect(
+
+
+            borderRadius:
+            BorderRadius.circular(20),
+
+
+            child:
+            Image.file(
+
+
+              File(
+                image.path,
+              ),
+
+
+              fit:
+              BoxFit.cover,
+
+
+              errorBuilder:
+                  (_, _, _) {
+                return Container(
+
+                  color:
+                  Colors.black26,
+
+
+                  child:
+                  const Icon(
+
+                    Icons.broken_image_outlined,
+
+
+                    color:
+                    Colors.white54,
+
+
+                  ),
+
+
+                );
+              },
+
+
+            ),
+
+
+          ),
+
+
+        ),
+
+
+        Positioned.fill(
+
+
+          child:
+          Container(
+
+
+            decoration:
+            BoxDecoration(
+
+
+              borderRadius:
+              BorderRadius.circular(20),
+
+
+              border:
+              Border.all(
+
+
+                color:
+                purple,
+
+
+                width:
+                1.5,
+
+
+              ),
+
+
+            ),
+
+
+          ),
+
+
+        ),
+
+
+        Positioned(
+
+
+          top:
+          8,
+
+
+          right:
+          8,
+
+
+          child:
+          GestureDetector(
+
+
+            onTap:
+                () =>
+                _removeImage(
+                  index,
+                ),
+
+
+            child:
+            Container(
+
+
+              width:
+              34,
+
+
+              height:
+              34,
+
+
+              decoration:
+              BoxDecoration(
+
+
+                shape:
+                BoxShape.circle,
+
+
+                color:
+                Colors.black.withValues(
+                  alpha: .65,
+                ),
+
+
+                border:
+                Border.all(
+
+                  color:
+                  gold,
+
+                ),
+
+
+              ),
+
+
+              child:
+              const Icon(
+
+                Icons.close_rounded,
+
+
+                color:
+                Colors.white,
+
+
+                size:
+                20,
+
+
+              ),
+
+
+            ),
+
+
+          ),
+
+
+        ),
+
+
+      ],
+
+
+    );
+  }
+
 }
 
-class _EditBackgroundPainter extends CustomPainter {
+class JunayaBackground extends StatelessWidget {
+
+  const JunayaBackground({
+    super.key,
+  });
+
+
+
   @override
-  void paint(Canvas canvas, Size size) {
-    final double bottom = size.height - 75;
+  Widget build(BuildContext context) {
 
-    final Paint glowPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 10
-      ..color = const Color(0xFF9A2BFF).withValues(alpha: 0.16)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18);
 
-    final Paint purplePaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
-      ..color = const Color(0xFF8F2BE2).withValues(alpha: 0.65);
+    return CustomPaint(
 
-    final Paint goldPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.4
-      ..color = const Color(0xFFFFB83E).withValues(alpha: 0.75);
+      painter:
+      _JunayaBackgroundPainter(),
 
-    final Path leftWave = Path()
-      ..moveTo(-30, bottom - 110)
-      ..quadraticBezierTo(
-        size.width * 0.19,
-        bottom + 10,
-        size.width * 0.48,
-        bottom - 5,
+
+      child:
+      Container(
+
+        decoration:
+        const BoxDecoration(
+
+          gradient:
+          LinearGradient(
+
+            begin:
+            Alignment.topCenter,
+
+
+            end:
+            Alignment.bottomCenter,
+
+
+            colors:[
+
+              Color(0xff09000F),
+
+              Color(0xff140021),
+
+            ],
+
+          ),
+
+        ),
+
+      ),
+
+
+    );
+
+
+  }
+
+}
+
+
+
+
+
+
+
+class _JunayaBackgroundPainter
+    extends CustomPainter {
+
+
+
+  @override
+  void paint(
+      Canvas canvas,
+      Size size,
+      ) {
+
+
+
+    final double bottom =
+        size.height - 90;
+
+
+
+
+
+    final Paint glowPaint =
+    Paint()
+
+      ..style =
+          PaintingStyle.stroke
+
+
+      ..strokeWidth =
+      18
+
+
+      ..color =
+      const Color(
+        0xff9D3BFF,
+      ).withValues(
+        alpha:0.15,
+      )
+
+
+      ..maskFilter =
+      const MaskFilter.blur(
+        BlurStyle.normal,
+        20,
       );
 
-    final Path rightWave = Path()
-      ..moveTo(size.width + 30, bottom - 110)
-      ..quadraticBezierTo(
-        size.width * 0.81,
-        bottom + 10,
-        size.width * 0.52,
-        bottom - 5,
+
+
+
+
+
+    final Paint purplePaint =
+    Paint()
+
+      ..style =
+          PaintingStyle.stroke
+
+
+      ..strokeWidth =
+      2
+
+
+      ..color =
+      const Color(
+        0xff9D3BFF,
+      ).withValues(
+        alpha:.55,
       );
 
-    canvas.drawPath(leftWave, glowPaint);
-    canvas.drawPath(rightWave, glowPaint);
 
-    for (int index = 0; index < 4; index++) {
-      final double offset = index * 10;
 
-      final Path leftLine = Path()
-        ..moveTo(-20, bottom - 115 - offset)
+
+
+
+    final Paint goldPaint =
+    Paint()
+
+      ..style =
+          PaintingStyle.stroke
+
+
+      ..strokeWidth =
+      1.5
+
+
+      ..color =
+      const Color(
+        0xffffd36a,
+      ).withValues(
+        alpha:.8,
+      );
+
+
+
+
+
+
+
+    final Path leftWave =
+    Path()
+
+
+      ..moveTo(
+        -50,
+        bottom,
+      )
+
+
+      ..quadraticBezierTo(
+
+        size.width * .25,
+
+        bottom - 100,
+
+        size.width * .50,
+
+        bottom,
+
+      );
+
+
+
+
+
+
+
+    final Path rightWave =
+    Path()
+
+
+      ..moveTo(
+
+        size.width + 50,
+
+        bottom,
+
+      )
+
+
+      ..quadraticBezierTo(
+
+        size.width * .75,
+
+        bottom - 100,
+
+        size.width * .50,
+
+        bottom,
+
+      );
+
+
+
+
+
+
+    canvas.drawPath(
+      leftWave,
+      glowPaint,
+    );
+
+
+    canvas.drawPath(
+      rightWave,
+      glowPaint,
+    );
+
+
+
+
+
+
+
+    for(
+    int i = 0;
+    i < 5;
+    i++
+    ){
+
+
+      final double offset =
+          i * 12;
+
+
+
+      final Path left =
+      Path()
+
+
+        ..moveTo(
+
+          -30,
+
+          bottom - offset,
+
+        )
+
+
         ..quadraticBezierTo(
-          size.width * 0.18,
-          bottom - 4 - offset,
-          size.width * 0.48,
-          bottom - 10 - offset,
+
+          size.width * .20,
+
+          bottom - 70 - offset,
+
+          size.width * .50,
+
+          bottom - offset,
+
         );
 
-      final Path rightLine = Path()
-        ..moveTo(size.width + 20, bottom - 115 - offset)
+
+
+
+
+
+
+      final Path right =
+      Path()
+
+
+        ..moveTo(
+
+          size.width + 30,
+
+          bottom - offset,
+
+        )
+
+
         ..quadraticBezierTo(
-          size.width * 0.82,
-          bottom - 4 - offset,
-          size.width * 0.52,
-          bottom - 10 - offset,
+
+          size.width * .80,
+
+          bottom - 70 - offset,
+
+          size.width * .50,
+
+          bottom - offset,
+
         );
 
-      canvas.drawPath(leftLine, index == 1 ? goldPaint : purplePaint);
 
-      canvas.drawPath(rightLine, index == 1 ? goldPaint : purplePaint);
+
+
+
+      canvas.drawPath(
+
+        left,
+
+        i == 1
+            ?
+        goldPaint
+            :
+        purplePaint,
+
+      );
+
+
+
+      canvas.drawPath(
+
+        right,
+
+        i == 1
+            ?
+        goldPaint
+            :
+        purplePaint,
+
+      );
+
+
     }
 
-    final Paint particlePaint = Paint()..color = const Color(0xFFFFC556);
 
-    for (int index = 0; index < 26; index++) {
-      final double x = index.isEven
-          ? 12 + (index * 4.5)
-          : size.width - 12 - (index * 4.5);
 
-      final double y = bottom - 100 - ((index * 17) % 120);
-      final double radius = index % 4 == 0 ? 1.8 : 0.9;
+
+
+
+
+    final Paint particlePaint =
+    Paint()
+      ..color =
+      const Color(
+        0xffffd36a,
+      );
+
+
+
+
+
+    for(
+    int i = 0;
+    i < 30;
+    i++
+    ){
+
+
+
+      final double x =
+      i.isEven
+
+          ?
+
+      20 + (i * 5)
+
+          :
+
+      size.width - (i * 5);
+
+
+
+
+
+      final double y =
+          100 + ((i * 19) % 220);
+
+
+
+
 
       canvas.drawCircle(
-        Offset(x, y),
-        radius,
-        particlePaint..color = particlePaint.color.withValues(alpha: 0.65),
+
+        Offset(
+          x,
+          y,
+        ),
+
+
+        i % 3 == 0
+            ?
+        2
+            :
+        1,
+
+
+        particlePaint,
+
       );
+
+
+
     }
+
+
+
+
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(
+      covariant CustomPainter oldDelegate,
+      ){
+
+    return false;
+
+  }
+
+
 }

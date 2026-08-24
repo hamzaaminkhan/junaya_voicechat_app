@@ -5,226 +5,560 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class LocalMomentData {
-  final String id;
-  final String text;
-  final List<String> imagePaths;
-  final DateTime createdAt;
+import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 
-  const LocalMomentData({
-    required this.id,
-    required this.text,
-    required this.imagePaths,
-    required this.createdAt,
-  });
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'text': text,
-      'imagePaths': imagePaths,
-      'createdAt': createdAt.toIso8601String(),
-    };
-  }
-
-  factory LocalMomentData.fromJson(Map<String, dynamic> json) {
-    final dynamic rawImages = json['imagePaths'];
-
-    return LocalMomentData(
-      id: json['id']?.toString() ?? '',
-      text: json['text']?.toString() ?? '',
-      imagePaths: rawImages is List
-          ? rawImages.whereType<String>().toList()
-          : <String>[],
-      createdAt:
-          DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
-          DateTime.now(),
-    );
-  }
-}
 
 class MomentStorage {
-  static const String _storageKey = 'junaya_saved_moments_v1';
 
-  final SharedPreferencesAsync _preferences = SharedPreferencesAsync();
 
-  Future<LocalMomentData> createMoment({
-    required String text,
+  static const String _storageKey =
+      'junaya_moments_v2';
+
+
+
+  final SharedPreferencesAsync _preferences =
+  SharedPreferencesAsync();
+
+
+
+
+
+
+  // CREATE MOMENT
+
+  Future<Moment> createMoment({
+
+    required Moment moment,
+
     required List<String> sourceImagePaths,
-  }) async {
-    final String id = DateTime.now().microsecondsSinceEpoch.toString();
 
-    final List<String> permanentImagePaths = await _copyImagesToAppFolder(
-      momentId: id,
+  }) async {
+
+
+    final List<String> savedImages =
+    await _copyImagesToAppFolder(
+      momentId: moment.id,
       sourcePaths: sourceImagePaths,
     );
 
-    final LocalMomentData newMoment = LocalMomentData(
-      id: id,
-      text: text,
-      imagePaths: permanentImagePaths,
-      createdAt: DateTime.now(),
-    );
 
-    final List<LocalMomentData> existingMoments = await loadMoments();
 
-    final List<LocalMomentData> updatedMoments = [
-      newMoment,
-      ...existingMoments.where((moment) => moment.id != id),
-    ];
+    final List<MomentMedia> media =
+    savedImages
+        .asMap()
+        .entries
+        .map(
+          (entry) {
 
-    await _writeMoments(updatedMoments);
-
-    return newMoment;
-  }
-
-  Future<List<LocalMomentData>> loadMoments() async {
-    final String? savedJson = await _preferences.getString(_storageKey);
-
-    if (savedJson == null || savedJson.trim().isEmpty) {
-      return [];
-    }
-
-    try {
-      final dynamic decoded = jsonDecode(savedJson);
-
-      if (decoded is! List) {
-        return [];
-      }
-
-      final List<LocalMomentData> moments = [];
-
-      for (final dynamic item in decoded) {
-        if (item is Map) {
-          final LocalMomentData moment = LocalMomentData.fromJson(
-            Map<String, dynamic>.from(item),
-          );
-
-          moments.add(moment);
-        }
-      }
-
-      moments.sort(
-        (first, second) => second.createdAt.compareTo(first.createdAt),
-      );
-
-      return moments;
-    } catch (_) {
-      return [];
-    }
-  }
-
-  Future<void> deleteMoment(LocalMomentData moment) async {
-    final List<LocalMomentData> existing = await loadMoments();
-
-    final List<LocalMomentData> updated = existing
-        .where((item) => item.id != moment.id)
-        .toList();
-
-    for (final String imagePath in moment.imagePaths) {
-      try {
-        final File imageFile = File(imagePath);
-
-        if (await imageFile.exists()) {
-          await imageFile.delete();
-        }
-      } catch (_) {
-        // Continue deleting the remaining files.
-      }
-    }
-
-    await _writeMoments(updated);
-  }
-
-  Future<LocalMomentData> updateMoment({
-    required LocalMomentData moment,
-    required String text,
-  }) async {
-    final LocalMomentData updatedMoment = LocalMomentData(
-      id: moment.id,
-      text: text.trim(),
-      imagePaths: moment.imagePaths,
-      createdAt: moment.createdAt,
-    );
-
-    final List<LocalMomentData> existingMoments = await loadMoments();
-
-    bool momentFound = false;
-
-    final List<LocalMomentData> updatedMoments = existingMoments.map((item) {
-      if (item.id == moment.id) {
-        momentFound = true;
-        return updatedMoment;
-      }
-
-      return item;
-    }).toList();
-
-    if (!momentFound) {
-      updatedMoments.insert(0, updatedMoment);
-    }
-
-    await _writeMoments(updatedMoments);
-
-    return updatedMoment;
-  }
-
-  Future<List<String>> _copyImagesToAppFolder({
-    required String momentId,
-    required List<String> sourcePaths,
-  }) async {
-    if (sourcePaths.isEmpty) {
-      return [];
-    }
-
-    final Directory documentsDirectory =
-        await getApplicationDocumentsDirectory();
-
-    final Directory momentsDirectory = Directory(
-      p.join(documentsDirectory.path, 'junaya_moments'),
-    );
-
-    if (!await momentsDirectory.exists()) {
-      await momentsDirectory.create(recursive: true);
-    }
-
-    final List<String> savedPaths = [];
-
-    for (int index = 0; index < sourcePaths.length; index++) {
-      try {
-        final File sourceFile = File(sourcePaths[index]);
-
-        if (!await sourceFile.exists()) {
-          continue;
-        }
-
-        String extension = p.extension(sourceFile.path);
-
-        if (extension.isEmpty) {
-          extension = '.jpg';
-        }
-
-        final String destinationPath = p.join(
-          momentsDirectory.path,
-          '${momentId}_$index$extension',
+        return MomentMedia.image(
+          url: entry.value,
+          order: entry.key,
         );
 
-        final File copiedFile = await sourceFile.copy(destinationPath);
+      },
+    )
+        .toList();
 
-        savedPaths.add(copiedFile.path);
-      } catch (_) {
-        // Skip an image if it cannot be copied.
-      }
-    }
 
-    return savedPaths;
-  }
 
-  Future<void> _writeMoments(List<LocalMomentData> moments) async {
-    final String encoded = jsonEncode(
-      moments.map((moment) => moment.toJson()).toList(),
+    final Moment updated =
+    moment.copyWith(
+      media: media,
     );
 
-    await _preferences.setString(_storageKey, encoded);
+
+
+    final List<Moment> moments =
+    await loadMoments();
+
+
+
+    await _writeMoments(
+      [
+        updated,
+        ...moments,
+      ],
+    );
+
+
+
+    return updated;
+
   }
+
+
+
+
+
+
+
+
+
+  // LOAD ALL
+
+
+  Future<List<Moment>> loadMoments() async {
+
+
+    final String? raw =
+    await _preferences.getString(
+      _storageKey,
+    );
+
+
+
+    if(raw == null || raw.isEmpty){
+
+      return [];
+
+    }
+
+
+
+    try{
+
+
+      final dynamic decoded =
+      jsonDecode(raw);
+
+
+
+      if(decoded is! List){
+
+        return [];
+
+      }
+
+
+
+      final List<Moment> moments =
+      decoded
+          .whereType<Map>()
+          .map(
+            (item)=>
+            Moment.fromJson(
+              Map<String,dynamic>.from(item),
+            ),
+      )
+          .toList();
+
+
+
+      moments.sort(
+            (a,b)=>
+            b.createdAt
+                .compareTo(
+              a.createdAt,
+            ),
+      );
+
+
+
+      return moments;
+
+
+
+    }catch(_){
+
+      return [];
+
+    }
+
+  }
+
+
+
+
+
+
+
+
+
+  // GET SINGLE MOMENT
+
+
+  Future<Moment?> getMoment(
+      String id,
+      ) async {
+
+
+    final moments =
+    await loadMoments();
+
+
+
+    try{
+
+      return moments.firstWhere(
+            (moment)=>
+        moment.id == id,
+      );
+
+
+    }catch(_){
+
+      return null;
+
+    }
+
+  }
+
+
+
+
+
+
+
+
+
+  // UPDATE
+
+
+  Future<void> updateMoment(
+      Moment updated,
+      ) async {
+
+
+    final List<Moment> moments =
+    await loadMoments();
+
+
+
+    final index =
+    moments.indexWhere(
+          (item)=>
+      item.id ==
+          updated.id,
+    );
+
+
+
+    if(index == -1){
+
+      throw Exception(
+          "Moment does not exist"
+      );
+
+    }
+
+
+
+    moments[index] =
+        updated;
+
+
+
+    await _writeMoments(
+      moments,
+    );
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // DELETE
+
+
+  Future<void> deleteMoment(
+      String id,
+      ) async {
+
+
+    final moments =
+    await loadMoments();
+
+
+
+    final Moment? target =
+    await getMoment(id);
+
+
+
+    if(target != null){
+
+      for(final media in target.media){
+
+        try{
+
+          final File file =
+          File(media.url);
+
+
+
+          if(await file.exists()){
+
+            await file.delete();
+
+          }
+
+        }catch(_){}
+
+      }
+
+    }
+
+
+
+    moments.removeWhere(
+          (moment)=>
+      moment.id == id,
+    );
+
+
+
+    await _writeMoments(
+      moments,
+    );
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // LIKE UPDATE
+
+
+  Future<void> updateLike(
+      String id,
+      bool liked,
+      ) async {
+
+
+    final moment =
+    await getMoment(id);
+
+
+
+    if(moment == null){
+
+      return;
+
+    }
+
+
+
+    final updated =
+    moment.copyWith(
+
+      isLiked:
+      liked,
+
+
+      likesCount:
+      liked
+          ?
+      moment.likesCount + 1
+          :
+      moment.likesCount - 1,
+
+    );
+
+
+
+    await updateMoment(
+      updated,
+    );
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // CLEAR DATABASE
+
+
+  Future<void> clear() async {
+
+
+    await _preferences.remove(
+      _storageKey,
+    );
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // IMAGE STORAGE
+
+
+  Future<List<String>>
+  _copyImagesToAppFolder({
+
+    required String momentId,
+
+    required List<String> sourcePaths,
+
+  }) async {
+
+
+
+    if(sourcePaths.isEmpty){
+
+      return [];
+
+    }
+
+
+
+    final Directory root =
+    await getApplicationDocumentsDirectory();
+
+
+
+    final Directory folder =
+    Directory(
+      p.join(
+        root.path,
+        'junaya_moments',
+      ),
+    );
+
+
+
+    if(!await folder.exists()){
+
+      await folder.create(
+        recursive:true,
+      );
+
+    }
+
+
+
+    final List<String> results = [];
+
+
+
+    for(int i=0;i<sourcePaths.length;i++){
+
+
+      try{
+
+
+        final File source =
+        File(
+          sourcePaths[i],
+        );
+
+
+
+        if(!await source.exists()){
+
+          continue;
+
+        }
+
+
+
+        String extension =
+        p.extension(
+          source.path,
+        );
+
+
+
+        if(extension.isEmpty){
+
+          extension='.jpg';
+
+        }
+
+
+
+        final String destination =
+        p.join(
+          folder.path,
+          '${momentId}_$i$extension',
+        );
+
+
+
+        final File copied =
+        await source.copy(
+          destination,
+        );
+
+
+
+        results.add(
+          copied.path,
+        );
+
+
+
+      }catch(_){}
+
+
+    }
+
+
+
+    return results;
+
+  }
+
+
+
+
+
+
+
+
+
+  // WRITE
+
+
+  Future<void> _writeMoments(
+      List<Moment> moments,
+      ) async {
+
+
+    final String json =
+    jsonEncode(
+      moments
+          .map(
+            (moment)=>
+            moment.toJson(),
+      )
+          .toList(),
+    );
+
+
+
+    await _preferences.setString(
+      _storageKey,
+      json,
+    );
+
+
+  }
+
+
 }
