@@ -238,8 +238,8 @@ class CommentsNotifier
 
           current
               .where(
-                (comment) =>
-            comment.id != id,
+                (item) =>
+            item.id != comment.id,
           )
               .toList(),
 

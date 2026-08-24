@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 import 'package:junaya_voicechat_app/screens/moments/providers/moments_provider.dart';
 import 'package:junaya_voicechat_app/screens/moments/widgets/comments_bottom_sheet.dart';
-
+import 'reaction_picker.dart';
 
 
 class ReactionBar extends ConsumerWidget {
@@ -36,36 +36,75 @@ class ReactionBar extends ConsumerWidget {
 
         GestureDetector(
 
-          onTap: () {
-
-            ref
-                .read(
-              momentsProvider.notifier,
-            )
-                .toggleLike(
-              moment,
-            );
-
-          },
+        onLongPress: () {
 
 
-          child: Icon(
+      showDialog(
 
-            moment.isLiked
-                ? Icons.favorite
-                : Icons.favorite_border,
+        context: context,
 
-
-            color:
-            Colors.pinkAccent,
+        builder: (_) {
 
 
-            size:
-            26,
+          return Dialog(
 
-          ),
+            backgroundColor:
+            Colors.transparent,
 
-        ),
+
+            child:
+            ReactionPicker(
+
+              onSelected:
+                  (emoji) {
+
+
+                Navigator.pop(
+                  context,
+                );
+
+
+                ref
+                    .read(
+                  momentsProvider.notifier,
+                )
+                    .addReaction(
+
+                  moment: moment,
+
+                  userId: "local_user",
+
+                  emoji: emoji,
+
+                );
+
+
+              },
+
+            ),
+
+          );
+
+
+        },
+
+      );
+
+
+    },
+
+
+    child:
+    const Icon(
+
+    Icons.add_reaction_outlined,
+
+    color:
+    Colors.white54,
+
+    ),
+
+    ),
 
 
 

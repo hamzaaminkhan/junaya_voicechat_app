@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 import 'package:junaya_voicechat_app/screens/moments/providers/moments_provider.dart';
 import 'package:junaya_voicechat_app/screens/moments/widgets/reaction_bar.dart';
-
+import 'reaction_summary.dart';
 
 
 class MomentCard extends ConsumerWidget {
@@ -219,10 +219,23 @@ class MomentCard extends ConsumerWidget {
       WidgetRef ref,
       ) {
 
-    return ReactionBar(
-      moment: moment,
-    );
+    return Column(
 
+      children: [
+
+        ReactionBar(
+          moment: moment,
+        ),
+
+
+        ReactionSummary(
+          reactions:
+          moment.reactions,
+        ),
+
+      ],
+
+    );
   }
 
 
