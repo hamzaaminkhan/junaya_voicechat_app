@@ -3,13 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 import 'package:junaya_voicechat_app/screens/moments/providers/moments_provider.dart';
+
 import 'package:junaya_voicechat_app/screens/moments/widgets/comments_bottom_sheet.dart';
+
 import 'reaction_picker.dart';
+
 
 
 class ReactionBar extends ConsumerWidget {
 
+
   final Moment moment;
+
 
 
   const ReactionBar({
@@ -19,6 +24,8 @@ class ReactionBar extends ConsumerWidget {
     required this.moment,
 
   });
+
+
 
 
 
@@ -34,98 +41,34 @@ class ReactionBar extends ConsumerWidget {
       children: [
 
 
+        // =============================
+        // REACTION PICKER
+        // =============================
+
+
         GestureDetector(
 
-        onLongPress: () {
+          onLongPress: () {
 
 
-      showDialog(
-
-        context: context,
-
-        builder: (_) {
-
-
-          return Dialog(
-
-            backgroundColor:
-            Colors.transparent,
+            _showReactionPicker(
+              context,
+              ref,
+            );
 
 
-            child:
-            ReactionPicker(
-
-              onSelected:
-                  (emoji) {
+          },
 
 
-                Navigator.pop(
-                  context,
-                );
+          child: const Icon(
 
-
-                ref
-                    .read(
-                  momentsProvider.notifier,
-                )
-                    .addReaction(
-
-                  moment: moment,
-
-                  userId: "local_user",
-
-                  emoji: emoji,
-
-                );
-
-
-              },
-
-            ),
-
-          );
-
-
-        },
-
-      );
-
-
-    },
-
-
-    child:
-    const Icon(
-
-    Icons.add_reaction_outlined,
-
-    color:
-    Colors.white54,
-
-    ),
-
-    ),
-
-
-
-
-
-        const SizedBox(
-          width: 6,
-        ),
-
-
-
-        Text(
-
-          "${moment.likesCount}",
-
-
-          style:
-          const TextStyle(
+            Icons.add_reaction_outlined,
 
             color:
-            Colors.white,
+            Colors.white54,
+
+            size:
+            24,
 
           ),
 
@@ -136,14 +79,58 @@ class ReactionBar extends ConsumerWidget {
 
 
         const SizedBox(
-          width: 22,
+          width: 8,
         ),
 
 
 
 
 
-        GestureDetector(
+        // =============================
+        // LIKES
+        // =============================
+
+
+        Text(
+
+          moment.stats.likes.toString(),
+
+
+          style:
+          const TextStyle(
+
+            color:
+            Colors.white,
+
+            fontSize:
+            15,
+
+          ),
+
+        ),
+
+
+
+
+
+        const SizedBox(
+          width: 24,
+        ),
+
+
+
+
+
+        // =============================
+        // COMMENTS BUTTON
+        // =============================
+
+
+        InkWell(
+
+          borderRadius:
+          BorderRadius.circular(20),
+
 
           onTap: () {
 
@@ -165,12 +152,14 @@ class ReactionBar extends ConsumerWidget {
               builder:
                   (_) {
 
+
                 return CommentsBottomSheet(
 
                   momentId:
                   moment.id,
 
                 );
+
 
               },
 
@@ -180,16 +169,12 @@ class ReactionBar extends ConsumerWidget {
           },
 
 
-          child:
-
-          const Icon(
+          child: const Icon(
 
             Icons.chat_bubble_outline,
 
-
             color:
             Colors.white54,
-
 
             size:
             24,
@@ -203,14 +188,21 @@ class ReactionBar extends ConsumerWidget {
 
 
         const SizedBox(
-          width: 6,
+          width: 8,
         ),
 
 
 
+
+
+        // =============================
+        // COMMENT COUNT
+        // =============================
+
+
         Text(
 
-          "${moment.commentsCount}",
+          moment.stats.comments.toString(),
 
 
           style:
@@ -218,6 +210,9 @@ class ReactionBar extends ConsumerWidget {
 
             color:
             Colors.white,
+
+            fontSize:
+            15,
 
           ),
 
@@ -228,6 +223,96 @@ class ReactionBar extends ConsumerWidget {
 
     );
 
+
   }
+
+
+
+
+
+
+
+
+  void _showReactionPicker(
+
+      BuildContext context,
+
+      WidgetRef ref,
+
+      ) {
+
+
+
+    showDialog(
+
+      context:
+      context,
+
+
+      barrierColor:
+      Colors.black54,
+
+
+      builder:
+          (_) {
+
+
+        return Dialog(
+
+          backgroundColor:
+          Colors.transparent,
+
+
+          child:
+
+          ReactionPicker(
+
+            onSelected:
+                (emoji) async {
+
+
+
+              Navigator.pop(
+                context,
+              );
+
+
+
+              await ref
+                  .read(
+                momentsProvider.notifier,
+              )
+                  .addReaction(
+
+                moment:
+                moment,
+
+
+                userId:
+                "local_user",
+
+
+                emoji:
+                emoji,
+
+              );
+
+
+            },
+
+          ),
+
+
+        );
+
+
+      },
+
+    );
+
+
+  }
+
+
 
 }

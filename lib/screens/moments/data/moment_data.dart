@@ -5,13 +5,13 @@ import 'moment_model.dart';
 final List<Moment> sampleMoments = [
 
 
+
   Moment(
 
     id: "1",
 
 
-    author:
-    MomentUser(
+    author: MomentUser(
 
       id: "user1",
 
@@ -31,21 +31,25 @@ final List<Moment> sampleMoments = [
 
 
 
-    media:[
+    media: [
 
       MomentMedia.image(
+
         url:
         "assets/images/moment1.jpg",
 
-        order:0,
+        order: 0,
+
       ),
 
 
       MomentMedia.image(
+
         url:
         "assets/images/moment2.jpg",
 
-        order:1,
+        order: 1,
+
       ),
 
     ],
@@ -53,44 +57,60 @@ final List<Moment> sampleMoments = [
 
 
     createdAt:
-    DateTime.now()
-        .subtract(
+
+    DateTime.now().subtract(
+
       const Duration(
-        minutes:5,
+
+        minutes: 5,
+
       ),
+
     ),
 
 
 
     visibility:
+
     MomentVisibility.public,
 
 
 
     hashtags:
+
     const [],
 
 
 
-    likesCount:
-    24,
+    stats:
 
+    const MomentStats(
 
-    commentsCount:
-    8,
+      likes: 24,
+
+      comments: 8,
+
+      views: 0,
+
+    ),
+
 
 
     isLiked:
+
     false,
+
 
 
     reactions:
+
     const [],
 
 
-    isPinned:
-    false,
 
+    isPinned:
+
+    false,
 
   ),
 
@@ -99,20 +119,20 @@ final List<Moment> sampleMoments = [
 
 
 
+
   Moment(
 
-    id:"2",
+    id: "2",
 
 
 
-    author:
-    MomentUser(
+    author: MomentUser(
 
-      id:"user2",
+      id: "user2",
 
-      username:"alex",
+      username: "alex",
 
-      displayName:"Alex",
+      displayName: "Alex",
 
       avatar:
       "assets/images/avatar2.png",
@@ -122,54 +142,72 @@ final List<Moment> sampleMoments = [
 
 
     caption:
+
     "Sometimes a simple conversation can make your day better 🌙",
 
 
 
     media:
+
     const [],
 
 
 
     createdAt:
-    DateTime.now()
-        .subtract(
+
+    DateTime.now().subtract(
+
       const Duration(
-        minutes:20,
+
+        minutes: 20,
+
       ),
+
     ),
 
 
 
     visibility:
+
     MomentVisibility.public,
 
 
 
     hashtags:
+
     const [],
 
 
 
-    likesCount:
-    15,
+    stats:
 
+    const MomentStats(
 
-    commentsCount:
-    3,
+      likes: 15,
+
+      comments: 3,
+
+      views: 0,
+
+    ),
+
 
 
     isLiked:
+
     false,
+
 
 
     reactions:
+
     const [],
 
 
-    isPinned:
-    false,
 
+    isPinned:
+
+    false,
 
   ),
 
@@ -178,20 +216,22 @@ final List<Moment> sampleMoments = [
 
 
 
+
   Moment(
 
-    id:"3",
+    id: "3",
 
 
 
     author:
+
     MomentUser(
 
-      id:"user3",
+      id: "user3",
 
-      username:"emma",
+      username: "emma",
 
-      displayName:"Emma",
+      displayName: "Emma",
 
       avatar:
       "assets/images/avatar3.png",
@@ -201,19 +241,22 @@ final List<Moment> sampleMoments = [
 
 
     caption:
+
     "Enjoying the beautiful night sky ✨",
 
 
 
-    media:[
+    media:
+
+    [
 
       MomentMedia.image(
 
         url:
+
         "assets/images/moment3.jpg",
 
-        order:
-        0,
+        order: 0,
 
       ),
 
@@ -222,46 +265,63 @@ final List<Moment> sampleMoments = [
 
 
     createdAt:
-    DateTime.now()
-        .subtract(
+
+    DateTime.now().subtract(
+
       const Duration(
-        hours:1,
+
+        hours: 1,
+
       ),
+
     ),
 
 
 
     visibility:
+
     MomentVisibility.public,
 
 
 
     hashtags:
+
     const [],
 
 
 
-    likesCount:
-    42,
+    stats:
 
+    const MomentStats(
 
-    commentsCount:
-    12,
+      likes: 42,
+
+      comments: 12,
+
+      views: 0,
+
+    ),
+
 
 
     isLiked:
+
     false,
+
 
 
     reactions:
+
     const [],
 
 
+
     isPinned:
+
     false,
 
-
   ),
+
 
 
 ];

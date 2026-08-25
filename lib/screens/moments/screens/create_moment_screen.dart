@@ -129,8 +129,7 @@ extends ConsumerState<CreateMomentScreen>{
 
 
     try {
-      final Moment moment =
-      Moment(
+      final Moment moment = Moment(
 
         id:
         DateTime
@@ -145,14 +144,11 @@ extends ConsumerState<CreateMomentScreen>{
           id:
           "local_user",
 
-
           username:
           "junaya",
 
-
           displayName:
           "Junaya User",
-
 
           avatar:
           "",
@@ -180,12 +176,19 @@ extends ConsumerState<CreateMomentScreen>{
         const [],
 
 
-        likesCount:
-        0,
+        stats:
+        const MomentStats(
 
+          likes:
+          0,
 
-        commentsCount:
-        0,
+          comments:
+          0,
+
+          views:
+          0,
+
+        ),
 
 
         isLiked:
@@ -198,7 +201,6 @@ extends ConsumerState<CreateMomentScreen>{
 
         isPinned:
         false,
-
 
       );
 
