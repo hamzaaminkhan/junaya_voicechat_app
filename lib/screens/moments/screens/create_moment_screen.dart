@@ -107,38 +107,48 @@ extends ConsumerState<CreateMomentScreen>{
 
 
   Future<void> _postMoment() async {
-    final String caption =
+
+    final caption =
     _captionController.text.trim();
 
 
-    if (
+
+    if(
     caption.isEmpty &&
         _selectedImages.isEmpty
-    ) {
-      _showMessage(
-        "Write something or add photos",
+    ){
+
+      _message(
+        "Add text or photos",
       );
 
       return;
+
     }
 
 
+
     setState(() {
+
       _posting = true;
+
     });
 
 
+
+
     try {
-      final Moment moment = Moment(
+
+
+      final moment = Moment(
 
         id:
-        DateTime
-            .now()
-            .microsecondsSinceEpoch
-            .toString(),
+        generateId(),
+
 
 
         author:
+
         const MomentUser(
 
           id:
@@ -156,91 +166,138 @@ extends ConsumerState<CreateMomentScreen>{
         ),
 
 
+
         caption:
         caption,
 
 
+
+        // Storage will replace this
+        // with saved media
+
         media:
         const [],
+
 
 
         createdAt:
         DateTime.now(),
 
 
+
         visibility:
         MomentVisibility.public,
+
 
 
         hashtags:
         const [],
 
 
+
         stats:
-        const MomentStats(
+        const MomentStats(),
 
-          likes:
-          0,
-
-          comments:
-          0,
-
-          views:
-          0,
-
-        ),
 
 
         isLiked:
         false,
 
 
+
         reactions:
         const [],
+
 
 
         isPinned:
         false,
 
+
       );
 
 
-        await ref
-            .read(
+
+
+
+
+      await ref
+          .read(
         momentsProvider.notifier,
-)
-    .createMoment(
+      )
+          .createMoment(
 
-moment: moment,
-
-imagePaths:
-_selectedImages
-    .map(
-(image) => image.path,
-)
-    .toList(),
-
-);
+        moment:
+        moment,
 
 
-      if (!mounted) return;
+        imagePaths:
+
+        _selectedImages
+            .map(
+              (image)=>image.path,
+        )
+            .toList(),
+
+      );
+
+
+
+
+
+
+      if(!mounted) return;
+
 
 
       Navigator.pop(
         context,
-        true,
       );
-    } catch (error) {
-      _showMessage(
+
+
+    }
+
+
+
+    catch(error, stack){
+
+
+      debugPrint(
+        error.toString(),
+      );
+
+
+      debugPrint(
+        stack.toString(),
+      );
+
+
+      _message(
         "Failed creating moment",
       );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _posting = false;
-        });
-      }
+
+
     }
+
+
+
+    finally{
+
+
+      if(mounted){
+
+        setState(() {
+
+          _posting = false;
+
+        });
+
+      }
+
+
+    }
+
+
   }
 
 
@@ -1005,6 +1062,8 @@ _selectedImages
 
     );
   }
+
+  void _message(String s) {}
 
 }
 

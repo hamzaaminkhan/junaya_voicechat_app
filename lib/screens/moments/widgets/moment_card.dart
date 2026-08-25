@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 
@@ -10,7 +9,7 @@ import 'package:junaya_voicechat_app/screens/moments/widgets/reaction_summary.da
 
 
 
-class MomentCard extends ConsumerWidget {
+class MomentCard extends StatelessWidget {
 
 
   final Moment moment;
@@ -34,49 +33,40 @@ class MomentCard extends ConsumerWidget {
 
 
 
-
   @override
   Widget build(
-
       BuildContext context,
-
-      WidgetRef ref,
-
       ) {
 
 
     return Container(
 
-
       margin:
-
       const EdgeInsets.symmetric(
 
-        horizontal: 15,
+        horizontal:
+        15,
 
-        vertical: 8,
+        vertical:
+        8,
 
       ),
 
 
 
       padding:
-
       const EdgeInsets.all(16),
 
 
 
       decoration:
-
       BoxDecoration(
 
         color:
-
         const Color(0xff151515),
 
 
         borderRadius:
-
         BorderRadius.circular(22),
 
       ),
@@ -84,12 +74,11 @@ class MomentCard extends ConsumerWidget {
 
 
       child:
-
       Column(
 
         crossAxisAlignment:
-
         CrossAxisAlignment.start,
+
 
         children: [
 
@@ -99,57 +88,59 @@ class MomentCard extends ConsumerWidget {
 
 
 
-          const SizedBox(
-
-            height: 15,
-
-          ),
 
 
+          if(moment.caption.isNotEmpty)...[
+
+            const SizedBox(
+              height:
+              15,
+            ),
 
 
-
-          if(moment.caption.isNotEmpty)
 
             Text(
 
               moment.caption,
 
-              style:
 
+              style:
               const TextStyle(
 
                 color:
-
                 Colors.white,
 
                 fontSize:
-
                 16,
 
               ),
 
             ),
 
+          ],
 
 
 
 
-          if(moment.caption.isNotEmpty)
+
+
+          if(moment.media.isNotEmpty)...[
 
             const SizedBox(
-
-              height: 12,
-
+              height:
+              12,
             ),
 
 
 
+            MomentMediaWidget(
 
+              media:
+              moment.media,
 
-          MomentMediaWidget(
-            media: moment.media.toList(),
-          ),
+            ),
+
+          ],
 
 
 
@@ -164,9 +155,8 @@ class MomentCard extends ConsumerWidget {
 
 
           const SizedBox(
-
-            height: 15,
-
+            height:
+            15,
           ),
 
 
@@ -180,9 +170,8 @@ class MomentCard extends ConsumerWidget {
 
 
           const SizedBox(
-
-            height: 10,
-
+            height:
+            12,
           ),
 
 
@@ -192,9 +181,17 @@ class MomentCard extends ConsumerWidget {
           ReactionBar(
 
             moment:
-
             moment,
 
+          ),
+
+
+
+
+
+          const SizedBox(
+            height:
+            8,
           ),
 
 
@@ -204,23 +201,19 @@ class MomentCard extends ConsumerWidget {
           ReactionSummary(
 
             reactions:
-
             moment.reactions,
 
           ),
-
 
 
         ],
 
       ),
 
-
     );
 
 
   }
-
 
 
 
@@ -230,32 +223,25 @@ class MomentCard extends ConsumerWidget {
 
 
   Widget _header(
-
       BuildContext context,
-
-      ) {
+      ){
 
 
     return MomentHeader(
 
       moment:
-
       moment,
 
 
       onDelete:
-
           () => _confirmDelete(
-
         context,
-
       ),
 
     );
 
 
   }
-
 
 
 
@@ -268,7 +254,6 @@ class MomentCard extends ConsumerWidget {
 
 
     return Row(
-
 
       children: [
 
@@ -287,9 +272,8 @@ class MomentCard extends ConsumerWidget {
 
 
         const SizedBox(
-
-          width: 20,
-
+          width:
+          20,
         ),
 
 
@@ -313,6 +297,7 @@ class MomentCard extends ConsumerWidget {
 
 
 
+
         if(moment.isPinned)
 
           const Icon(
@@ -320,15 +305,12 @@ class MomentCard extends ConsumerWidget {
             Icons.push_pin,
 
             color:
-
             Colors.amber,
 
             size:
-
             18,
 
           ),
-
 
 
       ],
@@ -365,24 +347,23 @@ class MomentCard extends ConsumerWidget {
           icon,
 
           color:
-
           Colors.white54,
 
           size:
-
           18,
 
         ),
 
 
 
+
+
         const SizedBox(
-
           width:
-
           5,
-
         ),
+
+
 
 
 
@@ -390,18 +371,16 @@ class MomentCard extends ConsumerWidget {
 
           value.toString(),
 
-          style:
 
+          style:
           const TextStyle(
 
             color:
-
             Colors.white70,
 
           ),
 
         ),
-
 
 
       ],
@@ -424,21 +403,19 @@ class MomentCard extends ConsumerWidget {
     return Padding(
 
       padding:
-
       const EdgeInsets.only(
 
-        top: 12,
+        top:
+        12,
 
       ),
 
 
-      child:
 
+      child:
       Wrap(
 
-
         spacing:
-
         6,
 
 
@@ -446,19 +423,17 @@ class MomentCard extends ConsumerWidget {
 
         moment.hashtags.map(
 
-              (tag) {
-
+              (tag){
 
             return Text(
 
               "#$tag",
 
-              style:
 
+              style:
               const TextStyle(
 
                 color:
-
                 Colors.purpleAccent,
 
               ),
@@ -471,9 +446,7 @@ class MomentCard extends ConsumerWidget {
         ).toList(),
 
 
-
       ),
-
 
     );
 
@@ -488,44 +461,32 @@ class MomentCard extends ConsumerWidget {
 
 
   void _confirmDelete(
-
       BuildContext context,
-
       ){
 
 
     showDialog(
 
-
       context:
-
       context,
 
 
       builder:
-
           (_) {
 
 
         return AlertDialog(
 
-
           title:
-
           const Text(
-
             "Delete moment?",
-
           ),
 
 
 
           content:
-
           const Text(
-
             "This action cannot be undone.",
-
           ),
 
 
@@ -536,26 +497,20 @@ class MomentCard extends ConsumerWidget {
 
             TextButton(
 
-
               onPressed:
+                  () {
 
-                  () =>
+                Navigator.pop(
+                  context,
+                );
 
-                  Navigator.pop(
-
-                    context,
-
-                  ),
+              },
 
 
               child:
-
               const Text(
-
                 "Cancel",
-
               ),
-
 
             ),
 
@@ -565,14 +520,12 @@ class MomentCard extends ConsumerWidget {
 
             TextButton(
 
-
-              onPressed: (){
+              onPressed:
+                  () {
 
 
                 Navigator.pop(
-
                   context,
-
                 );
 
 
@@ -583,28 +536,19 @@ class MomentCard extends ConsumerWidget {
 
 
               child:
-
               const Text(
-
                 "Delete",
-
               ),
-
-
 
             ),
 
 
-
           ],
-
-
 
         );
 
 
       },
-
 
     );
 

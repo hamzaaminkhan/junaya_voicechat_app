@@ -1,8 +1,10 @@
 import 'dart:io';
 
-import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
+import 'package:mime/mime.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+
+import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 
 
 class MediaStorage {
@@ -60,11 +62,15 @@ class MediaStorage {
 
   Future<List<MomentMedia>> saveMedia({
 
+
+
     required String momentId,
 
     required List<String> paths,
 
   }) async {
+
+
 
 
 
@@ -115,10 +121,23 @@ class MediaStorage {
 
 
 
-        final String extension =
+        final String? extension =
         _extension(
           source.path,
         );
+
+
+        if(extension == null){
+
+          continue;
+
+        }
+
+        if(extension.isEmpty){
+
+          continue;
+
+        }
 
 
 
@@ -132,7 +151,7 @@ class MediaStorage {
 
         final String filename =
 
-            '${momentId}_${DateTime.now().microsecondsSinceEpoch}_$index$extension';
+            '${momentId}_${_generateId()}_$index$extension';
 
 
 
@@ -308,6 +327,10 @@ class MediaStorage {
 
       case '.mkv':
 
+      case '.webm':
+
+      case '.3gp':
+
         return MomentMediaType.video;
 
 
@@ -326,38 +349,26 @@ class MediaStorage {
 
 
 
-
-
   bool _supported(
       String extension,
       ){
 
 
-    const supported={
+    const supported = {
 
 
       // images
 
       '.jpg',
-
       '.jpeg',
-
       '.png',
-
       '.webp',
-
       '.gif',
-
       '.heic',
-
       '.heif',
-
       '.bmp',
-
       '.tiff',
-
       '.tif',
-
       '.avif',
 
 
@@ -365,15 +376,14 @@ class MediaStorage {
       // videos
 
       '.mp4',
-
       '.mov',
-
       '.avi',
-
       '.mkv',
+      '.webm',
+      '.3gp',
+
 
     };
-
 
 
     return supported.contains(
@@ -383,33 +393,155 @@ class MediaStorage {
 
   }
 
-
-
-
-
-
-
-
-
-  String _extension(
-      String path,
+  bool _isAllowedMime(
+      String? mime,
       ){
 
+    if(mime == null){
 
-    final String ext =
-    p.extension(path)
-        .toLowerCase();
+      return false;
+
+    }
 
 
+    const allowed = {
 
-    return ext.isEmpty
-        ? '.jpg'
-        : ext;
 
+      // Images
+
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'image/gif',
+      'image/heic',
+      'image/heif',
+      'image/avif',
+
+
+      // Videos
+
+      'video/mp4',
+      'video/quicktime',
+      'video/x-msvideo',
+      'video/x-matroska',
+      'video/webm',
+
+    };
+
+
+    return allowed.contains(
+      mime,
+    );
 
   }
 
 
+
+
+
+
+
+
+  String? _extension(String path) {
+
+
+    final existing =
+    p.extension(path)
+        .trim()
+        .toLowerCase();
+
+
+
+    // File already has extension
+
+    if(existing.isNotEmpty){
+
+      return existing;
+
+    }
+
+
+
+    // Detect from content
+
+    final mime =
+    lookupMimeType(path);
+
+
+
+    if(mime == null){
+
+      return null;
+
+    }
+
+
+
+    switch(mime){
+
+
+    // Images
+
+      case 'image/jpeg':
+        return '.jpg';
+
+
+      case 'image/png':
+        return '.png';
+
+
+      case 'image/webp':
+        return '.webp';
+
+
+      case 'image/gif':
+        return '.gif';
+
+
+      case 'image/heic':
+        return '.heic';
+
+
+      case 'image/heif':
+        return '.heif';
+
+
+      case 'image/avif':
+        return '.avif';
+
+
+
+    // Videos
+
+      case 'video/mp4':
+        return '.mp4';
+
+
+      case 'video/quicktime':
+        return '.mov';
+
+
+      case 'video/x-msvideo':
+        return '.avi';
+
+
+      case 'video/x-matroska':
+        return '.mkv';
+
+
+      case 'video/webm':
+        return '.webm';
+
+
+      default:
+
+        return null;
+
+
+    }
+
+
+  }
 
 
 
@@ -425,68 +557,62 @@ class MediaStorage {
     switch(extension){
 
 
-
       case '.png':
-
         return 'image/png';
 
 
-
       case '.webp':
-
         return 'image/webp';
 
 
-
       case '.gif':
-
         return 'image/gif';
 
 
-
       case '.heic':
-
       case '.heif':
-
         return 'image/heic';
 
 
-
       case '.avif':
-
         return 'image/avif';
 
 
-
       case '.bmp':
-
         return 'image/bmp';
 
 
-
       case '.tiff':
-
       case '.tif':
-
         return 'image/tiff';
 
 
-
       case '.mp4':
-
         return 'video/mp4';
 
 
-
       case '.mov':
-
         return 'video/quicktime';
 
 
+      case '.avi':
+        return 'video/x-msvideo';
+
+
+      case '.mkv':
+        return 'video/x-matroska';
+
+
+      case '.webm':
+        return 'video/webm';
+
+
+      case '.3gp':
+        return 'video/3gpp';
+
 
       default:
-
-        return 'image/jpeg';
+        return 'application/octet-stream';
 
 
     }
