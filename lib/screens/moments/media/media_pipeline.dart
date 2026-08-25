@@ -1,5 +1,6 @@
 import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
-import 'package:junaya_voicechat_app/screens/moments/storage/media_storage.dart';
+
+import '../storage/media_storage.dart';
 
 import 'media_compressor.dart';
 import 'thumbnail_generator.dart';
@@ -13,11 +14,15 @@ class MediaPipeline {
 
   final MediaStorage storage;
 
+
   final MediaCompressor compressor;
+
 
   final ThumbnailGenerator thumbnail;
 
+
   final MediaDuplicateChecker duplicateChecker;
+
 
   final UploadQueue uploadQueue;
 
@@ -46,6 +51,7 @@ class MediaPipeline {
 
 
 
+
   Future<List<MomentMedia>> process({
 
     required String momentId,
@@ -62,35 +68,28 @@ class MediaPipeline {
 
 
 
-    for(int i = 0; i < files.length; i++){
+    for(int index = 0;
+    index < files.length;
+    index++){
+
 
 
       try {
 
 
 
-        String path =
-        files[i];
+        final original = files[index];
 
 
 
 
 
-
-        // ==================================
-        // DUPLICATE CHECK
-        // ==================================
-
-
-        final duplicate =
-
-        await duplicateChecker.exists(
-          path,
-        );
+        // ==========================
+        // VALIDATE
+        // ==========================
 
 
-
-        if(duplicate){
+        if(original.isEmpty){
 
           continue;
 
@@ -102,15 +101,44 @@ class MediaPipeline {
 
 
 
-        // ==================================
+        // ==========================
+        // DUPLICATE CHECK
+        // ==========================
+
+
+        final exists =
+
+        await duplicateChecker.exists(
+
+          original,
+
+        );
+
+
+
+        if(exists){
+
+          continue;
+
+        }
+
+
+
+
+
+
+
+        // ==========================
         // COMPRESS
-        // ==================================
+        // ==========================
 
 
-        path =
+        final processedPath =
 
         await compressor.compress(
-          path,
+
+          original,
+
         );
 
 
@@ -119,12 +147,13 @@ class MediaPipeline {
 
 
 
-        // ==================================
-        // SAVE MEDIA
-        // ==================================
+
+        // ==========================
+        // SAVE LOCAL FILE
+        // ==========================
 
 
-        final savedList =
+        final saved =
 
         await storage.saveMedia(
 
@@ -136,14 +165,19 @@ class MediaPipeline {
           paths:
 
           [
-            path,
+
+            processedPath
+
           ],
+
 
         );
 
 
 
-        if(savedList.isEmpty){
+
+
+        if(saved.isEmpty){
 
           continue;
 
@@ -151,8 +185,11 @@ class MediaPipeline {
 
 
 
-        var media =
-            savedList.first;
+
+
+        final media =
+
+            saved.first;
 
 
 
@@ -161,12 +198,12 @@ class MediaPipeline {
 
 
 
-        // ==================================
+        // ==========================
         // THUMBNAIL
-        // ==================================
+        // ==========================
 
 
-        final thumbnailPath =
+        final thumb =
 
         await thumbnail.generate(
 
@@ -178,42 +215,52 @@ class MediaPipeline {
 
 
 
-        media =
-
-            media.copyWith(
-
-              thumbnail:
-
-              thumbnailPath,
-
-            );
 
 
 
+        final updated =
+
+        media.copyWith(
+
+          thumbnail:
+
+          thumb,
+
+        );
 
 
 
 
 
-        // ==================================
+
+
+        // ==========================
         // UPLOAD QUEUE
-        // ==================================
+        // ==========================
 
 
-        uploadQueue.add(
+        await uploadQueue.add(
+
 
           UploadTask(
 
+            id:
+
+            updated.id,
+
+
             filePath:
 
-            media.url,
+            updated.url,
 
 
             momentId:
 
             momentId,
 
+
           ),
+
 
         );
 
@@ -225,20 +272,23 @@ class MediaPipeline {
 
 
         result.add(
-          media,
+
+          updated,
+
         );
+
 
 
 
       }
 
 
-
       catch(error){
 
 
-        // production:
-        // log error instead of silent failure
+        // failed media should not
+        // break whole moment
+
 
         continue;
 
@@ -252,12 +302,10 @@ class MediaPipeline {
 
 
 
-
     return result;
 
 
   }
-
 
 
 }

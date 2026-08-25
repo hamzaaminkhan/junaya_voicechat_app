@@ -9,10 +9,19 @@ import 'package:junaya_voicechat_app/screens/moments/services/comment_storage.da
 
 
 
+
+// ======================================================
+// STORAGE
+// ======================================================
+
+
 final commentStorageProvider =
-Provider<CommentStorage>((ref) {
+
+Provider<CommentStorage>((ref){
+
 
   return CommentStorage();
+
 
 });
 
@@ -20,17 +29,30 @@ Provider<CommentStorage>((ref) {
 
 
 
+
+
+
+// ======================================================
+// REPOSITORY
+// ======================================================
+
 final commentRepositoryProvider =
-Provider<CommentRepository>((ref) {
+
+Provider<CommentRepository>((ref){
+
 
   return CommentRepository(
 
     storage:
-    ref.read(
+
+    ref.watch(
+
       commentStorageProvider,
+
     ),
 
   );
+
 
 });
 
@@ -39,13 +61,27 @@ Provider<CommentRepository>((ref) {
 
 
 
+
+
+// ======================================================
+// STATE
+// ======================================================
+
+
 final commentsProvider =
+
 AsyncNotifierProvider.family<
+
     CommentsNotifier,
+
     List<Comment>,
+
     String
+
 >(
+
   CommentsNotifier.new,
+
 );
 
 
@@ -54,11 +90,15 @@ AsyncNotifierProvider.family<
 
 
 
+
+
 class CommentsNotifier
+
     extends FamilyAsyncNotifier<List<Comment>, String> {
 
 
-  late final CommentRepository _repository;
+
+  late CommentRepository _repository;
 
 
   late String _momentId;
@@ -67,26 +107,38 @@ class CommentsNotifier
 
 
 
+
+
+
+
   @override
   Future<List<Comment>> build(
+
       String momentId,
+
       ) async {
 
 
-    _momentId =
-        momentId;
+    _momentId = momentId;
+
 
 
     _repository =
-        ref.read(
+
+        ref.watch(
+
           commentRepositoryProvider,
+
         );
 
 
 
-    return _repository.getComments(
+    return await _repository.getComments(
+
       momentId,
+
     );
+
 
   }
 
@@ -95,28 +147,41 @@ class CommentsNotifier
 
 
 
+
+
+
+  // ======================================================
+  // REFRESH
+  // ======================================================
 
 
   Future<void> refresh() async {
 
 
     state =
+
     const AsyncLoading();
 
 
 
     state =
+
     await AsyncValue.guard(
 
           () async {
 
-        return _repository.getComments(
+
+        return await _repository.getComments(
+
           _momentId,
+
         );
+
 
       },
 
     );
+
 
   }
 
@@ -126,6 +191,11 @@ class CommentsNotifier
 
 
 
+
+
+  // ======================================================
+  // CREATE
+  // ======================================================
 
 
   Future<void> addComment({
@@ -135,38 +205,84 @@ class CommentsNotifier
   }) async {
 
 
-    final Comment created =
-    await _repository.createComment(
-      comment: comment,
-    );
+
+    try {
 
 
 
-    final current =
-        state.value ?? [];
+      final created =
+
+      await _repository.createComment(
+
+        comment:
+
+        comment,
+
+      );
 
 
 
-    state =
-        AsyncData(
 
-          [
 
-            created,
+      final current =
 
-            ...current,
+          state.value ?? [];
 
-          ],
 
-        );
 
-    await ref
-        .read(
-      momentsProvider.notifier,
-    )
-        .incrementComments(
-      comment.momentId,
-    );
+
+
+      state =
+
+          AsyncData(
+
+            [
+
+              created,
+
+              ...current,
+
+            ],
+
+          );
+
+
+
+
+
+      await ref
+
+          .read(
+
+        momentsProvider.notifier,
+
+      )
+
+          .updateComments(
+        id: comment.momentId,
+        increase: true,
+      );
+
+
+
+
+    }
+
+    catch(error,stack){
+
+
+      state =
+
+          AsyncError(
+
+            error,
+
+            stack,
+
+          );
+
+
+    }
 
 
   }
@@ -177,145 +293,87 @@ class CommentsNotifier
 
 
 
+
+
+  // ======================================================
+  // UPDATE
+  // ======================================================
 
 
   Future<void> updateComment(
+
       Comment comment,
+
       ) async {
-
-
-    final updated =
-    await _repository.updateComment(
-      comment,
-    );
-
-
-
-    final current =
-        state.value ?? [];
-
-
-
-    state =
-        AsyncData(
-
-          current
-              .map(
-
-                (item) =>
-
-            item.id == updated.id
-                ? updated
-                : item,
-
-          )
-              .toList(),
-
-        );
-
-  }
-
-
-
-
-
-
-
-
-
-  Future<void> deleteComment(
-      Comment comment,
-      ) async {
-
-
-    final current =
-        state.value ?? [];
-
-
-
-    state =
-        AsyncData(
-
-          current
-              .where(
-                (item) =>
-            item.id != comment.id,
-          )
-              .toList(),
-
-        );
 
 
 
     try {
 
 
-      Future<void> deleteComment(
-          Comment comment,
-          ) async {
 
-        final current =
-            state.value ?? [];
+      final updated =
 
+      await _repository.updateComment(
 
-        state =
-            AsyncData(
+        comment,
 
-              current
-                  .where(
-                    (item) =>
-                item.id != comment.id,
-              )
-                  .toList(),
-
-            );
+      );
 
 
-        try {
-
-          await _repository.deleteComment(
-            comment.id,
-          );
-
-          await ref
-              .read(
-            momentsProvider.notifier,
-          )
-              .decrementComments(
-            comment.momentId,
-          );
 
 
-        } catch(error, stackTrace) {
+
+      final current =
+
+          state.value ?? [];
 
 
-          state =
-              AsyncError(
-                error,
-                stackTrace,
-              );
 
-
-          await refresh();
-
-        }
-
-      }
-
-
-    } catch(error, stackTrace) {
 
 
       state =
-          AsyncError(
-            error,
-            stackTrace,
+
+          AsyncData(
+
+            current.map(
+
+                  (item) =>
+
+              item.id == updated.id
+
+                  ?
+
+              updated
+
+                  :
+
+              item,
+
+            ).toList(),
+
           );
 
 
-      await refresh();
 
     }
+
+    catch(error,stack){
+
+
+      state =
+
+          AsyncError(
+
+            error,
+
+            stack,
+
+          );
+
+
+    }
+
 
   }
 
@@ -327,40 +385,196 @@ class CommentsNotifier
 
 
 
-  Future<void> toggleLike(
+  // ======================================================
+  // DELETE
+  // ======================================================
+
+
+  Future<void> deleteComment(
+
       Comment comment,
+
       ) async {
 
 
-    final updated =
-    await _repository.toggleLike(
-      comment,
-    );
 
+    final previous =
 
-
-    final current =
         state.value ?? [];
 
 
 
+
+
     state =
+
         AsyncData(
 
-          current
-              .map(
+          previous.where(
 
                 (item) =>
 
-            item.id == updated.id
-                ? updated
-                : item,
+            item.id != comment.id,
 
-          )
-              .toList(),
+          ).toList(),
 
         );
 
+
+
+
+
+    try {
+
+
+
+      await _repository.deleteComment(
+
+        comment.id,
+
+      );
+
+
+
+
+
+      await ref
+
+          .read(
+
+        momentsProvider.notifier,
+
+      )
+          .updateComments(
+        id: comment.momentId,
+        increase: false,
+      );
+
+
+
+    }
+
+    catch(error,stack){
+
+
+
+      state =
+
+          AsyncError(
+
+            error,
+
+            stack,
+
+          );
+
+
+
+      state =
+
+          AsyncData(
+
+            previous,
+
+          );
+
+
+    }
+
+
   }
+
+
+
+
+
+
+
+
+
+  // ======================================================
+  // LIKE
+  // ======================================================
+
+
+  Future<void> toggleLike(
+
+      Comment comment,
+
+      ) async {
+
+
+
+    try {
+
+
+
+      final updated =
+
+      await _repository.toggleLike(
+
+        comment,
+
+      );
+
+
+
+
+
+      final current =
+
+          state.value ?? [];
+
+
+
+
+
+      state =
+
+          AsyncData(
+
+            current.map(
+
+                  (item) =>
+
+              item.id == updated.id
+
+                  ?
+
+              updated
+
+                  :
+
+              item,
+
+            ).toList(),
+
+          );
+
+
+
+    }
+
+    catch(error,stack){
+
+
+
+      state =
+
+          AsyncError(
+
+            error,
+
+            stack,
+
+          );
+
+
+    }
+
+
+  }
+
+
 
 }

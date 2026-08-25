@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+
 import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
+
 import 'package:junaya_voicechat_app/screens/moments/providers/moments_provider.dart';
-import 'package:junaya_voicechat_app/screens/moments/providers/media_pipeline_provider.dart';
+
 import 'package:junaya_voicechat_app/screens/moments/screens/create_moment_screen.dart';
 
 import 'package:junaya_voicechat_app/screens/moments/widgets/create_button.dart';
+
 import 'package:junaya_voicechat_app/screens/moments/widgets/moment_card.dart';
+
+
 
 
 
@@ -25,6 +30,9 @@ class MomentsScreen extends ConsumerWidget {
 
 
 
+
+
+
   Future<void> _createMoment(
 
       BuildContext context,
@@ -35,44 +43,23 @@ class MomentsScreen extends ConsumerWidget {
 
 
 
-    final pipeline = ref.read(
-
-      mediaPipelineProvider,
-
-    );
-
-
-
-
-
-    final bool? created =
+    final created =
 
     await Navigator.push(
 
-
       context,
-
 
       MaterialPageRoute(
 
+        builder:
 
-        builder: (_) =>
+            (_) =>
 
-
-            CreateMomentScreen(
-
-              pipeline:
-
-              pipeline,
-
-            ),
-
+        const CreateMomentScreen(),
 
       ),
 
-
     );
-
 
 
 
@@ -97,6 +84,7 @@ class MomentsScreen extends ConsumerWidget {
 
 
   }
+
 
 
 
@@ -141,7 +129,6 @@ class MomentsScreen extends ConsumerWidget {
 
 
   @override
-
   Widget build(
 
       BuildContext context,
@@ -152,7 +139,7 @@ class MomentsScreen extends ConsumerWidget {
 
 
 
-    final momentsState =
+    final state =
 
     ref.watch(
 
@@ -164,10 +151,7 @@ class MomentsScreen extends ConsumerWidget {
 
 
 
-
-
     return Scaffold(
-
 
 
       backgroundColor:
@@ -178,10 +162,10 @@ class MomentsScreen extends ConsumerWidget {
 
 
 
+
       appBar:
 
       AppBar(
-
 
         backgroundColor:
 
@@ -204,8 +188,6 @@ class MomentsScreen extends ConsumerWidget {
 
           TextStyle(
 
-            color: Colors.white,
-
             fontWeight:
 
             FontWeight.bold,
@@ -223,22 +205,23 @@ class MomentsScreen extends ConsumerWidget {
 
 
 
+
       floatingActionButton:
 
 
       CreateMomentButton(
 
-
         onPressed:
 
+            () =>
 
-            () => _createMoment(
+            _createMoment(
 
-          context,
+              context,
 
-          ref,
+              ref,
 
-        ),
+            ),
 
 
       ),
@@ -252,22 +235,21 @@ class MomentsScreen extends ConsumerWidget {
       body:
 
 
-      momentsState.when(
+      state.when(
 
 
 
         loading:
 
-            () => const Center(
+            () =>
 
+        const Center(
 
           child:
 
           CircularProgressIndicator(),
 
-
         ),
-
 
 
 
@@ -276,33 +258,105 @@ class MomentsScreen extends ConsumerWidget {
 
         error:
 
-            (error, stackTrace) => Center(
+            (error,stack)=>
 
 
-          child:
+            Center(
 
-          Text(
+              child:
+
+              Column(
+
+                mainAxisAlignment:
+
+                MainAxisAlignment.center,
+
+                children: [
 
 
-            "Failed loading moments",
+
+                  const Icon(
+
+                    Icons.error_outline,
+
+                    color:
+
+                    Colors.redAccent,
+
+                    size:
+
+                    50,
+
+                  ),
 
 
-            style:
 
-            const TextStyle(
 
-              color:
+                  const SizedBox(
 
-              Colors.white,
+                    height:
+
+                    12,
+
+                  ),
+
+
+
+
+                  const Text(
+
+                    "Failed loading moments",
+
+                    style:
+
+                    TextStyle(
+
+                      color:
+
+                      Colors.white,
+
+                    ),
+
+                  ),
+
+
+
+
+
+                  TextButton(
+
+                    onPressed:
+
+                        () =>
+
+                        ref
+
+                            .read(
+
+                          momentsProvider.notifier,
+
+                        )
+
+                            .refresh(),
+
+
+                    child:
+
+                    const Text(
+
+                      "Retry",
+
+                    ),
+
+                  ),
+
+
+
+                ],
+
+              ),
 
             ),
-
-
-          ),
-
-
-        ),
-
 
 
 
@@ -312,18 +366,15 @@ class MomentsScreen extends ConsumerWidget {
 
         data:
 
-            (moments) {
+            (moments){
 
 
 
           if(moments.isEmpty){
 
-
             return _emptyState();
 
-
           }
-
 
 
 
@@ -336,16 +387,18 @@ class MomentsScreen extends ConsumerWidget {
 
             onRefresh:
 
+                () =>
 
-                () => ref
+                ref
 
-                .read(
+                    .read(
 
-              momentsProvider.notifier,
+                  momentsProvider.notifier,
 
-            )
+                )
 
-                .refresh(),
+                    .refresh(),
+
 
 
 
@@ -361,18 +414,16 @@ class MomentsScreen extends ConsumerWidget {
 
               const EdgeInsets.only(
 
-
                 top:
 
                 10,
-
 
                 bottom:
 
                 100,
 
-
               ),
+
 
 
 
@@ -390,7 +441,6 @@ class MomentsScreen extends ConsumerWidget {
 
               itemBuilder:
 
-
                   (context,index){
 
 
@@ -398,7 +448,6 @@ class MomentsScreen extends ConsumerWidget {
                 final moment =
 
                 moments[index];
-
 
 
 
@@ -419,32 +468,38 @@ class MomentsScreen extends ConsumerWidget {
 
                   onDelete:
 
+                      () =>
 
-                      () => _deleteMoment(
+                      _deleteMoment(
 
-                    ref,
+                        ref,
 
-                    moment,
+                        moment,
 
-                  ),
+                      ),
+
 
 
                 );
 
 
+
               },
+
 
 
             ),
 
 
+
           );
+
 
 
         },
 
-
       ),
+
 
 
     );
@@ -467,9 +522,11 @@ class MomentsScreen extends ConsumerWidget {
     return Center(
 
 
+
       child:
 
       Column(
+
 
 
         mainAxisAlignment:
@@ -478,25 +535,25 @@ class MomentsScreen extends ConsumerWidget {
 
 
 
-        children:[
+
+
+        children: [
+
+
 
 
 
           const Icon(
 
-
             Icons.auto_awesome,
-
-
-            size:
-
-            80,
-
 
             color:
 
             Colors.purpleAccent,
 
+            size:
+
+            80,
 
           ),
 
@@ -504,15 +561,15 @@ class MomentsScreen extends ConsumerWidget {
 
 
 
-          const SizedBox(
 
+          const SizedBox(
 
             height:
 
             20,
 
-
           ),
+
 
 
 
@@ -520,34 +577,28 @@ class MomentsScreen extends ConsumerWidget {
 
           const Text(
 
-
             "No moments yet",
-
 
             style:
 
             TextStyle(
 
-
               color:
 
               Colors.white,
-
 
               fontSize:
 
               20,
 
-
               fontWeight:
 
               FontWeight.bold,
 
-
             ),
 
-
           ),
+
 
 
 
@@ -555,13 +606,12 @@ class MomentsScreen extends ConsumerWidget {
 
           const SizedBox(
 
-
             height:
 
             8,
 
-
           ),
+
 
 
 
@@ -569,37 +619,34 @@ class MomentsScreen extends ConsumerWidget {
 
           const Text(
 
-
             "Create your first memory",
-
 
             style:
 
             TextStyle(
 
-
               color:
 
               Colors.white54,
 
-
             ),
-
 
           ),
 
 
 
+
         ],
 
-
       ),
+
 
 
     );
 
 
   }
+
 
 
 }

@@ -11,9 +11,39 @@ import 'package:junaya_voicechat_app/screens/moments/providers/media_storage_pro
 
 
 
+
+// ======================================================
+// UPLOAD QUEUE
+// ======================================================
+
+
+final uploadQueueProvider =
+
+Provider<UploadQueue>((ref){
+
+
+  return UploadQueue();
+
+
+});
+
+
+
+
+
+
+
+
+
+// ======================================================
+// MEDIA PIPELINE
+// ======================================================
+
+
 final mediaPipelineProvider =
 
-Provider<MediaPipeline>((ref) {
+Provider<MediaPipeline>((ref){
+
 
 
   return MediaPipeline(
@@ -21,9 +51,13 @@ Provider<MediaPipeline>((ref) {
 
     storage:
 
-    ref.read(
+    ref.watch(
+
       mediaStorageProvider,
+
     ),
+
+
 
 
 
@@ -33,9 +67,13 @@ Provider<MediaPipeline>((ref) {
 
 
 
+
+
     thumbnail:
 
     ThumbnailGenerator(),
+
+
 
 
 
@@ -45,13 +83,20 @@ Provider<MediaPipeline>((ref) {
 
 
 
+
+
     uploadQueue:
 
-    UploadQueue(),
+    ref.watch(
+
+      uploadQueueProvider,
+
+    ),
 
 
 
   );
+
 
 
 });

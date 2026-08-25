@@ -3,133 +3,193 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 
-import 'package:junaya_voicechat_app/screens/moments/media/media_pipeline.dart';
+import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 import 'package:junaya_voicechat_app/screens/moments/providers/moments_provider.dart';
 
-class CreateMomentScreen extends ConsumerStatefulWidget {
 
-  final MediaPipeline pipeline;
+
+class CreateMomentScreen extends ConsumerStatefulWidget {
 
 
   const CreateMomentScreen({
 
     super.key,
 
-    required this.pipeline,
-
   });
+
+
 
   @override
   ConsumerState<CreateMomentScreen> createState() =>
       _CreateMomentScreenState();
+
+
 }
 
 
+
+
+
+
+
+
 class _CreateMomentScreenState
-extends ConsumerState<CreateMomentScreen>{
+
+    extends ConsumerState<CreateMomentScreen> {
 
 
-  static const Color purple =
-  Color(0xFF9D3BFF);
 
-
-  static const Color gold =
-  Color(0xFFFFD36A);
-
-
-  final TextEditingController _captionController =
+  final TextEditingController captionController =
   TextEditingController();
 
 
-  final ImagePicker _picker =
+
+  final ImagePicker picker =
   ImagePicker();
 
 
-  final List<XFile> _selectedImages =
-  [];
+
+  final List<XFile> images = [];
 
 
-  bool _posting = false;
+
+  bool loading = false;
+
+
+
+
+
+
+
 
 
   @override
-  void initState() {
-    super.initState();
-
-  }
+  void dispose(){
 
 
-  @override
-  void dispose() {
-    _captionController.dispose();
+    captionController.dispose();
+
 
     super.dispose();
+
   }
 
 
-  Future<void> _pickImages() async {
-    try {
-      final List<XFile> images =
-      await _picker.pickMultiImage(
-        imageQuality: 88,
-      );
 
 
-      if (images.isEmpty) return;
 
 
-      final int available =
-          4 - _selectedImages.length;
 
 
-      if (available <= 0) {
-        _showMessage(
-          "Maximum 4 images allowed",
-        );
 
-        return;
-      }
+  Future<void> pickImages() async {
 
 
-      setState(() {
-        _selectedImages.addAll(
-          images.take(
-            available,
-          ),
-        );
-      });
-    } catch (_) {
-      _showMessage(
-        "Unable to open gallery",
-      );
+    final picked =
+
+    await picker.pickMultiImage(
+
+      imageQuality: 90,
+
+    );
+
+
+
+    if(picked.isEmpty){
+
+      return;
+
     }
-  }
 
 
-  void _removeImage(int index) {
+
+    final remaining =
+
+        4 - images.length;
+
+
+
+    if(remaining <= 0){
+
+      return;
+
+    }
+
+
+
     setState(() {
-      _selectedImages.removeAt(index);
+
+
+      images.addAll(
+
+        picked
+
+            .take(
+
+          remaining,
+
+        ),
+
+      );
+
+
     });
+
+
   }
 
 
-  Future<void> _postMoment() async {
+
+
+
+
+
+
+
+  void removeImage(int index){
+
+
+    setState(() {
+
+
+      images.removeAt(index);
+
+
+    });
+
+
+  }
+
+
+
+
+
+
+
+
+
+  Future<void> submit() async {
 
 
     final caption =
-    _captionController.text.trim();
+
+    captionController.text.trim();
+
+
 
 
 
     if(
+
     caption.isEmpty &&
-        _selectedImages.isEmpty
+
+        images.isEmpty
+
     ){
 
-      _message(
-        "Add text or photos",
+      showMessage(
+        "Add text or photo",
       );
 
       return;
@@ -140,11 +200,17 @@ extends ConsumerState<CreateMomentScreen>{
 
 
 
+
+
     setState(() {
 
-      _posting = true;
+
+      loading = true;
+
 
     });
+
+
 
 
 
@@ -154,45 +220,24 @@ extends ConsumerState<CreateMomentScreen>{
 
 
       final id =
+
       DateTime.now()
+
           .microsecondsSinceEpoch
+
           .toString();
 
 
 
 
 
-      final media =
 
-      await widget.pipeline.process(
+      final moment =
 
-        momentId:
-        id,
+      Moment(
 
 
-        files:
-
-        _selectedImages
-
-            .map(
-              (e)=>e.path,
-        )
-
-            .toList(),
-
-      );
-
-
-
-
-
-
-
-      final moment = Moment(
-
-
-        id:
-        id,
+        id:id,
 
 
 
@@ -201,18 +246,23 @@ extends ConsumerState<CreateMomentScreen>{
         const MomentUser(
 
           id:
+
           "local_user",
 
           username:
+
           "junaya",
 
           displayName:
-          "Junaya User",
+
+          "Junaya",
 
           avatar:
+
           "",
 
         ),
+
 
 
 
@@ -224,7 +274,7 @@ extends ConsumerState<CreateMomentScreen>{
 
         media:
 
-        media,
+        const [],
 
 
 
@@ -248,13 +298,19 @@ extends ConsumerState<CreateMomentScreen>{
 
         stats:
 
-        const MomentStats(),
+        const MomentStats(
+
+          likes:0,
+
+          comments:0,
+
+          views:0,
+
+        ),
 
 
 
-        isLiked:
-
-        false,
+        isLiked:false,
 
 
 
@@ -264,10 +320,7 @@ extends ConsumerState<CreateMomentScreen>{
 
 
 
-        isPinned:
-
-        false,
-
+        isPinned:false,
 
       );
 
@@ -288,9 +341,21 @@ extends ConsumerState<CreateMomentScreen>{
 
           .createMoment(
 
-        moment:
+        moment: moment,
 
-        moment,
+
+        mediaPaths:
+
+        images
+
+            .map(
+
+              (e)=>e.path,
+
+        )
+
+            .toList(),
+
 
       );
 
@@ -300,35 +365,31 @@ extends ConsumerState<CreateMomentScreen>{
 
 
 
-      if(!mounted) return;
+      if(!mounted){
+
+        return;
+
+      }
 
 
 
       Navigator.pop(
+
         context,
+
+        true,
+
       );
+
 
 
 
     }
 
-
-    catch(error,stack){
-
+    catch(e){
 
 
-      debugPrint(
-        error.toString(),
-      );
-
-
-      debugPrint(
-        stack.toString(),
-      );
-
-
-
-      _message(
+      showMessage(
 
         "Failed creating moment",
 
@@ -342,14 +403,17 @@ extends ConsumerState<CreateMomentScreen>{
     finally{
 
 
-
       if(mounted){
+
 
         setState(() {
 
-          _posting=false;
+
+          loading=false;
+
 
         });
+
 
       }
 
@@ -360,1191 +424,468 @@ extends ConsumerState<CreateMomentScreen>{
   }
 
 
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context)
 
-      ..hideCurrentSnackBar()
 
-      ..showSnackBar(
 
-        SnackBar(
 
-          content:
-          Text(message),
 
-        ),
-
-      );
-  }
 
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context){
+
+
     return Scaffold(
 
 
       backgroundColor:
-      const Color(0xff09000F),
+
+      const Color(0xff090909),
 
 
-      body:
-      Stack(
 
 
-        children: [
+      appBar:
+
+      AppBar(
+
+        backgroundColor:
+
+        Colors.transparent,
 
 
-          const Positioned.fill(
-
-            child:
-            JunayaBackground(),
-
-          ),
-
-
-          SafeArea(
-
-
-            child:
-            SingleChildScrollView(
-
-
-              padding:
-              const EdgeInsets.all(18),
-
-
-              child:
-              Column(
-
-
-                crossAxisAlignment:
-                CrossAxisAlignment.start,
-
-
-                children: [
-
-
-                  _header(),
-
-
-                  const SizedBox(
-                    height: 30,
-                  ),
-
-
-                  _captionBox(),
-
-
-                  const SizedBox(
-                    height: 25,
-                  ),
-
-
-                  _imageSection(),
-
-
-                ],
-
-
-              ),
-
-
-            ),
-
-
-          ),
-
-
-        ],
-
-
-      ),
-
-
-    );
-  }
-
-
-  Widget _header() {
-    return Row(
-
-
-      mainAxisAlignment:
-      MainAxisAlignment.spaceBetween,
-
-
-      children: [
-
-
-        IconButton(
-
-          onPressed:
-              () => Navigator.pop(context),
-
-
-          icon:
-          const Icon(
-
-            Icons.close,
-
-            color:
-            Colors.white,
-
-          ),
-
-        ),
-
+        title:
 
         const Text(
 
           "Create Moment",
 
           style:
+
           TextStyle(
 
             color:
-            gold,
 
-            fontSize:
-            25,
-
-            fontWeight:
-            FontWeight.bold,
-
-          ),
-
-        ),
-
-
-        ElevatedButton(
-
-          onPressed:
-          _posting
-              ?
-          null
-              :
-          _postMoment,
-
-
-          child:
-          _posting
-
-              ?
-
-          const SizedBox(
-
-            width:
-            18,
-
-            height:
-            18,
-
-            child:
-            CircularProgressIndicator(
-              strokeWidth: 2,
-            ),
-
-          )
-
-
-              :
-
-          const Text(
-            "Post",
-          ),
-
-
-        ),
-
-
-      ],
-
-    );
-  }
-
-
-  Widget _captionBox() {
-    return Container(
-
-      height:
-      220,
-
-
-      decoration:
-      BoxDecoration(
-
-        color:
-        Colors.black26,
-
-
-        borderRadius:
-        BorderRadius.circular(20),
-
-
-        border:
-        Border.all(
-
-          color:
-          purple,
-
-        ),
-
-      ),
-
-
-      child:
-      TextField(
-
-        controller:
-        _captionController,
-
-
-        expands:
-        true,
-
-
-        maxLines:
-        null,
-
-
-        style:
-        const TextStyle(
-
-          color:
-          Colors.white,
-
-          fontSize:
-          17,
-
-        ),
-
-
-        decoration:
-        const InputDecoration(
-
-          hintText:
-          "Say something...",
-
-
-          hintStyle:
-          TextStyle(
-            color:
-            Colors.white54,
-          ),
-
-
-          border:
-          InputBorder.none,
-
-
-          contentPadding:
-          EdgeInsets.all(18),
-
-
-        ),
-
-      ),
-
-    );
-  }
-
-  Widget _imageSection() {
-    return Column(
-
-      crossAxisAlignment:
-      CrossAxisAlignment.start,
-
-
-      children: [
-
-
-        const Text(
-
-          "Photos",
-
-          style:
-          TextStyle(
-
-            color:
             Colors.white,
 
-            fontSize:
-            18,
-
-            fontWeight:
-            FontWeight.bold,
-
           ),
 
         ),
 
-
-        const SizedBox(
-          height: 15,
-        ),
+      ),
 
 
-        GridView.builder(
-
-          shrinkWrap:
-          true,
 
 
-          physics:
-          const NeverScrollableScrollPhysics(),
 
 
-          itemCount:
-          _selectedImages.length < 4
 
-              ?
+      body:
 
-          _selectedImages.length + 1
+      Padding(
 
-              :
+        padding:
 
-          4,
+        const EdgeInsets.all(16),
 
-
-          gridDelegate:
-          const SliverGridDelegateWithFixedCrossAxisCount(
-
-            crossAxisCount:
-            2,
-
-
-            crossAxisSpacing:
-            12,
-
-
-            mainAxisSpacing:
-            12,
-
-
-            childAspectRatio:
-            .95,
-
-
-          ),
-
-
-          itemBuilder:
-              (context, index) {
-            if (
-            index == _selectedImages.length &&
-                _selectedImages.length < 4
-            ) {
-              return _uploadTile();
-            }
-
-
-            return _imagePreview(
-              index,
-            );
-          },
-
-
-        ),
-
-
-        const SizedBox(
-          height: 10,
-        ),
-
-
-        Text(
-
-          "${_selectedImages.length}/4 images selected",
-
-          style:
-          const TextStyle(
-
-            color:
-            Colors.white54,
-
-            fontSize:
-            13,
-
-          ),
-
-        ),
-
-
-      ],
-
-    );
-  }
-
-
-  Widget _uploadTile() {
-    return InkWell(
-
-      onTap:
-      _pickImages,
-
-
-      borderRadius:
-      BorderRadius.circular(20),
-
-
-      child:
-      Container(
-
-
-        decoration:
-        BoxDecoration(
-
-
-          color:
-          const Color(
-            0xff170020,
-          ),
-
-
-          borderRadius:
-          BorderRadius.circular(20),
-
-
-          border:
-          Border.all(
-
-            color:
-            const Color(
-              0xffD27AFF,
-            ),
-
-
-            width:
-            1.5,
-
-          ),
-
-
-        ),
 
 
         child:
+
         Column(
 
-
-          mainAxisAlignment:
-          MainAxisAlignment.center,
+          children:[
 
 
-          children: [
 
 
-            Container(
+            TextField(
 
-              width:
-              70,
+              controller:
+
+              captionController,
 
 
-              height:
-              55,
+              maxLines:
+
+              5,
+
+
+
+              style:
+
+              const TextStyle(
+
+                color:
+
+                Colors.white,
+
+              ),
+
+
 
 
               decoration:
-              BoxDecoration(
+
+              const InputDecoration(
+
+                hintText:
+
+                "Write something...",
 
 
-                borderRadius:
-                BorderRadius.circular(12),
+                hintStyle:
 
-
-                border:
-                Border.all(
+                TextStyle(
 
                   color:
-                  gold,
 
-                  width:
-                  2,
+                  Colors.white54,
+
+                ),
+
+              ),
+
+            ),
+
+
+
+
+
+
+
+            const SizedBox(
+
+              height:
+
+              20,
+
+            ),
+
+
+
+
+
+
+            SizedBox(
+
+              height:
+
+              100,
+
+
+              child:
+
+              ListView.builder(
+
+                scrollDirection:
+
+                Axis.horizontal,
+
+
+                itemCount:
+
+                images.length,
+
+
+
+                itemBuilder:
+
+                    (_,index){
+
+
+
+                  return Stack(
+
+                    children:[
+
+
+
+                      Container(
+
+                        width:
+
+                        100,
+
+
+                        margin:
+
+                        const EdgeInsets.only(
+
+                          right:
+
+                          10,
+
+                        ),
+
+
+
+                        decoration:
+
+                        BoxDecoration(
+
+                          borderRadius:
+
+                          BorderRadius.circular(
+
+                            12,
+
+                          ),
+
+
+                          image:
+
+                          DecorationImage(
+
+                            image:
+
+                            FileImage(
+
+                              File(
+
+                                images[index].path,
+
+                              ),
+
+                            ),
+
+
+
+                            fit:
+
+                            BoxFit.cover,
+
+
+                          ),
+
+
+                        ),
+
+
+
+                      ),
+
+
+
+
+
+
+                      Positioned(
+
+                        right:
+
+                        10,
+
+                        child:
+
+                        GestureDetector(
+
+                          onTap:
+
+                              ()=>
+
+                              removeImage(
+
+                                index,
+
+                              ),
+
+
+                          child:
+
+                          const Icon(
+
+                            Icons.close,
+
+                            color:
+
+                            Colors.white,
+
+                          ),
+
+                        ),
+
+                      )
+
+
+
+
+                    ],
+
+                  );
+
+
+                },
+
+
+              ),
+
+
+            ),
+
+
+
+
+
+
+
+            const Spacer(),
+
+
+
+
+
+
+            Row(
+
+              children:[
+
+
+
+
+                IconButton(
+
+                  onPressed:
+
+                  loading
+
+                      ?
+
+                  null
+
+                      :
+
+                  pickImages,
+
+
+                  icon:
+
+                  const Icon(
+
+                    Icons.image,
+
+                    color:
+
+                    Colors.white,
+
+                  ),
 
                 ),
 
 
-              ),
 
 
-              child:
-              const Icon(
-
-                Icons.add_photo_alternate_outlined,
 
 
-                color:
-                gold,
+                const Spacer(),
 
 
-                size:
-                32,
 
 
-              ),
 
 
-            ),
+
+                ElevatedButton(
+
+                  onPressed:
+
+                  loading
+
+                      ?
+
+                  null
+
+                      :
+
+                  submit,
 
 
-            const SizedBox(
-              height: 12,
-            ),
+
+                  child:
+
+                  loading
+
+                      ?
+
+                  const SizedBox(
+
+                    height:
+
+                    18,
+
+                    width:
+
+                    18,
+
+                    child:
+
+                    CircularProgressIndicator(),
+
+                  )
 
 
-            const Text(
+                      :
 
-              "Add photo",
+                  const Text(
 
-              style:
-              TextStyle(
+                    "Post",
 
-                color:
-                Colors.white70,
+                  ),
 
-
-              ),
+                ),
 
 
-            ),
+
+
+              ],
+
+            )
+
+
 
 
           ],
 
-
         ),
 
 
       ),
 
 
+
     );
+
+
   }
 
 
-  Widget _imagePreview(int index,) {
-    final XFile image =
-    _selectedImages[index];
 
 
-    return Stack(
 
 
-      children: [
 
 
-        Positioned.fill(
 
+  void showMessage(String text){
 
-          child:
-          ClipRRect(
 
+    ScaffoldMessenger.of(context)
 
-            borderRadius:
-            BorderRadius.circular(20),
+        .showSnackBar(
 
+      SnackBar(
 
-            child:
-            Image.file(
+        content:
 
-
-              File(
-                image.path,
-              ),
-
-
-              fit:
-              BoxFit.cover,
-
-
-              errorBuilder:
-                  (_, _, _) {
-                return Container(
-
-                  color:
-                  Colors.black26,
-
-
-                  child:
-                  const Icon(
-
-                    Icons.broken_image_outlined,
-
-
-                    color:
-                    Colors.white54,
-
-
-                  ),
-
-
-                );
-              },
-
-
-            ),
-
-
-          ),
-
-
-        ),
-
-
-        Positioned.fill(
-
-
-          child:
-          Container(
-
-
-            decoration:
-            BoxDecoration(
-
-
-              borderRadius:
-              BorderRadius.circular(20),
-
-
-              border:
-              Border.all(
-
-
-                color:
-                purple,
-
-
-                width:
-                1.5,
-
-
-              ),
-
-
-            ),
-
-
-          ),
-
-
-        ),
-
-
-        Positioned(
-
-
-          top:
-          8,
-
-
-          right:
-          8,
-
-
-          child:
-          GestureDetector(
-
-
-            onTap:
-                () =>
-                _removeImage(
-                  index,
-                ),
-
-
-            child:
-            Container(
-
-
-              width:
-              34,
-
-
-              height:
-              34,
-
-
-              decoration:
-              BoxDecoration(
-
-
-                shape:
-                BoxShape.circle,
-
-
-                color:
-                Colors.black.withValues(
-                  alpha: .65,
-                ),
-
-
-                border:
-                Border.all(
-
-                  color:
-                  gold,
-
-                ),
-
-
-              ),
-
-
-              child:
-              const Icon(
-
-                Icons.close_rounded,
-
-
-                color:
-                Colors.white,
-
-
-                size:
-                20,
-
-
-              ),
-
-
-            ),
-
-
-          ),
-
-
-        ),
-
-
-      ],
-
-
-    );
-  }
-
-  void _message(String s) {}
-
-}
-
-class JunayaBackground extends StatelessWidget {
-
-  const JunayaBackground({
-    super.key,
-  });
-
-
-
-  @override
-  Widget build(BuildContext context) {
-
-
-    return CustomPaint(
-
-      painter:
-      _JunayaBackgroundPainter(),
-
-
-      child:
-      Container(
-
-        decoration:
-        const BoxDecoration(
-
-          gradient:
-          LinearGradient(
-
-            begin:
-            Alignment.topCenter,
-
-
-            end:
-            Alignment.bottomCenter,
-
-
-            colors:[
-
-              Color(0xff09000F),
-
-              Color(0xff140021),
-
-            ],
-
-          ),
-
-        ),
+        Text(text),
 
       ),
 
-
     );
 
 
   }
 
-}
-
-
-
-
-
-
-
-class _JunayaBackgroundPainter
-    extends CustomPainter {
-
-
-
-  @override
-  void paint(
-      Canvas canvas,
-      Size size,
-      ) {
-
-
-
-    final double bottom =
-        size.height - 90;
-
-
-
-
-
-    final Paint glowPaint =
-    Paint()
-
-      ..style =
-          PaintingStyle.stroke
-
-
-      ..strokeWidth =
-      18
-
-
-      ..color =
-      const Color(
-        0xff9D3BFF,
-      ).withValues(
-        alpha:0.15,
-      )
-
-
-      ..maskFilter =
-      const MaskFilter.blur(
-        BlurStyle.normal,
-        20,
-      );
-
-
-
-
-
-
-    final Paint purplePaint =
-    Paint()
-
-      ..style =
-          PaintingStyle.stroke
-
-
-      ..strokeWidth =
-      2
-
-
-      ..color =
-      const Color(
-        0xff9D3BFF,
-      ).withValues(
-        alpha:.55,
-      );
-
-
-
-
-
-
-    final Paint goldPaint =
-    Paint()
-
-      ..style =
-          PaintingStyle.stroke
-
-
-      ..strokeWidth =
-      1.5
-
-
-      ..color =
-      const Color(
-        0xffffd36a,
-      ).withValues(
-        alpha:.8,
-      );
-
-
-
-
-
-
-
-    final Path leftWave =
-    Path()
-
-
-      ..moveTo(
-        -50,
-        bottom,
-      )
-
-
-      ..quadraticBezierTo(
-
-        size.width * .25,
-
-        bottom - 100,
-
-        size.width * .50,
-
-        bottom,
-
-      );
-
-
-
-
-
-
-
-    final Path rightWave =
-    Path()
-
-
-      ..moveTo(
-
-        size.width + 50,
-
-        bottom,
-
-      )
-
-
-      ..quadraticBezierTo(
-
-        size.width * .75,
-
-        bottom - 100,
-
-        size.width * .50,
-
-        bottom,
-
-      );
-
-
-
-
-
-
-    canvas.drawPath(
-      leftWave,
-      glowPaint,
-    );
-
-
-    canvas.drawPath(
-      rightWave,
-      glowPaint,
-    );
-
-
-
-
-
-
-
-    for(
-    int i = 0;
-    i < 5;
-    i++
-    ){
-
-
-      final double offset =
-          i * 12;
-
-
-
-      final Path left =
-      Path()
-
-
-        ..moveTo(
-
-          -30,
-
-          bottom - offset,
-
-        )
-
-
-        ..quadraticBezierTo(
-
-          size.width * .20,
-
-          bottom - 70 - offset,
-
-          size.width * .50,
-
-          bottom - offset,
-
-        );
-
-
-
-
-
-
-
-      final Path right =
-      Path()
-
-
-        ..moveTo(
-
-          size.width + 30,
-
-          bottom - offset,
-
-        )
-
-
-        ..quadraticBezierTo(
-
-          size.width * .80,
-
-          bottom - 70 - offset,
-
-          size.width * .50,
-
-          bottom - offset,
-
-        );
-
-
-
-
-
-      canvas.drawPath(
-
-        left,
-
-        i == 1
-            ?
-        goldPaint
-            :
-        purplePaint,
-
-      );
-
-
-
-      canvas.drawPath(
-
-        right,
-
-        i == 1
-            ?
-        goldPaint
-            :
-        purplePaint,
-
-      );
-
-
-    }
-
-
-
-
-
-
-
-    final Paint particlePaint =
-    Paint()
-      ..color =
-      const Color(
-        0xffffd36a,
-      );
-
-
-
-
-
-    for(
-    int i = 0;
-    i < 30;
-    i++
-    ){
-
-
-
-      final double x =
-      i.isEven
-
-          ?
-
-      20 + (i * 5)
-
-          :
-
-      size.width - (i * 5);
-
-
-
-
-
-      final double y =
-          100 + ((i * 19) % 220);
-
-
-
-
-
-      canvas.drawCircle(
-
-        Offset(
-          x,
-          y,
-        ),
-
-
-        i % 3 == 0
-            ?
-        2
-            :
-        1,
-
-
-        particlePaint,
-
-      );
-
-
-
-    }
-
-
-
-
-  }
-
-  @override
-  bool shouldRepaint(
-      covariant CustomPainter oldDelegate,
-      ){
-
-    return false;
-
-  }
 
 
 }

@@ -1,6 +1,10 @@
 import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 import 'package:junaya_voicechat_app/screens/moments/data/moment_repository.dart';
+
 import 'package:junaya_voicechat_app/screens/moments/storage/moment_storage.dart';
+import 'package:junaya_voicechat_app/screens/moments/storage/media_storage.dart';
+
+import 'package:junaya_voicechat_app/screens/moments/media/media_pipeline.dart';
 
 
 
@@ -12,6 +16,10 @@ class LocalMomentRepository
 
   final MomentStorage storage;
 
+  final MediaStorage mediaStorage;
+
+  final MediaPipeline pipeline;
+
 
 
 
@@ -19,6 +27,10 @@ class LocalMomentRepository
   LocalMomentRepository({
 
     required this.storage,
+
+    required this.mediaStorage,
+
+    required this.pipeline,
 
   });
 
@@ -30,9 +42,9 @@ class LocalMomentRepository
 
 
 
-  // ==================================================
+  // =====================================================
   // GET ALL
-  // ==================================================
+  // =====================================================
 
 
   @override
@@ -52,50 +64,20 @@ class LocalMomentRepository
 
 
 
-  // ==================================================
-  // CREATE
-  // ==================================================
+  // =====================================================
+  // GET SINGLE
+  // =====================================================
 
 
   @override
-  Future<Moment> createMoment(
-
-      Moment moment,
-
-      ) async {
-
-
-    return await storage.createMoment(
-
-      moment,
-
-    );
-
-
-  }
-
-
-
-
-
-
-
-
-
-  // ==================================================
-  // DELETE
-  // ==================================================
-
-
-  @override
-  Future<void> deleteMoment(
+  Future<Moment?> getMoment(
 
       String id,
 
       ) async {
 
 
-    await storage.deleteMoment(
+    return await storage.getMoment(
 
       id,
 
@@ -112,9 +94,75 @@ class LocalMomentRepository
 
 
 
-  // ==================================================
+  // =====================================================
+  // CREATE
+  // =====================================================
+
+
+  @override
+  Future<Moment> createMoment({
+
+    required Moment moment,
+
+    required List<String> mediaPaths,
+
+  }) async {
+
+
+
+    final processedMedia =
+
+    await pipeline.process(
+
+      momentId:
+
+      moment.id,
+
+
+      files:
+
+      mediaPaths,
+
+    );
+
+
+
+
+
+    final updated =
+
+    moment.copyWith(
+
+      media:
+
+      processedMedia,
+
+    );
+
+
+
+
+
+    return await storage.createMoment(
+
+      updated,
+
+    );
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // =====================================================
   // UPDATE
-  // ==================================================
+  // =====================================================
 
 
   @override
@@ -147,9 +195,77 @@ class LocalMomentRepository
 
 
 
-  // ==================================================
+  // =====================================================
+  // DELETE
+  // =====================================================
+
+
+  @override
+  Future<void> deleteMoment(
+
+      String id,
+
+      ) async {
+
+
+
+    final existing =
+
+    await storage.getMoment(
+
+      id,
+
+    );
+
+
+
+
+
+    // remove database record first
+
+    await storage.deleteMoment(
+
+      id,
+
+    );
+
+
+
+
+
+
+    // remove physical files
+
+    if(existing != null &&
+
+        existing.media.isNotEmpty){
+
+
+
+      await mediaStorage.deleteMedia(
+
+        existing.media,
+
+      );
+
+
+    }
+
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // =====================================================
   // LIKE
-  // ==================================================
+  // =====================================================
 
 
   @override
@@ -161,13 +277,22 @@ class LocalMomentRepository
 
 
 
+    final liked =
+
+    !moment.isLiked;
+
+
+
+
+
     final updated =
 
     moment.copyWith(
 
+
       isLiked:
 
-      !moment.isLiked,
+      liked,
 
 
 
@@ -175,9 +300,11 @@ class LocalMomentRepository
 
       moment.stats.copyWith(
 
+
         likes:
 
-        !moment.isLiked
+
+        liked
 
             ?
 
@@ -197,9 +324,12 @@ class LocalMomentRepository
 
         0,
 
+
       ),
 
+
     );
+
 
 
 
@@ -226,9 +356,9 @@ class LocalMomentRepository
 
 
 
-  // ==================================================
-  // ADD REACTION
-  // ==================================================
+  // =====================================================
+  // REACTION
+  // =====================================================
 
 
   @override
@@ -256,25 +386,60 @@ class LocalMomentRepository
 
 
 
-    reactions.add(
+    final exists =
 
-      MomentReaction(
+    reactions.any(
 
-        userId:
+          (item) =>
 
-        userId,
+      item.userId == userId &&
 
-
-        emoji:
-
-        emoji,
-
-
-      ),
+          item.emoji == emoji,
 
     );
 
 
+
+
+
+    if(exists){
+
+
+      reactions.removeWhere(
+
+            (item) =>
+
+        item.userId == userId &&
+
+            item.emoji == emoji,
+
+      );
+
+
+    }
+
+    else{
+
+
+      reactions.add(
+
+        MomentReaction(
+
+          userId:
+
+          userId,
+
+
+          emoji:
+
+          emoji,
+
+        ),
+
+      );
+
+
+    }
 
 
 
@@ -302,8 +467,6 @@ class LocalMomentRepository
 
 
 
-
-
     return updated;
 
 
@@ -317,9 +480,9 @@ class LocalMomentRepository
 
 
 
-  // ==================================================
+  // =====================================================
   // SEARCH
-  // ==================================================
+  // =====================================================
 
 
   @override
@@ -365,25 +528,17 @@ class LocalMomentRepository
 
         final caption =
 
-        moment.caption
-
-            .toLowerCase();
-
-
+        moment.caption.toLowerCase();
 
 
 
         final username =
 
-        moment.author.username
-
-            .toLowerCase();
+        moment.author.username.toLowerCase();
 
 
 
-
-
-        final hashtags =
+        final tags =
 
         moment.hashtags
 
@@ -403,7 +558,7 @@ class LocalMomentRepository
 
             ||
 
-            hashtags.contains(value);
+            tags.contains(value);
 
 
 
@@ -423,9 +578,9 @@ class LocalMomentRepository
 
 
 
-  // ==================================================
+  // =====================================================
   // USER MOMENTS
-  // ==================================================
+  // =====================================================
 
 
   @override
@@ -451,9 +606,7 @@ class LocalMomentRepository
 
       moment.author.id == userId,
 
-
     ).toList();
-
 
 
   }
@@ -466,16 +619,22 @@ class LocalMomentRepository
 
 
 
-  // ==================================================
-  // CLEAR
-  // ==================================================
+  // =====================================================
+  // CLEAR ALL
+  // =====================================================
 
 
   @override
   Future<void> clearAll() async {
 
 
+
     await storage.clear();
+
+
+
+    await mediaStorage.clear();
+
 
 
   }

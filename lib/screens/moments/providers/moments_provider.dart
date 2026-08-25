@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 import 'package:junaya_voicechat_app/screens/moments/data/moment_repository.dart';
 
+import 'package:junaya_voicechat_app/screens/moments/providers/media_pipeline_provider.dart';
+import 'package:junaya_voicechat_app/screens/moments/providers/media_storage_provider.dart';
+
 import 'package:junaya_voicechat_app/screens/moments/repositories/local_moment_repository.dart';
 
 import 'package:junaya_voicechat_app/screens/moments/storage/moment_storage.dart';
@@ -10,8 +13,9 @@ import 'package:junaya_voicechat_app/screens/moments/storage/moment_storage.dart
 
 
 
+
 // ======================================================
-// STORAGE
+// STORAGE PROVIDER
 // ======================================================
 
 
@@ -31,9 +35,8 @@ Provider<MomentStorage>((ref){
 
 
 
-
 // ======================================================
-// REPOSITORY
+// REPOSITORY PROVIDER
 // ======================================================
 
 
@@ -42,13 +45,37 @@ final momentRepositoryProvider =
 Provider<MomentRepository>((ref){
 
 
+
   return LocalMomentRepository(
 
     storage:
 
     ref.watch(
+
       momentStorageProvider,
+
     ),
+
+
+
+    mediaStorage:
+
+    ref.watch(
+
+      mediaStorageProvider,
+
+    ),
+
+
+
+    pipeline:
+
+    ref.watch(
+
+      mediaPipelineProvider,
+
+    ),
+
 
   );
 
@@ -63,7 +90,7 @@ Provider<MomentRepository>((ref){
 
 
 // ======================================================
-// STATE
+// MOMENTS STATE
 // ======================================================
 
 
@@ -95,7 +122,7 @@ class MomentsNotifier
 
 
 
-  late final MomentRepository _repository;
+  late MomentRepository _repository;
 
 
 
@@ -110,7 +137,9 @@ class MomentsNotifier
     _repository =
 
         ref.watch(
+
           momentRepositoryProvider,
+
         );
 
 
@@ -136,14 +165,23 @@ class MomentsNotifier
   Future<void> refresh() async {
 
 
+    state =
+
+    const AsyncLoading();
+
+
 
     state =
 
     await AsyncValue.guard(
 
-          () =>
+          () async {
 
-          _repository.getMoments(),
+
+        return await _repository.getMoments();
+
+
+      },
 
     );
 
@@ -166,6 +204,8 @@ class MomentsNotifier
   Future<void> createMoment({
 
     required Moment moment,
+
+    required List<String> mediaPaths,
 
   }) async {
 
@@ -198,9 +238,21 @@ class MomentsNotifier
 
         await _repository.createMoment(
 
+
+          moment:
+
           moment,
 
+
+
+          mediaPaths:
+
+          mediaPaths,
+
+
         );
+
+
 
 
 
@@ -219,105 +271,6 @@ class MomentsNotifier
 
 
     if(state.hasError){
-
-
-      state =
-
-          AsyncData(
-
-            previous,
-
-          );
-
-
-    }
-
-
-
-  }
-
-
-
-
-
-
-
-
-
-  // ======================================================
-  // DELETE
-  // ======================================================
-
-
-  Future<void> deleteMoment(
-
-      String id,
-
-      ) async {
-
-
-
-    final previous =
-
-        state.value ?? [];
-
-
-
-
-
-    state =
-
-        AsyncData(
-
-          previous
-
-              .where(
-
-                (m)=>
-
-            m.id != id,
-
-          )
-
-              .toList(),
-
-        );
-
-
-
-
-
-
-
-    try {
-
-
-
-      await _repository.deleteMoment(
-
-        id,
-
-      );
-
-
-
-    }
-
-
-    catch(error,stack){
-
-
-
-      state =
-
-          AsyncError(
-
-            error,
-
-            stack,
-
-          );
-
 
 
       state =
@@ -375,7 +328,6 @@ class MomentsNotifier
       );
 
 
-
     }
 
 
@@ -395,6 +347,100 @@ class MomentsNotifier
 
     }
 
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // ======================================================
+  // DELETE
+  // ======================================================
+
+
+  Future<void> deleteMoment(
+
+      String id,
+
+      ) async {
+
+
+
+    final previous =
+
+        state.value ?? [];
+
+
+
+
+
+    state =
+
+        AsyncData(
+
+          previous
+
+              .where(
+
+                (item)=>
+
+            item.id != id,
+
+          )
+
+              .toList(),
+
+        );
+
+
+
+
+
+    try {
+
+
+      await _repository.deleteMoment(
+
+        id,
+
+      );
+
+
+    }
+
+
+    catch(error,stack){
+
+
+
+      state =
+
+          AsyncError(
+
+            error,
+
+            stack,
+
+          );
+
+
+
+      state =
+
+          AsyncData(
+
+            previous,
+
+          );
+
+
+    }
 
 
   }
@@ -435,6 +481,7 @@ class MomentsNotifier
 
       moment.stats.copyWith(
 
+
         likes:
 
 
@@ -452,6 +499,7 @@ class MomentsNotifier
             ?
 
         moment.stats.likes - 1
+
 
             :
 
@@ -477,9 +525,7 @@ class MomentsNotifier
 
 
 
-
     try {
-
 
 
       final updated =
@@ -529,7 +575,6 @@ class MomentsNotifier
     }
 
 
-
   }
 
 
@@ -552,7 +597,6 @@ class MomentsNotifier
     required String userId,
 
     required String emoji,
-
 
   }) async {
 
@@ -584,8 +628,9 @@ class MomentsNotifier
         emoji,
 
 
-
       );
+
+
 
 
 
@@ -594,7 +639,6 @@ class MomentsNotifier
         updated,
 
       );
-
 
 
     }
@@ -616,179 +660,6 @@ class MomentsNotifier
 
     }
 
-
-
-  }
-
-
-
-
-
-
-
-
-
-  // ======================================================
-  // COMMENTS
-  // ======================================================
-
-
-  Future<void> incrementComments(
-
-      String id,
-
-      ) async {
-
-
-    await _changeComments(
-
-      id,
-
-      true,
-
-    );
-
-
-  }
-
-
-
-
-
-
-  Future<void> decrementComments(
-
-      String id,
-
-      ) async {
-
-
-    await _changeComments(
-
-      id,
-
-      false,
-
-    );
-
-
-  }
-
-
-
-
-
-
-
-  Future<void> _changeComments(
-
-      String id,
-
-      bool increase,
-
-      ) async {
-
-
-
-    final moments =
-
-        state.value ?? [];
-
-
-
-
-
-    final index =
-
-    moments.indexWhere(
-
-          (m)=>
-
-      m.id == id,
-
-    );
-
-
-
-
-
-    if(index == -1){
-
-      return;
-
-    }
-
-
-
-
-
-
-
-    final old =
-
-    moments[index];
-
-
-
-
-
-    final updated =
-
-    old.copyWith(
-
-
-      stats:
-
-      old.stats.copyWith(
-
-        comments:
-
-
-        increase
-
-            ?
-
-        old.stats.comments + 1
-
-
-            :
-
-        old.stats.comments > 0
-
-            ?
-
-        old.stats.comments - 1
-
-
-            :
-
-        0,
-
-
-      ),
-
-
-    );
-
-
-
-
-
-    _replace(
-
-      updated,
-
-    );
-
-
-
-
-
-    await _repository.updateMoment(
-
-      updated,
-
-    );
 
 
   }
@@ -830,6 +701,11 @@ class MomentsNotifier
 
 
 
+  // ======================================================
+  // USER MOMENTS
+  // ======================================================
+
+
   Future<List<Moment>> getUserMoments(
 
       String userId,
@@ -840,6 +716,122 @@ class MomentsNotifier
     return _repository.getUserMoments(
 
       userId,
+
+    );
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // ======================================================
+  // COMMENTS
+  // ======================================================
+
+
+  Future<void> updateComments({
+
+    required String id,
+
+    required bool increase,
+
+  }) async {
+
+
+
+    final moments =
+
+        state.value ?? [];
+
+
+
+    final index =
+
+    moments.indexWhere(
+
+          (item)=>
+
+      item.id == id,
+
+    );
+
+
+
+    if(index == -1){
+
+      return;
+
+    }
+
+
+
+
+
+    final old =
+
+    moments[index];
+
+
+
+
+
+    final updated =
+
+    old.copyWith(
+
+      stats:
+
+      old.stats.copyWith(
+
+        comments:
+
+
+        increase
+
+            ?
+
+        old.stats.comments + 1
+
+
+            :
+
+        old.stats.comments > 0
+
+            ?
+
+        old.stats.comments - 1
+
+
+            :
+
+        0,
+
+
+      ),
+
+    );
+
+
+
+
+
+    _replace(
+
+      updated,
+
+    );
+
+
+
+    await _repository.updateMoment(
+
+      updated,
 
     );
 
@@ -879,12 +871,11 @@ class MomentsNotifier
 
         AsyncData(
 
-
           current
 
               .map(
 
-                  (item) =>
+                  (item)=>
 
 
               item.id == updated.id
@@ -896,7 +887,6 @@ class MomentsNotifier
                   :
 
               item
-
 
           )
 
