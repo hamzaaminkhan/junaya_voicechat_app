@@ -7,15 +7,9 @@ abstract class MomentRepository {
   Future<List<Moment>> getMoments();
 
 
-
-  Future<Moment> createMoment({
-
-    required Moment moment,
-
-    required List<String> imagePaths,
-
-  });
-
+  Future<Moment> createMoment(
+      Moment moment,
+      );
 
 
   Future<void> deleteMoment(
@@ -23,17 +17,14 @@ abstract class MomentRepository {
       );
 
 
-
   Future<Moment> updateMoment(
       Moment moment,
       );
 
 
-
   Future<Moment> toggleLike(
       Moment moment,
       );
-
 
 
   Future<Moment> addReaction({
@@ -47,11 +38,9 @@ abstract class MomentRepository {
   });
 
 
-
   Future<List<Moment>> searchMoments(
       String query,
       );
-
 
 
   Future<List<Moment>> getUserMoments(
@@ -59,8 +48,6 @@ abstract class MomentRepository {
       );
 
 
-
   Future<void> clearAll();
-
 
 }

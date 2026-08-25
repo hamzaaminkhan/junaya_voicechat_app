@@ -1,88 +1,60 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../screens/create_moment_screen.dart';
-import '../providers/moments_provider.dart';
 
 
 
-class CreateMomentButton extends ConsumerWidget {
+class CreateMomentButton extends StatelessWidget {
+
+
+  final VoidCallback onPressed;
+
+
 
   const CreateMomentButton({
+
     super.key,
+
+    required this.onPressed,
+
   });
-
-
-
-  Future<void> _openCreateScreen(
-      BuildContext context,
-      WidgetRef ref,
-      ) async {
-
-
-    final bool? created =
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) =>
-        const CreateMomentScreen(),
-      ),
-    );
-
-
-
-    if(created == true) {
-
-      ref
-          .read(
-        momentsProvider.notifier,
-      )
-          .refresh();
-
-    }
-
-  }
-
 
 
 
 
 
   @override
-  Widget build(
-      BuildContext context,
-      WidgetRef ref,
-      ) {
+  Widget build(BuildContext context) {
 
 
-    return FloatingActionButton.extended(
+    return FloatingActionButton(
 
       onPressed:
 
-          () => _openCreateScreen(
-        context,
-        ref,
-      ),
+      onPressed,
 
 
       backgroundColor:
+
       Colors.purpleAccent,
 
 
-      icon:
+
+      child:
+
       const Icon(
+
         Icons.add,
+
+        color:
+
+        Colors.white,
+
       ),
 
-
-      label:
-      const Text(
-        "Moment",
-      ),
 
     );
 
 
   }
+
 
 }

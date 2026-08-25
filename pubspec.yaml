@@ -28,6 +28,9 @@ dependencies:
   mime: ^2.0.0
   socket_io_client: ^3.1.6
   flutter_riverpod: ^2.6.1
+  flutter_image_compress: ^2.3.0
+  video_thumbnail: ^0.5.3
+  crypto: ^3.0.3
 
 
   cupertino_icons: ^1.0.8

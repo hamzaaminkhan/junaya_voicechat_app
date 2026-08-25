@@ -1,23 +1,21 @@
 import 'dart:convert';
 
-import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'media_storage.dart';
+
+import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
+
+
 
 class MomentStorage {
 
 
   static const String _storageKey =
-      'junaya_moments_v4';
+      'junaya_moments_v5';
 
 
 
   final SharedPreferencesAsync _preferences =
   SharedPreferencesAsync();
-
-
-
-  final MediaStorage mediaStorage;
 
 
 
@@ -28,61 +26,17 @@ class MomentStorage {
 
 
 
-  MomentStorage({
-
-    required this.mediaStorage,
-
-  });
-
-
-
-
 
   // ==================================================
   // CREATE
   // ==================================================
 
 
-  Future<Moment> createMoment({
+  Future<Moment> createMoment(
 
-    required Moment moment,
+      Moment moment,
 
-    required List<String> mediaPaths,
-
-  }) async {
-
-
-
-    final List<MomentMedia> media =
-
-    await mediaStorage.saveMedia(
-
-      momentId: moment.id,
-
-      paths: mediaPaths,
-
-    );
-
-
-
-    final updated =
-
-    moment.copyWith(
-
-      media:
-
-      media.isEmpty
-
-          ?
-
-      moment.media
-
-          :
-
-      media,
-
-    );
-
+      ) async {
 
 
     final moments =
@@ -92,30 +46,31 @@ class MomentStorage {
 
     final updatedList = [
 
-      updated,
+
+      moment,
 
 
       ...moments.where(
 
-            (item)=>
+            (item) =>
 
-        item.id != updated.id,
+        item.id != moment.id,
 
       ),
+
 
     ];
 
 
 
     await _write(
-
       updatedList,
-
     );
 
 
 
-    return updated;
+    return moment;
+
 
   }
 
@@ -125,20 +80,21 @@ class MomentStorage {
 
 
 
+
+
   // ==================================================
-  // READ
+  // READ ALL
   // ==================================================
 
 
   Future<List<Moment>> loadMoments() async {
 
 
+
     final raw =
 
     await _preferences.getString(
-
       _storageKey,
-
     );
 
 
@@ -151,7 +107,9 @@ class MomentStorage {
 
 
 
-    try {
+
+
+    try{
 
 
       final decoded =
@@ -164,6 +122,8 @@ class MomentStorage {
         return [];
 
       }
+
+
 
 
 
@@ -193,6 +153,9 @@ class MomentStorage {
 
 
 
+
+
+
       moments.sort(
 
             (a,b)=>
@@ -207,16 +170,22 @@ class MomentStorage {
 
 
 
+
+
       return moments;
+
 
 
     }
 
     catch(_){
 
+
       return [];
 
+
     }
+
 
 
   }
@@ -225,6 +194,13 @@ class MomentStorage {
 
 
 
+
+
+
+
+  // ==================================================
+  // READ SINGLE
+  // ==================================================
 
 
   Future<Moment?> getMoment(
@@ -240,22 +216,33 @@ class MomentStorage {
 
 
 
-    for(final item in moments){
+    try{
 
 
-      if(item.id == id){
+      return moments.firstWhere(
 
-        return item;
+            (item)=>
 
-      }
+        item.id == id,
+
+      );
+
+
+    }
+
+    catch(_){
+
+
+      return null;
+
 
     }
 
 
 
-    return null;
-
   }
+
+
 
 
 
@@ -295,13 +282,17 @@ class MomentStorage {
 
     if(index == -1){
 
+
       throw Exception(
 
         'Moment not found',
 
       );
 
+
     }
+
+
 
 
 
@@ -325,6 +316,8 @@ class MomentStorage {
 
 
 
+
+
   // ==================================================
   // DELETE
   // ==================================================
@@ -340,25 +333,6 @@ class MomentStorage {
 
     final moments =
     await loadMoments();
-
-
-
-    final target =
-    await getMoment(id);
-
-
-
-    if(target != null){
-
-
-      await mediaStorage.deleteMedia(
-
-        target.media,
-
-      );
-
-
-    }
 
 
 
@@ -387,8 +361,10 @@ class MomentStorage {
 
 
 
+
+
   // ==================================================
-  // LIKE
+  // LIKE UPDATE
   // ==================================================
 
 
@@ -415,7 +391,9 @@ class MomentStorage {
 
 
 
-    final current =
+
+
+    final likes =
         moment.stats.likes;
 
 
@@ -424,7 +402,8 @@ class MomentStorage {
 
     moment.copyWith(
 
-      isLiked: liked,
+      isLiked:
+      liked,
 
 
       stats:
@@ -437,16 +416,16 @@ class MomentStorage {
 
             ?
 
-        current + 1
+        likes + 1
 
 
             :
 
-        current > 0
+        likes > 0
 
             ?
 
-        current - 1
+        likes - 1
 
             :
 
@@ -455,6 +434,8 @@ class MomentStorage {
       ),
 
     );
+
+
 
 
 
@@ -473,8 +454,97 @@ class MomentStorage {
 
 
 
+
+
   // ==================================================
-  // CLEAR
+  // SEARCH SUPPORT
+  // ==================================================
+
+
+  Future<List<Moment>> search(
+
+      String query,
+
+      ) async {
+
+
+
+    final moments =
+    await loadMoments();
+
+
+
+    final value =
+    query.toLowerCase();
+
+
+
+    return moments.where(
+
+          (moment){
+
+
+        return moment.caption
+
+            .toLowerCase()
+
+            .contains(value);
+
+
+      },
+
+    ).toList();
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // ==================================================
+  // USER MOMENTS
+  // ==================================================
+
+
+  Future<List<Moment>> getUserMoments(
+
+      String userId,
+
+      ) async {
+
+
+
+    final moments =
+    await loadMoments();
+
+
+
+    return moments.where(
+
+          (moment)=>
+
+      moment.author.id == userId,
+
+    ).toList();
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // ==================================================
+  // CLEAR DATABASE
   // ==================================================
 
 
@@ -489,10 +559,9 @@ class MomentStorage {
     );
 
 
-
-    await mediaStorage.clear();
-
   }
+
+
 
 
 
@@ -513,7 +582,7 @@ class MomentStorage {
 
 
 
-    final data =
+    final json =
 
     jsonEncode(
 
@@ -533,6 +602,8 @@ class MomentStorage {
 
 
 
+
+
     await _locked(
 
           () async {
@@ -543,7 +614,7 @@ class MomentStorage {
 
           _storageKey,
 
-          data,
+          json,
 
         );
 
@@ -560,6 +631,13 @@ class MomentStorage {
 
 
 
+
+
+
+
+  // ==================================================
+  // WRITE LOCK
+  // ==================================================
 
 
   Future<T> _locked<T>(
@@ -580,6 +658,8 @@ class MomentStorage {
 
 
 
+
+
     _writeLock =
 
         result.then(
@@ -590,9 +670,13 @@ class MomentStorage {
 
 
 
+
+
     return result;
 
+
   }
+
 
 
 }

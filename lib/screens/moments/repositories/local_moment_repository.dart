@@ -2,12 +2,17 @@ import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 import 'package:junaya_voicechat_app/screens/moments/data/moment_repository.dart';
 import 'package:junaya_voicechat_app/screens/moments/storage/moment_storage.dart';
 
+
+
 class LocalMomentRepository
+
     implements MomentRepository {
 
 
 
   final MomentStorage storage;
+
+
 
 
 
@@ -21,15 +26,21 @@ class LocalMomentRepository
 
 
 
-  // =========================
+
+
+
+
+  // ==================================================
   // GET ALL
-  // =========================
+  // ==================================================
 
 
   @override
   Future<List<Moment>> getMoments() async {
 
+
     return await storage.loadMoments();
+
 
   }
 
@@ -39,28 +50,27 @@ class LocalMomentRepository
 
 
 
-  // =========================
+
+
+  // ==================================================
   // CREATE
-  // =========================
+  // ==================================================
 
 
   @override
-  Future<Moment> createMoment({
+  Future<Moment> createMoment(
 
-    required Moment moment,
+      Moment moment,
 
-    required List<String> imagePaths,
-
-  }) async {
+      ) async {
 
 
     return await storage.createMoment(
 
-      moment: moment,
-
-      mediaPaths: imagePaths,
+      moment,
 
     );
+
 
   }
 
@@ -70,9 +80,11 @@ class LocalMomentRepository
 
 
 
-  // =========================
+
+
+  // ==================================================
   // DELETE
-  // =========================
+  // ==================================================
 
 
   @override
@@ -84,7 +96,9 @@ class LocalMomentRepository
 
 
     await storage.deleteMoment(
+
       id,
+
     );
 
 
@@ -96,9 +110,11 @@ class LocalMomentRepository
 
 
 
-  // =========================
+
+
+  // ==================================================
   // UPDATE
-  // =========================
+  // ==================================================
 
 
   @override
@@ -109,12 +125,17 @@ class LocalMomentRepository
       ) async {
 
 
+
     await storage.updateMoment(
+
       moment,
+
     );
 
 
+
     return moment;
+
 
   }
 
@@ -124,9 +145,11 @@ class LocalMomentRepository
 
 
 
-  // =========================
+
+
+  // ==================================================
   // LIKE
-  // =========================
+  // ==================================================
 
 
   @override
@@ -138,17 +161,14 @@ class LocalMomentRepository
 
 
 
-    final bool liked =
-    !moment.isLiked;
-
-
-
     final updated =
 
     moment.copyWith(
 
       isLiked:
-      liked,
+
+      !moment.isLiked,
+
 
 
       stats:
@@ -157,7 +177,7 @@ class LocalMomentRepository
 
         likes:
 
-        liked
+        !moment.isLiked
 
             ?
 
@@ -183,13 +203,18 @@ class LocalMomentRepository
 
 
 
+
+
     await storage.updateMoment(
+
       updated,
+
     );
 
 
 
     return updated;
+
 
   }
 
@@ -199,9 +224,11 @@ class LocalMomentRepository
 
 
 
-  // =========================
-  // REACTION
-  // =========================
+
+
+  // ==================================================
+  // ADD REACTION
+  // ==================================================
 
 
   @override
@@ -227,20 +254,29 @@ class LocalMomentRepository
 
 
 
+
+
     reactions.add(
 
       MomentReaction(
 
         userId:
+
         userId,
 
 
         emoji:
+
         emoji,
+
 
       ),
 
     );
+
+
+
+
 
 
 
@@ -249,15 +285,22 @@ class LocalMomentRepository
     moment.copyWith(
 
       reactions:
+
       reactions,
 
     );
 
 
 
+
+
     await storage.updateMoment(
+
       updated,
+
     );
+
+
 
 
 
@@ -272,9 +315,11 @@ class LocalMomentRepository
 
 
 
-  // =========================
+
+
+  // ==================================================
   // SEARCH
-  // =========================
+  // ==================================================
 
 
   @override
@@ -287,12 +332,18 @@ class LocalMomentRepository
 
 
     final moments =
+
     await storage.loadMoments();
 
 
 
+
+
     final value =
+
     query.trim().toLowerCase();
+
+
 
 
 
@@ -304,27 +355,43 @@ class LocalMomentRepository
 
 
 
+
+
     return moments.where(
 
           (moment){
 
 
+
         final caption =
+
         moment.caption
+
             .toLowerCase();
+
+
 
 
 
         final username =
+
         moment.author.username
+
             .toLowerCase();
+
+
 
 
 
         final hashtags =
+
         moment.hashtags
+
             .join(' ')
+
             .toLowerCase();
+
+
 
 
 
@@ -339,9 +406,11 @@ class LocalMomentRepository
             hashtags.contains(value);
 
 
+
       },
 
     ).toList();
+
 
 
   }
@@ -352,9 +421,11 @@ class LocalMomentRepository
 
 
 
-  // =========================
+
+
+  // ==================================================
   // USER MOMENTS
-  // =========================
+  // ==================================================
 
 
   @override
@@ -367,18 +438,22 @@ class LocalMomentRepository
 
 
     final moments =
+
     await storage.loadMoments();
+
+
 
 
 
     return moments.where(
 
-          (moment)=>
+          (moment) =>
 
-      moment.author.id ==
-          userId,
+      moment.author.id == userId,
+
 
     ).toList();
+
 
 
   }
@@ -389,9 +464,11 @@ class LocalMomentRepository
 
 
 
-  // =========================
+
+
+  // ==================================================
   // CLEAR
-  // =========================
+  // ==================================================
 
 
   @override

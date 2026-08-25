@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 
 
+
 class MediaStorage {
 
 
@@ -22,20 +23,31 @@ class MediaStorage {
 
 
 
+
+  // ==================================================
+  // DIRECTORY
+  // ==================================================
+
+
   Future<Directory> _directory() async {
 
 
-    final Directory root =
+    final root =
     await getApplicationDocumentsDirectory();
 
 
 
-    final Directory folder =
+    final folder =
     Directory(
+
       p.join(
+
         root.path,
+
         folderName,
+
       ),
+
     );
 
 
@@ -43,7 +55,7 @@ class MediaStorage {
     if(!await folder.exists()){
 
       await folder.create(
-        recursive:true,
+        recursive: true,
       );
 
     }
@@ -60,9 +72,14 @@ class MediaStorage {
 
 
 
+
+
+  // ==================================================
+  // SAVE MULTIPLE MEDIA
+  // ==================================================
+
+
   Future<List<MomentMedia>> saveMedia({
-
-
 
     required String momentId,
 
@@ -71,137 +88,36 @@ class MediaStorage {
   }) async {
 
 
+    final List<MomentMedia> result = [];
 
 
 
-    final Directory folder =
-    await _directory();
+    for(int i = 0; i < paths.length; i++){
 
 
-
-    final List<MomentMedia> result=[];
-
+      try{
 
 
-    for(
-    int index=0;
-    index<paths.length;
-    index++
-    ){
+        final media =
+        await saveFile(
+
+          momentId:
+          momentId,
 
 
-      try {
+          path:
+          paths[i],
 
 
-        final File source =
-        File(
-          paths[index],
+          order:
+          i,
+
+
         );
 
 
 
-        if(!await source.exists()){
-
-          continue;
-
-        }
-
-
-
-        final int size =
-        await source.length();
-
-
-
-        if(size > maxFileSize){
-
-          continue;
-
-        }
-
-
-
-        final String? extension =
-        _extension(
-          source.path,
-        );
-
-
-        if(extension == null){
-
-          continue;
-
-        }
-
-        if(extension.isEmpty){
-
-          continue;
-
-        }
-
-
-
-        if(!_supported(extension)){
-
-          continue;
-
-        }
-
-
-
-        final String filename =
-
-            '${momentId}_${_generateId()}_$index$extension';
-
-
-
-        final String destination =
-
-        p.join(
-          folder.path,
-          filename,
-        );
-
-
-
-        final File copied =
-        await source.copy(
-          destination,
-        );
-
-
-
-        result.add(
-
-          MomentMedia(
-
-            id:
-            _generateId(),
-
-
-            url:
-            copied.path,
-
-
-            type:
-            _mediaType(extension),
-
-
-            order:
-            index,
-
-
-            size:
-            size,
-
-
-            mimeType:
-            mimeType(extension),
-
-          ),
-
-        );
-
+        result.add(media);
 
 
       }
@@ -219,6 +135,7 @@ class MediaStorage {
 
     return result;
 
+
   }
 
 
@@ -229,6 +146,197 @@ class MediaStorage {
 
 
 
+  // ==================================================
+  // SAVE SINGLE FILE
+  // ==================================================
+
+
+  Future<MomentMedia> saveFile({
+
+    required String momentId,
+
+    required String path,
+
+    required int order,
+
+  }) async {
+
+
+
+    final source =
+    File(path);
+
+
+
+    if(!await source.exists()){
+
+      throw Exception(
+        "Media file not found",
+      );
+
+    }
+
+
+
+
+
+
+    final size =
+    await source.length();
+
+
+
+    if(size > maxFileSize){
+
+      throw Exception(
+        "Media exceeds size limit",
+      );
+
+    }
+
+
+
+
+
+
+    final extension =
+    _extension(
+      source.path,
+    );
+
+
+
+    if(extension == null){
+
+      throw Exception(
+        "Unsupported media type",
+      );
+
+    }
+
+
+
+
+
+
+    if(!_supported(extension)){
+
+      throw Exception(
+        "Unsupported extension",
+      );
+
+    }
+
+
+
+
+
+
+    final detectedMime =
+    lookupMimeType(
+      source.path,
+    );
+
+
+
+    final folder =
+    await _directory();
+
+
+
+
+
+
+
+    final filename =
+
+        '${momentId}_${_generateId()}_$order$extension';
+
+
+
+
+
+    final destination =
+
+    p.join(
+
+      folder.path,
+
+      filename,
+
+    );
+
+
+
+
+
+    final copied =
+
+    await source.copy(
+      destination,
+    );
+
+
+
+
+
+
+    return MomentMedia(
+
+      id:
+      _generateId(),
+
+
+
+      url:
+      copied.path,
+
+
+
+      type:
+      _mediaType(
+        extension,
+      ),
+
+
+
+      order:
+      order,
+
+
+
+      size:
+      size,
+
+
+
+      mimeType:
+
+      detectedMime ??
+
+          mimeType(
+            extension,
+          ),
+
+
+    );
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // ==================================================
+  // DELETE MULTIPLE
+  // ==================================================
+
+
   Future<void> deleteMedia(
 
       List<MomentMedia> media,
@@ -236,31 +344,21 @@ class MediaStorage {
       ) async {
 
 
-
     for(final item in media){
 
 
-      try{
+      await deleteSingle(
+        item.url,
+      );
 
 
-        final File file =
-        File(
-          item.url,
+      if(item.thumbnail != null){
+
+        await deleteSingle(
+          item.thumbnail!,
         );
 
-
-
-        if(await file.exists()){
-
-          await file.delete();
-
-        }
-
-
       }
-
-      catch(_){}
-
 
 
     }
@@ -276,15 +374,22 @@ class MediaStorage {
 
 
 
+  // ==================================================
+  // DELETE SINGLE
+  // ==================================================
+
+
   Future<void> deleteSingle(
+
       String path,
+
       ) async {
 
 
     try{
 
 
-      final File file =
+      final file =
       File(path);
 
 
@@ -301,6 +406,7 @@ class MediaStorage {
     catch(_){}
 
 
+
   }
 
 
@@ -311,8 +417,15 @@ class MediaStorage {
 
 
 
+  // ==================================================
+  // MEDIA TYPE
+  // ==================================================
+
+
   MomentMediaType _mediaType(
+
       String extension,
+
       ){
 
 
@@ -339,7 +452,9 @@ class MediaStorage {
 
         return MomentMediaType.image;
 
+
     }
+
 
   }
 
@@ -349,26 +464,45 @@ class MediaStorage {
 
 
 
+
+
+  // ==================================================
+  // SUPPORTED FORMATS
+  // ==================================================
+
+
   bool _supported(
+
       String extension,
+
       ){
 
 
-    const supported = {
+    const formats = {
 
 
       // images
 
       '.jpg',
+
       '.jpeg',
+
       '.png',
+
       '.webp',
+
       '.gif',
+
       '.heic',
+
       '.heif',
+
       '.bmp',
+
       '.tiff',
+
       '.tif',
+
       '.avif',
 
 
@@ -376,83 +510,61 @@ class MediaStorage {
       // videos
 
       '.mp4',
+
       '.mov',
+
       '.avi',
+
       '.mkv',
+
       '.webm',
+
       '.3gp',
 
 
     };
 
 
-    return supported.contains(
+
+    return formats.contains(
       extension,
     );
 
 
   }
 
-  bool _isAllowedMime(
-      String? mime,
+
+
+
+
+
+
+
+
+  // ==================================================
+  // EXTENSION DETECTION
+  // ==================================================
+
+
+  String? _extension(
+
+      String path,
+
       ){
 
-    if(mime == null){
-
-      return false;
-
-    }
-
-
-    const allowed = {
-
-
-      // Images
-
-      'image/jpeg',
-      'image/png',
-      'image/webp',
-      'image/gif',
-      'image/heic',
-      'image/heif',
-      'image/avif',
-
-
-      // Videos
-
-      'video/mp4',
-      'video/quicktime',
-      'video/x-msvideo',
-      'video/x-matroska',
-      'video/webm',
-
-    };
-
-
-    return allowed.contains(
-      mime,
-    );
-
-  }
-
-
-
-
-
-
-
-
-  String? _extension(String path) {
 
 
     final existing =
+
     p.extension(path)
+
         .trim()
+
         .toLowerCase();
 
 
 
-    // File already has extension
+
 
     if(existing.isNotEmpty){
 
@@ -462,48 +574,48 @@ class MediaStorage {
 
 
 
-    // Detect from content
+
 
     final mime =
+
     lookupMimeType(path);
 
 
-
-    if(mime == null){
-
-      return null;
-
-    }
 
 
 
     switch(mime){
 
 
-    // Images
 
       case 'image/jpeg':
         return '.jpg';
+
 
 
       case 'image/png':
         return '.png';
 
 
+
       case 'image/webp':
         return '.webp';
+
 
 
       case 'image/gif':
         return '.gif';
 
 
+
       case 'image/heic':
         return '.heic';
 
 
+
       case 'image/heif':
         return '.heif';
+
 
 
       case 'image/avif':
@@ -511,26 +623,36 @@ class MediaStorage {
 
 
 
-    // Videos
+
 
       case 'video/mp4':
         return '.mp4';
+
 
 
       case 'video/quicktime':
         return '.mov';
 
 
+
       case 'video/x-msvideo':
         return '.avi';
+
 
 
       case 'video/x-matroska':
         return '.mkv';
 
 
+
       case 'video/webm':
         return '.webm';
+
+
+
+      case 'video/3gpp':
+        return '.3gp';
+
 
 
       default:
@@ -549,73 +671,111 @@ class MediaStorage {
 
 
 
+
+
+  // ==================================================
+  // MIME
+  // ==================================================
+
+
   String mimeType(
+
       String extension,
+
       ){
 
 
     switch(extension){
 
 
+
+      case '.jpg':
+
+      case '.jpeg':
+
+        return 'image/jpeg';
+
+
+
       case '.png':
+
         return 'image/png';
 
 
+
       case '.webp':
+
         return 'image/webp';
 
 
+
       case '.gif':
+
         return 'image/gif';
 
 
+
       case '.heic':
-      case '.heif':
+
         return 'image/heic';
 
 
+
+      case '.heif':
+
+        return 'image/heif';
+
+
+
       case '.avif':
+
         return 'image/avif';
 
 
-      case '.bmp':
-        return 'image/bmp';
-
-
-      case '.tiff':
-      case '.tif':
-        return 'image/tiff';
-
 
       case '.mp4':
+
         return 'video/mp4';
 
 
+
       case '.mov':
+
         return 'video/quicktime';
 
 
+
       case '.avi':
+
         return 'video/x-msvideo';
 
 
+
       case '.mkv':
+
         return 'video/x-matroska';
 
 
+
       case '.webm':
+
         return 'video/webm';
 
 
+
       case '.3gp':
+
         return 'video/3gpp';
 
 
+
       default:
+
         return 'application/octet-stream';
 
 
     }
+
 
   }
 
@@ -625,6 +785,60 @@ class MediaStorage {
 
 
 
+
+
+  // ==================================================
+  // CLEAR STORAGE
+  // ==================================================
+
+
+  Future<void> clear() async {
+
+
+    try{
+
+
+      final folder =
+      await _directory();
+
+
+
+      if(await folder.exists()){
+
+
+        await folder.delete(
+          recursive: true,
+        );
+
+
+
+        await folder.create(
+          recursive: true,
+        );
+
+
+      }
+
+
+    }
+
+    catch(_){}
+
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // ==================================================
+  // ID
+  // ==================================================
 
 
   String _generateId(){
@@ -633,40 +847,8 @@ class MediaStorage {
         .microsecondsSinceEpoch
         .toString();
 
-  }
-
-// ==================================================
-// CLEAR ALL MEDIA
-// ==================================================
-
-  Future<void> clear() async {
-
-    try {
-
-      final Directory directory =
-      await _directory();
-
-
-      if(await directory.exists()) {
-
-        await directory.delete(
-          recursive: true,
-        );
-
-
-        await directory.create(
-          recursive: true,
-        );
-
-      }
-
-
-    } catch (_) {
-
-      // Ignore cleanup errors
-
-    }
 
   }
+
 
 }

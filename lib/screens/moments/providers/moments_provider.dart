@@ -5,41 +5,28 @@ import 'package:junaya_voicechat_app/screens/moments/data/moment_repository.dart
 
 import 'package:junaya_voicechat_app/screens/moments/repositories/local_moment_repository.dart';
 
-import 'package:junaya_voicechat_app/screens/moments/storage/media_storage.dart';
 import 'package:junaya_voicechat_app/screens/moments/storage/moment_storage.dart';
 
 
 
 
 // ======================================================
-// STORAGE PROVIDERS
+// STORAGE
 // ======================================================
 
 
-final mediaStorageProvider =
-Provider<MediaStorage>((ref){
-
-  return MediaStorage();
-
-});
-
-
-
-
-
 final momentStorageProvider =
+
 Provider<MomentStorage>((ref){
 
-  return MomentStorage(
 
-    mediaStorage:
-    ref.watch(
-      mediaStorageProvider,
-    ),
+  return MomentStorage();
 
-  );
 
 });
+
+
+
 
 
 
@@ -51,18 +38,25 @@ Provider<MomentStorage>((ref){
 
 
 final momentRepositoryProvider =
+
 Provider<MomentRepository>((ref){
+
 
   return LocalMomentRepository(
 
     storage:
+
     ref.watch(
       momentStorageProvider,
     ),
 
   );
 
+
 });
+
+
+
 
 
 
@@ -74,8 +68,17 @@ Provider<MomentRepository>((ref){
 
 
 final momentsProvider =
-AsyncNotifierProvider<MomentsNotifier,List<Moment>>(
+
+AsyncNotifierProvider<
+
+    MomentsNotifier,
+
+    List<Moment>
+
+>(
+
   MomentsNotifier.new,
+
 );
 
 
@@ -83,7 +86,11 @@ AsyncNotifierProvider<MomentsNotifier,List<Moment>>(
 
 
 
+
+
+
 class MomentsNotifier
+
     extends AsyncNotifier<List<Moment>> {
 
 
@@ -92,19 +99,30 @@ class MomentsNotifier
 
 
 
+
+
+
+
   @override
   Future<List<Moment>> build() async {
 
 
     _repository =
+
         ref.watch(
           momentRepositoryProvider,
         );
 
 
-    return _repository.getMoments();
+
+    return await _repository.getMoments();
+
 
   }
+
+
+
+
 
 
 
@@ -118,18 +136,23 @@ class MomentsNotifier
   Future<void> refresh() async {
 
 
-    state =
-    const AsyncLoading();
-
 
     state =
+
     await AsyncValue.guard(
+
           () =>
+
           _repository.getMoments(),
+
     );
 
 
   }
+
+
+
+
 
 
 
@@ -144,60 +167,78 @@ class MomentsNotifier
 
     required Moment moment,
 
-    required List<String> imagePaths,
-
   }) async {
 
 
+
     final previous =
+
         state.value ?? [];
 
 
 
-    state =
-        AsyncLoading<List<Moment>>()
-            .copyWithPrevious(
-          state,
-        );
-
 
 
     state =
+
+    const AsyncLoading();
+
+
+
+
+
+
+    state =
+
     await AsyncValue.guard(
+
           () async {
+
 
 
         await _repository.createMoment(
 
-          moment:
           moment,
-
-
-          imagePaths:
-          imagePaths,
 
         );
 
 
-        return _repository.getMoments();
+
+        return await _repository.getMoments();
+
 
 
       },
+
     );
+
+
+
+
 
 
 
     if(state.hasError){
 
+
       state =
+
           AsyncData(
+
             previous,
+
           );
+
 
     }
 
 
+
   }
+
+
+
+
 
 
 
@@ -209,57 +250,94 @@ class MomentsNotifier
 
 
   Future<void> deleteMoment(
+
       String id,
+
       ) async {
 
 
+
     final previous =
+
         state.value ?? [];
 
 
 
+
+
     state =
+
         AsyncData(
 
           previous
+
               .where(
-                (m)=>m.id != id,
+
+                (m)=>
+
+            m.id != id,
+
           )
+
               .toList(),
 
         );
 
 
 
-    try{
+
+
+
+
+    try {
+
 
 
       await _repository.deleteMoment(
+
         id,
+
       );
 
 
+
     }
+
 
     catch(error,stack){
 
 
+
       state =
+
           AsyncError(
+
             error,
+
             stack,
+
           );
 
 
+
       state =
+
           AsyncData(
+
             previous,
+
           );
 
 
     }
 
+
+
   }
+
+
+
+
 
 
 
@@ -271,36 +349,59 @@ class MomentsNotifier
 
 
   Future<void> updateMoment(
+
       Moment moment,
+
       ) async {
 
 
-    try{
+
+    try {
+
 
 
       await _repository.updateMoment(
+
         moment,
+
       );
+
 
 
       _replace(
+
         moment,
+
       );
 
 
+
     }
+
 
     catch(error,stack){
 
+
       state =
+
           AsyncError(
+
             error,
+
             stack,
+
           );
+
 
     }
 
+
+
   }
+
+
+
+
 
 
 
@@ -312,28 +413,37 @@ class MomentsNotifier
 
 
   Future<void> toggleLike(
+
       Moment moment,
+
       ) async {
 
 
 
     final optimistic =
+
     moment.copyWith(
 
+
       isLiked:
+
       !moment.isLiked,
 
 
+
       stats:
+
       moment.stats.copyWith(
 
         likes:
+
 
         !moment.isLiked
 
             ?
 
         moment.stats.likes + 1
+
 
             :
 
@@ -347,52 +457,84 @@ class MomentsNotifier
 
         0,
 
+
       ),
 
+
     );
+
+
 
 
 
     _replace(
+
       optimistic,
+
     );
 
 
 
-    try{
+
+
+
+    try {
+
 
 
       final updated =
+
       await _repository.toggleLike(
+
         optimistic,
+
       );
+
 
 
       _replace(
+
         updated,
+
       );
+
 
 
     }
 
+
     catch(error,stack){
 
 
+
       _replace(
+
         moment,
+
       );
 
 
+
       state =
+
           AsyncError(
+
             error,
+
             stack,
+
           );
 
 
     }
 
+
+
   }
+
+
+
+
 
 
 
@@ -411,48 +553,76 @@ class MomentsNotifier
 
     required String emoji,
 
+
   }) async {
 
 
-    try{
+
+    try {
+
 
 
       final updated =
+
       await _repository.addReaction(
 
+
         moment:
+
         moment,
 
 
+
         userId:
+
         userId,
 
 
+
         emoji:
+
         emoji,
 
+
+
       );
+
 
 
       _replace(
+
         updated,
+
       );
 
 
+
     }
+
 
     catch(error,stack){
 
+
       state =
+
           AsyncError(
+
             error,
+
             stack,
+
           );
+
 
     }
 
 
+
   }
+
+
+
+
 
 
 
@@ -464,30 +634,41 @@ class MomentsNotifier
 
 
   Future<void> incrementComments(
+
       String id,
+
       ) async {
 
 
     await _changeComments(
+
       id,
+
       true,
+
     );
 
 
   }
+
 
 
 
 
 
   Future<void> decrementComments(
+
       String id,
+
       ) async {
 
 
     await _changeComments(
+
       id,
+
       false,
+
     );
 
 
@@ -497,26 +678,41 @@ class MomentsNotifier
 
 
 
+
+
   Future<void> _changeComments(
+
       String id,
+
       bool increase,
+
       ) async {
 
 
 
-    final current =
+    final moments =
+
         state.value ?? [];
 
 
 
+
+
     final index =
-    current.indexWhere(
-          (m)=>m.id==id,
+
+    moments.indexWhere(
+
+          (m)=>
+
+      m.id == id,
+
     );
 
 
 
-    if(index==-1){
+
+
+    if(index == -1){
 
       return;
 
@@ -524,55 +720,82 @@ class MomentsNotifier
 
 
 
+
+
+
+
     final old =
-    current[index];
+
+    moments[index];
+
+
 
 
 
     final updated =
+
     old.copyWith(
 
+
       stats:
+
       old.stats.copyWith(
 
         comments:
+
 
         increase
 
             ?
 
-        old.stats.comments+1
+        old.stats.comments + 1
+
 
             :
 
-        old.stats.comments>0
+        old.stats.comments > 0
 
             ?
 
-        old.stats.comments-1
+        old.stats.comments - 1
+
 
             :
 
         0,
 
+
       ),
 
+
     );
+
+
 
 
 
     _replace(
+
       updated,
+
     );
+
+
 
 
 
     await _repository.updateMoment(
+
       updated,
+
     );
 
 
   }
+
+
+
+
 
 
 
@@ -584,32 +807,48 @@ class MomentsNotifier
 
 
   Future<List<Moment>> search(
+
       String query,
+
       ) {
 
 
     return _repository.searchMoments(
+
       query,
+
     );
 
 
   }
+
+
+
+
 
 
 
 
 
   Future<List<Moment>> getUserMoments(
+
       String userId,
+
       ) {
 
 
     return _repository.getUserMoments(
+
       userId,
+
     );
 
 
   }
+
+
+
+
 
 
 
@@ -621,40 +860,54 @@ class MomentsNotifier
 
 
   void _replace(
+
       Moment updated,
+
       ){
 
 
+
     final current =
+
         state.value ?? [];
 
 
 
+
+
     state =
+
         AsyncData(
 
+
           current
+
               .map(
 
-                (item)=>
+                  (item) =>
 
-            item.id==updated.id
 
-                ?
+              item.id == updated.id
 
-            updated
+                  ?
 
-                :
+              updated
 
-            item,
+                  :
+
+              item
+
 
           )
+
               .toList(),
+
 
         );
 
 
   }
+
 
 
 }

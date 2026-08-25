@@ -4,12 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
+
+import 'package:junaya_voicechat_app/screens/moments/media/media_pipeline.dart';
 import 'package:junaya_voicechat_app/screens/moments/providers/moments_provider.dart';
 
 class CreateMomentScreen extends ConsumerStatefulWidget {
 
+  final MediaPipeline pipeline;
+
+
   const CreateMomentScreen({
+
     super.key,
+
+    required this.pipeline,
+
   });
 
   @override
@@ -108,6 +117,7 @@ extends ConsumerState<CreateMomentScreen>{
 
   Future<void> _postMoment() async {
 
+
     final caption =
     _captionController.text.trim();
 
@@ -128,6 +138,8 @@ extends ConsumerState<CreateMomentScreen>{
 
 
 
+
+
     setState(() {
 
       _posting = true;
@@ -140,10 +152,47 @@ extends ConsumerState<CreateMomentScreen>{
     try {
 
 
+
+      final id =
+      DateTime.now()
+          .microsecondsSinceEpoch
+          .toString();
+
+
+
+
+
+      final media =
+
+      await widget.pipeline.process(
+
+        momentId:
+        id,
+
+
+        files:
+
+        _selectedImages
+
+            .map(
+              (e)=>e.path,
+        )
+
+            .toList(),
+
+      );
+
+
+
+
+
+
+
       final moment = Moment(
 
+
         id:
-        generateId(),
+        id,
 
 
 
@@ -168,53 +217,61 @@ extends ConsumerState<CreateMomentScreen>{
 
 
         caption:
+
         caption,
 
 
 
-        // Storage will replace this
-        // with saved media
-
         media:
-        const [],
+
+        media,
 
 
 
         createdAt:
+
         DateTime.now(),
 
 
 
         visibility:
+
         MomentVisibility.public,
 
 
 
         hashtags:
+
         const [],
 
 
 
         stats:
+
         const MomentStats(),
 
 
 
         isLiked:
+
         false,
 
 
 
         reactions:
+
         const [],
 
 
 
         isPinned:
+
         false,
 
 
       );
+
+
 
 
 
@@ -222,24 +279,21 @@ extends ConsumerState<CreateMomentScreen>{
 
 
       await ref
+
           .read(
+
         momentsProvider.notifier,
+
       )
+
           .createMoment(
 
         moment:
+
         moment,
 
-
-        imagePaths:
-
-        _selectedImages
-            .map(
-              (image)=>image.path,
-        )
-            .toList(),
-
       );
+
 
 
 
@@ -255,11 +309,12 @@ extends ConsumerState<CreateMomentScreen>{
       );
 
 
+
     }
 
 
+    catch(error,stack){
 
-    catch(error, stack){
 
 
       debugPrint(
@@ -272,8 +327,11 @@ extends ConsumerState<CreateMomentScreen>{
       );
 
 
+
       _message(
+
         "Failed creating moment",
+
       );
 
 
@@ -284,11 +342,12 @@ extends ConsumerState<CreateMomentScreen>{
     finally{
 
 
+
       if(mounted){
 
         setState(() {
 
-          _posting = false;
+          _posting=false;
 
         });
 
