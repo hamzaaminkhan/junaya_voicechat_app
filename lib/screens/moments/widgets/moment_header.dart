@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
@@ -27,161 +29,264 @@ class MomentHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    return Row(
 
-      children: [
+    return Padding(
 
-        CircleAvatar(
+      padding:
 
-          radius: 22,
+      const EdgeInsets.fromLTRB(
 
-          backgroundImage:
-          moment.author.avatar.isNotEmpty
-              ? AssetImage(
-            moment.author.avatar,
-          )
-              : null,
+        16,
 
+        14,
 
-          child:
-          moment.author.avatar.isEmpty
+        8,
 
-              ? const Icon(
-            Icons.person,
-          )
+        8,
 
-              : null,
+      ),
 
-        ),
+      child: Row(
+
+        children: [
 
 
+          CircleAvatar(
 
-        const SizedBox(
-          width: 12,
-        ),
+            radius: 22,
 
+            backgroundImage:
 
-
-        Expanded(
-
-          child: Column(
-
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
+            _avatar(),
 
 
-            children: [
+            child:
 
-              Text(
+            moment.author.avatar.isEmpty
 
-                moment.author.displayName,
+                ? const Icon(
 
-                style:
-                const TextStyle(
+              Icons.person,
 
-                  color:
-                  Colors.white,
+              color: Colors.white54,
 
-                  fontWeight:
-                  FontWeight.bold,
+            )
 
-                  fontSize:
-                  15,
+                : null,
+
+          ),
+
+
+
+          const SizedBox(
+
+            width: 12,
+
+          ),
+
+
+
+
+          Expanded(
+
+            child: Column(
+
+              crossAxisAlignment:
+
+              CrossAxisAlignment.start,
+
+
+              children: [
+
+
+                Row(
+
+                  children: [
+
+
+                    Text(
+
+                      moment.author.displayName,
+
+
+                      style:
+
+                      const TextStyle(
+
+                        color: Colors.white,
+
+                        fontWeight:
+
+                        FontWeight.w700,
+
+                        fontSize: 15,
+
+                      ),
+
+                    ),
+
+
+
+                    if(moment.author.verified)
+
+                      const Padding(
+
+                        padding:
+
+                        EdgeInsets.only(
+
+                          left: 5,
+
+                        ),
+
+                        child: Icon(
+
+                          Icons.verified,
+
+                          color: Colors.blue,
+
+                          size: 16,
+
+                        ),
+
+                      ),
+
+
+                  ],
+
+                ),
+
+
+
+
+                const SizedBox(
+
+                  height: 3,
+
+                ),
+
+
+
+
+                Row(
+
+                  children: [
+
+
+                    Text(
+
+                      "@${moment.author.username}",
+
+
+                      style:
+
+                      const TextStyle(
+
+                        color: Colors.white54,
+
+                        fontSize: 12,
+
+                      ),
+
+                    ),
+
+
+
+
+                    const SizedBox(
+
+                      width: 8,
+
+                    ),
+
+
+
+                    Text(
+
+                      "• ${_formatDate(moment.createdAt)}",
+
+
+                      style:
+
+                      const TextStyle(
+
+                        color: Colors.white38,
+
+                        fontSize: 12,
+
+                      ),
+
+                    ),
+
+
+                  ],
+
+                ),
+
+
+              ],
+
+            ),
+
+          ),
+
+
+
+
+          PopupMenuButton<String>(
+
+            icon:
+
+            const Icon(
+
+              Icons.more_horiz,
+
+              color: Colors.white70,
+
+            ),
+
+
+            onSelected:
+
+                (value){
+
+
+              if(value == "delete"){
+
+                onDelete();
+
+              }
+
+
+            },
+
+
+            itemBuilder:
+
+                (_) => [
+
+
+              const PopupMenuItem(
+
+                value: "delete",
+
+                child: Text(
+
+                  "Delete",
 
                 ),
 
               ),
 
-
-
-              const SizedBox(
-                height: 3,
-              ),
-
-
-
-              Text(
-
-                _formatDate(
-                  moment.createdAt,
-                ),
-
-
-                style:
-                const TextStyle(
-
-                  color:
-                  Colors.white54,
-
-                  fontSize:
-                  12,
-
-                ),
-
-              ),
 
             ],
 
           ),
 
-        ),
 
+        ],
 
-
-
-        PopupMenuButton<String>(
-
-          icon:
-
-          const Icon(
-
-            Icons.more_vert,
-
-            color:
-            Colors.white,
-
-          ),
-
-
-
-          onSelected:
-
-              (value) {
-
-
-            if(value == 'delete') {
-
-              onDelete();
-
-            }
-
-
-          },
-
-
-
-          itemBuilder:
-
-              (_) => [
-
-            const PopupMenuItem(
-
-              value:
-              'delete',
-
-
-              child:
-              Text(
-                "Delete",
-              ),
-
-            ),
-
-          ],
-
-        ),
-
-      ],
+      ),
 
     );
 
@@ -192,20 +297,57 @@ class MomentHeader extends StatelessWidget {
 
 
 
-  String _formatDate(
-      DateTime date,
-      ) {
+  ImageProvider? _avatar(){
 
-    final now =
-    DateTime.now();
+
+    if(moment.author.avatar.isEmpty){
+
+      return null;
+
+    }
+
+
+
+    if(moment.author.avatar.startsWith("http")){
+
+      return NetworkImage(
+
+        moment.author.avatar,
+
+      );
+
+    }
+
+
+
+    return FileImage(
+
+      File(
+
+        moment.author.avatar,
+
+      ),
+
+    );
+
+
+  }
+
+
+
+
+
+
+  String _formatDate(DateTime date){
 
 
     final difference =
-    now.difference(date);
+
+    DateTime.now().difference(date);
 
 
 
-    if(difference.inMinutes < 1) {
+    if(difference.inMinutes < 1){
 
       return "Just now";
 
@@ -213,25 +355,25 @@ class MomentHeader extends StatelessWidget {
 
 
 
-    if(difference.inHours < 1) {
+    if(difference.inHours < 1){
 
-      return "${difference.inMinutes} min ago";
-
-    }
-
-
-
-    if(difference.inDays < 1) {
-
-      return "${difference.inHours} hours ago";
+      return "${difference.inMinutes}m";
 
     }
 
 
 
-    if(difference.inDays < 7) {
+    if(difference.inDays < 1){
 
-      return "${difference.inDays} days ago";
+      return "${difference.inHours}h";
+
+    }
+
+
+
+    if(difference.inDays < 7){
+
+      return "${difference.inDays}d";
 
     }
 
