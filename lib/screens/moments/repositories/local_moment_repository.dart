@@ -7,131 +7,49 @@ import 'package:junaya_voicechat_app/screens/moments/storage/media_storage.dart'
 import 'package:junaya_voicechat_app/screens/moments/media/media_pipeline.dart';
 
 
-
-class LocalMomentRepository
-    implements MomentRepository {
-
-
+class LocalMomentRepository implements MomentRepository {
 
   final MomentStorage storage;
-
   final MediaStorage mediaStorage;
-
   final MediaPipeline pipeline;
 
 
-
-
-
   LocalMomentRepository({
-
     required this.storage,
-
     required this.mediaStorage,
-
     required this.pipeline,
-
   });
 
 
-
-
-
-
-
-
-  // ==============================
-  // READ
-  // ==============================
-
-
   @override
-  Future<List<Moment>> getMoments() async {
-
-    return await storage.loadMoments();
-
+  Future<List<Moment>> getMoments() {
+    return storage.loadMoments();
   }
 
 
-
-
-
-
   @override
-  Future<Moment?> getMoment(
-      String id,
-      ) async {
-
-    return await storage.getMoment(
-      id,
-    );
-
+  Future<Moment?> getMoment(String id) {
+    return storage.getMoment(id);
   }
-
-
-
-
-
-
-
-
-
-  // ==============================
-  // CREATE
-  // ==============================
 
 
   @override
   Future<Moment> createMoment({
-
     required Moment moment,
-
     required List<String> mediaPaths,
-
   }) async {
 
-
-
-    final media =
-
-    await pipeline.process(
-
+    final media = await pipeline.process(
       momentId: moment.id,
-
       files: mediaPaths,
-
     );
 
-
-
-    final updated =
-
-    moment.copyWith(
-
+    final updated = moment.copyWith(
       media: media,
-
     );
 
-
-
-    return await storage.createMoment(
-      updated,
-    );
-
-
+    return storage.createMoment(updated);
   }
-
-
-
-
-
-
-
-
-
-  // ==============================
-  // UPDATE
-  // ==============================
 
 
   @override
@@ -139,140 +57,66 @@ class LocalMomentRepository
       Moment moment,
       ) async {
 
-
-    await storage.updateMoment(
-      moment,
-    );
-
+    await storage.updateMoment(moment);
 
     return moment;
-
-
   }
-
-
-
-
-
-
-
-
-
-  // ==============================
-  // MEDIA
-  // ==============================
 
 
   @override
   Future<Moment> addMedia({
-
     required Moment moment,
-
     required List<String> mediaPaths,
-
   }) async {
 
-
-    final media =
-
-    await pipeline.process(
-
+    final media = await pipeline.process(
       momentId: moment.id,
-
       files: mediaPaths,
-
     );
 
-
-
-    final updated =
-
-    moment.copyWith(
-
-      media:
-
-      [
-
+    final updated = moment.copyWith(
+      media: [
         ...moment.media,
-
         ...media,
-
       ],
-
     );
 
-
-
-    await storage.updateMoment(
-      updated,
-    );
-
-
+    await storage.updateMoment(updated);
 
     return updated;
-
-
   }
-
-
-
-
-
-
-
 
 
   @override
   Future<Moment> removeMedia({
-
     required Moment moment,
-
     required String mediaId,
-
   }) async {
 
+    MomentMedia? removed;
+
+    for(final item in moment.media){
+
+      if(item.id == mediaId){
+
+        removed = item;
+        break;
+
+      }
+
+    }
 
 
-    final removed =
-
-        moment.media.where(
-
-              (item) =>
-          item.id == mediaId,
-
-        ).firstOrNull;
-
-
-
-
-    final updated =
-
-    moment.copyWith(
-
-      media:
-
-      moment.media
-
+    final updated = moment.copyWith(
+      media: moment.media
           .where(
-
-            (item)=>
-
-        item.id != mediaId,
-
+            (item)=>item.id != mediaId,
       )
-
           .toList(),
-
     );
 
 
-
-    await storage.updateMoment(
-      updated,
-    );
-
-
-
+    await storage.updateMoment(updated);
 
 
     if(removed != null){
@@ -286,71 +130,28 @@ class LocalMomentRepository
     }
 
 
-
-
     return updated;
-
-
   }
 
 
-
-
-
-
-
-
-
-  // ==============================
-  // DELETE
-  // ==============================
-
-
   @override
-  Future<void> deleteMoment(
-      String id,
-      ) async {
+  Future<void> deleteMoment(String id) async {
 
+    final existing = await storage.getMoment(id);
 
-    final existing =
-
-    await storage.getMoment(
-      id,
-    );
-
-
-
-    await storage.deleteMoment(
-      id,
-    );
-
+    await storage.deleteMoment(id);
 
 
     if(existing != null &&
         existing.media.isNotEmpty){
 
-
       await mediaStorage.deleteMedia(
         existing.media,
       );
 
-
     }
 
-
   }
-
-
-
-
-
-
-
-
-
-  // ==============================
-  // LIKE
-  // ==============================
 
 
   @override
@@ -358,232 +159,117 @@ class LocalMomentRepository
       Moment moment,
       ) async {
 
-
-    final liked =
-
-    !moment.isLiked;
+    final liked = !moment.isLiked;
 
 
-
-    final updated =
-
-    moment.copyWith(
+    final updated = moment.copyWith(
 
       isLiked: liked,
 
+      stats: moment.stats.copyWith(
 
-      stats:
+        likes: liked
 
-      moment.stats.copyWith(
+            ? moment.stats.likes + 1
 
-        likes:
+            : moment.stats.likes > 0
 
-        liked
+            ? moment.stats.likes - 1
 
-            ?
-
-        moment.stats.likes + 1
-
-            :
-
-        moment.stats.likes > 0
-
-            ?
-
-        moment.stats.likes - 1
-
-            :
-
-        0,
+            : 0,
 
       ),
 
     );
 
 
-
-    await storage.updateMoment(
-      updated,
-    );
-
+    await storage.updateMoment(updated);
 
 
     return updated;
-
-
   }
-
-
-
-
-
-
-
-
-
-  // ==============================
-  // REACTIONS
-  // ==============================
 
 
   @override
   Future<Moment> addReaction({
-
     required Moment moment,
-
     required String userId,
-
     required String emoji,
-
   }) async {
 
 
-
-    final exists =
-
-    moment.reactions.any(
-
+    final exists = moment.reactions.any(
           (item)=>
-
       item.userId == userId &&
-
           item.emoji == emoji,
-
     );
-
 
 
     if(exists){
 
-      return await removeReaction(
-
+      return removeReaction(
         moment: moment,
-
         userId: userId,
-
         emoji: emoji,
-
       );
 
     }
 
 
+    final updated = moment.copyWith(
 
+      reactions: [
 
-    final reactions =
+        ...moment.reactions,
 
-    [
+        MomentReaction(
 
-      ...moment.reactions,
+          userId: userId,
 
-      MomentReaction(
+          emoji: emoji,
 
-        userId: userId,
+          createdAt: DateTime.now(),
 
-        emoji: emoji,
+        ),
 
-        createdAt: DateTime.now(),
-
-      ),
-
-    ];
-
-
-
-
-
-    final updated =
-
-    moment.copyWith(
-
-      reactions: reactions,
+      ],
 
     );
 
 
-
-    await storage.updateMoment(
-      updated,
-    );
-
+    await storage.updateMoment(updated);
 
 
     return updated;
-
-
   }
-
-
-
-
-
-
-
 
 
   @override
   Future<Moment> removeReaction({
-
     required Moment moment,
-
     required String userId,
-
     required String emoji,
-
   }) async {
 
 
+    final updated = moment.copyWith(
 
-    final updated =
-
-    moment.copyWith(
-
-      reactions:
-
-      moment.reactions
-
+      reactions: moment.reactions
           .where(
-
-              (item)=>
-
-          !(
-
-              item.userId == userId &&
-
-                  item.emoji == emoji
-
-          )
-
+            (item)=>
+        !(item.userId == userId &&
+            item.emoji == emoji),
       )
-
           .toList(),
 
     );
 
 
-
-    await storage.updateMoment(
-      updated,
-    );
-
+    await storage.updateMoment(updated);
 
 
     return updated;
-
-
   }
-
-
-
-
-
-
-
-
-
-  // ==============================
-  // ENGAGEMENT
-  // ==============================
 
 
   @override
@@ -591,13 +277,7 @@ class LocalMomentRepository
       String id,
       ) async {
 
-
-    final moment =
-
-    await storage.getMoment(
-      id,
-    );
-
+    final moment = await storage.getMoment(id);
 
 
     if(moment == null){
@@ -609,41 +289,22 @@ class LocalMomentRepository
     }
 
 
+    final updated = moment.copyWith(
 
-    final updated =
+      stats: moment.stats.copyWith(
 
-    moment.copyWith(
-
-      stats:
-
-      moment.stats.copyWith(
-
-        views:
-
-        moment.stats.views + 1,
+        views: moment.stats.views + 1,
 
       ),
 
     );
 
 
-
-    await storage.updateMoment(
-      updated,
-    );
+    await storage.updateMoment(updated);
 
 
     return updated;
-
-
   }
-
-
-
-
-
-
-
 
 
   @override
@@ -651,13 +312,7 @@ class LocalMomentRepository
       String id,
       ) async {
 
-
-    final moment =
-
-    await storage.getMoment(
-      id,
-    );
-
+    final moment = await storage.getMoment(id);
 
 
     if(moment == null){
@@ -669,41 +324,22 @@ class LocalMomentRepository
     }
 
 
+    final updated = moment.copyWith(
 
-    final updated =
+      stats: moment.stats.copyWith(
 
-    moment.copyWith(
-
-      stats:
-
-      moment.stats.copyWith(
-
-        shares:
-
-        moment.stats.shares + 1,
+        shares: moment.stats.shares + 1,
 
       ),
 
     );
 
 
-
-    await storage.updateMoment(
-      updated,
-    );
+    await storage.updateMoment(updated);
 
 
     return updated;
-
-
   }
-
-
-
-
-
-
-
 
 
   @override
@@ -711,162 +347,75 @@ class LocalMomentRepository
       Moment moment,
       ) async {
 
-
-    throw UnimplementedError(
-      "Add isSaved field to Moment model first",
-    );
-
+    return moment;
 
   }
-
-
-
-
-
-
-
-
-
-  // ==============================
-  // SEARCH
-  // ==============================
 
 
   @override
   Future<List<Moment>> searchMoments(
       String query,
-      ) async {
+      ) {
 
-
-    return await storage.search(
-      query,
-    );
-
+    return storage.search(query);
 
   }
-
-
-
-
-
-
-
-
-
-  // ==============================
-  // USER
-  // ==============================
 
 
   @override
   Future<List<Moment>> getUserMoments(
       String userId,
-      ) async {
+      ) {
 
-
-    return await storage.getUserMoments(
-      userId,
-    );
-
+    return storage.getUserMoments(userId);
 
   }
 
 
-
-
-
-
-
-
-
-  // ==============================
-  // PAGINATION
-  // ==============================
-
-
   @override
   Future<List<Moment>> getMomentsPage({
-
     required int limit,
-
     String? cursor,
-
   }) async {
 
 
-
-    final moments =
-
-    await storage.loadMoments();
-
+    final moments = await storage.loadMoments();
 
 
     var start = 0;
 
 
-
     if(cursor != null){
 
-
-      final index =
-
-      moments.indexWhere(
-
-            (item)=>
-
-        item.id == cursor,
-
+      final index = moments.indexWhere(
+            (item)=>item.id == cursor,
       );
 
 
-
-      if(index != -1){
+      if(index >= 0){
 
         start = index + 1;
 
       }
 
-
     }
 
 
-
-
     return moments
-
         .skip(start)
-
         .take(limit)
-
         .toList();
 
-
   }
-
-
-
-
-
-
-
-
-
-  // ==============================
-  // CLEAR
-  // ==============================
 
 
   @override
   Future<void> clearAll() async {
 
-
     await storage.clear();
-
 
     await mediaStorage.clear();
 
-
   }
-
 
 }
