@@ -9,13 +9,31 @@ import 'package:junaya_voicechat_app/screens/moments/widgets/reaction_summary.da
 
 
 
+
+
 class MomentCard extends StatelessWidget {
+
 
 
   final Moment moment;
 
 
+
   final VoidCallback onDelete;
+
+
+
+  final VoidCallback? onLike;
+
+  final VoidCallback? onComment;
+
+  final VoidCallback? onShare;
+
+  final VoidCallback? onSave;
+
+
+
+
 
 
 
@@ -23,9 +41,24 @@ class MomentCard extends StatelessWidget {
 
     super.key,
 
+
     required this.moment,
 
+
     required this.onDelete,
+
+
+    this.onLike,
+
+
+    this.onComment,
+
+
+    this.onShare,
+
+
+    this.onSave,
+
 
   });
 
@@ -33,114 +66,194 @@ class MomentCard extends StatelessWidget {
 
 
 
+
+
+
+
   @override
-  Widget build(
-      BuildContext context,
-      ) {
+  Widget build(BuildContext context) {
+
 
 
     return Container(
 
+
       margin:
+
       const EdgeInsets.symmetric(
 
-        horizontal:
-        15,
+        horizontal: 12,
 
-        vertical:
-        8,
+        vertical: 8,
 
       ),
 
 
-
-      padding:
-      const EdgeInsets.all(16),
 
 
 
       decoration:
+
       BoxDecoration(
 
+
         color:
-        const Color(0xff151515),
+
+        const Color(0xff101010),
+
 
 
         borderRadius:
-        BorderRadius.circular(22),
+
+        BorderRadius.circular(26),
+
+
+
+        border:
+
+        Border.all(
+
+          color:
+
+          Colors.white10,
+
+        ),
+
 
       ),
 
 
 
+
+
       child:
+
       Column(
 
+
+
         crossAxisAlignment:
+
         CrossAxisAlignment.start,
+
 
 
         children: [
 
 
 
-          _header(context),
+
+
+          MomentHeader(
+
+
+            moment:
+
+            moment,
 
 
 
+            onDelete:
 
+                () => _confirmDelete(
 
-          if(moment.caption.isNotEmpty)...[
+              context,
 
-            const SizedBox(
-              height:
-              15,
             ),
 
 
-
-            Text(
-
-              moment.caption,
+          ),
 
 
-              style:
-              const TextStyle(
 
-                color:
-                Colors.white,
 
-                fontSize:
+
+
+
+          if(moment.caption.trim().isNotEmpty)
+
+            Padding(
+
+
+              padding:
+
+              const EdgeInsets.fromLTRB(
+
                 16,
+
+                8,
+
+                16,
+
+                12,
 
               ),
 
+
+
+              child:
+
+              Text(
+
+
+                moment.caption,
+
+
+
+                style:
+
+                const TextStyle(
+
+
+                  color:
+
+                  Colors.white,
+
+
+
+                  fontSize:
+
+                  16,
+
+
+
+                  height:
+
+                  1.45,
+
+
+
+                ),
+
+
+
+              ),
+
+
+
             ),
 
-          ],
 
 
 
 
 
 
-          if(moment.media.isNotEmpty)...[
-
-            const SizedBox(
-              height:
-              12,
-            ),
 
 
+          if(moment.media.isNotEmpty)
 
             MomentMediaWidget(
 
+
               media:
+
               moment.media,
+
 
             ),
 
-          ],
+
 
 
 
@@ -148,31 +261,94 @@ class MomentCard extends StatelessWidget {
 
           if(moment.hashtags.isNotEmpty)
 
-            _hashtags(),
+            Padding(
+
+
+              padding:
+
+              const EdgeInsets.symmetric(
+
+                horizontal: 16,
+
+              ),
+
+
+
+              child:
+
+              Wrap(
+
+
+                spacing:
+
+                8,
+
+
+
+                children:
+
+                moment.hashtags.map(
+
+
+                      (tag){
+
+
+                    return Text(
+
+
+                      "#$tag",
+
+
+
+                      style:
+
+                      const TextStyle(
+
+
+                        color:
+
+                        Colors.purpleAccent,
+
+
+
+                        fontSize:
+
+                        13,
+
+
+                      ),
+
+
+                    );
+
+
+                  },
+
+
+                ).toList(),
+
+
+
+              ),
+
+
+            ),
+
+
 
 
 
 
 
           const SizedBox(
+
             height:
-            15,
-          ),
 
-
-
-
-
-          _stats(),
-
-
-
-
-
-          const SizedBox(
-            height:
             12,
+
           ),
+
+
 
 
 
@@ -180,278 +356,83 @@ class MomentCard extends StatelessWidget {
 
           ReactionBar(
 
+
             moment:
+
             moment,
 
+
+
+            onLike:
+
+            onLike,
+
+
+
+            onComment:
+
+            onComment,
+
+
+
+            onShare:
+
+            onShare,
+
+
+
+            onSave:
+
+            onSave,
+
+
           ),
+
+
+
+
+
+
+
+          if(moment.reactions.isNotEmpty)
+
+            ReactionSummary(
+
+
+              reactions:
+
+              moment.reactions,
+
+
+            ),
+
+
 
 
 
 
 
           const SizedBox(
+
             height:
-            8,
-          ),
 
-
-
-
-
-          ReactionSummary(
-
-            reactions:
-            moment.reactions,
+            12,
 
           ),
+
 
 
         ],
 
-      ),
-
-    );
-
-
-  }
-
-
-
-
-
-
-
-
-  Widget _header(
-      BuildContext context,
-      ){
-
-
-    return MomentHeader(
-
-      moment:
-      moment,
-
-
-      onDelete:
-          () => _confirmDelete(
-        context,
-      ),
-
-    );
-
-
-  }
-
-
-
-
-
-
-
-
-  Widget _stats(){
-
-
-    return Row(
-
-      children: [
-
-
-
-        _statItem(
-
-          Icons.favorite,
-
-          moment.stats.likes,
-
-        ),
-
-
-
-
-
-        const SizedBox(
-          width:
-          20,
-        ),
-
-
-
-
-
-        _statItem(
-
-          Icons.comment,
-
-          moment.stats.comments,
-
-        ),
-
-
-
-
-
-        const Spacer(),
-
-
-
-
-
-        if(moment.isPinned)
-
-          const Icon(
-
-            Icons.push_pin,
-
-            color:
-            Colors.amber,
-
-            size:
-            18,
-
-          ),
-
-
-      ],
-
-    );
-
-
-  }
-
-
-
-
-
-
-
-
-  Widget _statItem(
-
-      IconData icon,
-
-      int value,
-
-      ){
-
-
-    return Row(
-
-      children: [
-
-
-
-        Icon(
-
-          icon,
-
-          color:
-          Colors.white54,
-
-          size:
-          18,
-
-        ),
-
-
-
-
-
-        const SizedBox(
-          width:
-          5,
-        ),
-
-
-
-
-
-        Text(
-
-          value.toString(),
-
-
-          style:
-          const TextStyle(
-
-            color:
-            Colors.white70,
-
-          ),
-
-        ),
-
-
-      ],
-
-    );
-
-
-  }
-
-
-
-
-
-
-
-
-  Widget _hashtags(){
-
-
-    return Padding(
-
-      padding:
-      const EdgeInsets.only(
-
-        top:
-        12,
 
       ),
 
 
 
-      child:
-      Wrap(
-
-        spacing:
-        6,
-
-
-        children:
-
-        moment.hashtags.map(
-
-              (tag){
-
-            return Text(
-
-              "#$tag",
-
-
-              style:
-              const TextStyle(
-
-                color:
-                Colors.purpleAccent,
-
-              ),
-
-            );
-
-
-          },
-
-        ).toList(),
-
-
-      ),
-
     );
 
-
   }
+
 
 
 
@@ -461,33 +442,53 @@ class MomentCard extends StatelessWidget {
 
 
   void _confirmDelete(
+
       BuildContext context,
+
       ){
+
 
 
     showDialog(
 
+
       context:
+
       context,
 
 
+
       builder:
+
           (_) {
+
 
 
         return AlertDialog(
 
+
+
           title:
+
           const Text(
+
             "Delete moment?",
+
           ),
+
+
 
 
 
           content:
+
           const Text(
+
             "This action cannot be undone.",
+
           ),
+
+
 
 
 
@@ -497,22 +498,28 @@ class MomentCard extends StatelessWidget {
 
             TextButton(
 
+
               onPressed:
-                  () {
 
-                Navigator.pop(
-                  context,
-                );
+                  () => Navigator.pop(
 
-              },
+                context,
+
+              ),
+
 
 
               child:
+
               const Text(
+
                 "Cancel",
+
               ),
 
+
             ),
+
 
 
 
@@ -520,35 +527,51 @@ class MomentCard extends StatelessWidget {
 
             TextButton(
 
+
               onPressed:
+
+
                   () {
 
 
                 Navigator.pop(
+
                   context,
+
                 );
+
 
 
                 onDelete();
 
 
+
               },
 
 
+
               child:
+
               const Text(
+
                 "Delete",
+
               ),
+
 
             ),
 
 
           ],
 
+
+
         );
 
 
       },
+
+
 
     );
 
