@@ -1,56 +1,27 @@
 import 'upload_queue.dart';
 import 'media_uploader.dart';
-
+import '../services/media_upload_service.dart';
 
 
 class UploadWorker {
 
-
   final UploadQueue queue;
-
-
   final MediaUploader uploader;
-
-
-
+  final MediaUploadService uploadService;
 
 
   bool _running = false;
-
-
   Future<void>? _workerTask;
 
 
-
-
-
-
-
-
-
   UploadWorker({
-
     required this.queue,
-
     required this.uploader,
-
+    required this.uploadService,
   });
 
 
-
-
-
-
-
-
-
-  // =====================================================
-  // START WORKER
-  // =====================================================
-
-
   Future<void> start() async {
-
 
     if(_running){
 
@@ -59,291 +30,121 @@ class UploadWorker {
     }
 
 
-
     _running = true;
-
-
 
     _workerTask = _run();
 
-
-
     return _workerTask;
 
-
   }
-
-
-
-
-
-
-
 
 
   Future<void> _run() async {
 
-
-    // recover interrupted uploads
-
     await queue.recover();
-
-
-
 
 
     while(_running){
 
-
-
       final task =
-
       await queue.next();
-
-
-
 
 
       if(task == null){
 
-
-
         await Future.delayed(
-
           const Duration(
-
             seconds: 2,
-
           ),
-
         );
 
-
-
         continue;
-
 
       }
 
 
-
-
-
-
-
       await _process(
-
         task,
-
       );
-
-
 
     }
 
-
   }
-
-
-
-
-
-
-
-
-
-  // =====================================================
-  // PROCESS TASK
-  // =====================================================
 
 
   Future<void> _process(
-
       UploadTask task,
-
       ) async {
 
-
-    try {
-
-
+    try{
 
       await queue.start(
-
         task.id,
-
       );
-
-
-
-
-
 
 
       final remoteUrl =
-
       await uploader.upload(
 
         filePath:
-
         task.filePath,
 
-
         momentId:
-
         task.momentId,
 
-
-
         onProgress:
+            (progress){
 
-            (progress) async {
-
-
-
-          await queue.updateProgress(
+          queue.updateProgress(
 
             id:
-
             task.id,
 
-
             progress:
-
             progress,
-
 
           );
 
-
         },
 
-
       );
 
 
-
-
-
-
-
-      await _complete(
-
-        task,
-
-        remoteUrl,
-
+      await uploadService.uploadMediaByTask(
+        task: task,
+        remoteUrl: remoteUrl,
       );
 
+
+      await queue.complete(
+        task.id,
+      );
 
 
     }
-
-
-
-    catch(error){
-
-
+    catch(_){
 
       await queue.fail(
-
         task.id,
-
       );
-
 
     }
 
-
   }
-
-
-
-
-
-
-
-
-
-  // =====================================================
-  // COMPLETE
-  // =====================================================
-
-
-  Future<void> _complete(
-
-      UploadTask task,
-
-      String remoteUrl,
-
-      ) async {
-
-
-
-    /*
-
-    Future:
-
-    Update MomentStorage
-
-    Find MomentMedia by id:
-
-      uploaded = true
-
-      remoteUrl = remoteUrl
-
-
-    */
-
-
-
-
-
-    await queue.complete(
-
-      task.id,
-
-    );
-
-
-
-  }
-
-
-
-
-
-
-
-
-
-  // =====================================================
-  // STOP
-  // =====================================================
 
 
   Future<void> stop() async {
 
-
     _running = false;
-
-
 
     await _workerTask;
 
-
-
     _workerTask = null;
-
 
   }
 
 
-
-
-
-  bool get isRunning => _running;
-
-
+  bool get isRunning =>
+      _running;
 
 }

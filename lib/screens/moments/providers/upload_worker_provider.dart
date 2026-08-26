@@ -4,77 +4,35 @@ import '../media/upload_worker.dart';
 import '../media/upload_queue.dart';
 import '../media/media_uploader.dart';
 
+import 'media_upload_service_provider.dart';
+import 'media_uploader_provider.dart';
+import 'upload_queue_provider.dart';
 
+final uploadWorkerProvider = Provider<UploadWorker>((ref) {
 
-final uploadQueueProvider =
-
-Provider<UploadQueue>((ref){
-
-  return UploadQueue();
-
-});
-
-
-
-
-
-
-
-final mediaUploaderProvider =
-
-Provider<MediaUploader>((ref){
-
-  throw UnimplementedError(
-    "Provide uploader implementation",
+  final queue = ref.watch(
+    uploadQueueProvider,
   );
 
-});
+  final uploader = ref.watch(
+    mediaUploaderProvider,
+  );
 
-
-
-
-
-
-
-final uploadWorkerProvider =
-
-Provider<UploadWorker>((ref){
-
+  final uploadService = ref.watch(
+    mediaUploadServiceProvider,
+  );
 
   final worker = UploadWorker(
-
-    queue:
-
-    ref.watch(
-
-      uploadQueueProvider,
-
-    ),
-
-
-    uploader:
-
-    ref.watch(
-
-      mediaUploaderProvider,
-
-    ),
-
+    queue: queue,
+    uploader: uploader,
+    uploadService: uploadService,
   );
 
+  worker.start();
 
-
-  ref.onDispose((){
-
-
+  ref.onDispose(() {
     worker.stop();
-
-
   });
 
-
-
   return worker;
-
-
 });
