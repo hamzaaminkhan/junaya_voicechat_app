@@ -23,9 +23,9 @@ class ReactionSummary extends StatelessWidget {
   Widget build(BuildContext context) {
 
 
-    if(reactions.isEmpty) {
+    if(reactions.isEmpty){
 
-      return const SizedBox();
+      return const SizedBox.shrink();
 
     }
 
@@ -35,93 +35,149 @@ class ReactionSummary extends StatelessWidget {
 
 
 
-    for(final reaction in reactions) {
+    for(final reaction in reactions){
 
       counts[reaction.emoji] =
+
           (counts[reaction.emoji] ?? 0) + 1;
 
     }
 
 
 
+    final sorted = counts.entries.toList()
+
+      ..sort(
+
+            (a,b) =>
+
+            b.value.compareTo(a.value),
+
+      );
+
+
+
     return Container(
 
       margin:
+
       const EdgeInsets.only(
+
         top: 10,
+
       ),
+
 
 
       padding:
+
       const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 6,
+
+        horizontal: 12,
+
+        vertical: 8,
+
       ),
+
 
 
       decoration:
+
       BoxDecoration(
 
         color:
-        const Color(0xff222222),
+
+        const Color(0xff202020),
 
 
         borderRadius:
-        BorderRadius.circular(20),
+
+        BorderRadius.circular(18),
 
       ),
 
 
 
-      child:
-      Row(
+      child: Wrap(
 
-        mainAxisSize:
-        MainAxisSize.min,
+        spacing: 12,
+
+        runSpacing: 6,
 
 
         children:
 
-        counts.entries.map(
+        sorted.map(
 
-              (entry) {
-
-
-            return Padding(
-
-              padding:
-              const EdgeInsets.only(
-                right: 10,
-              ),
+              (entry){
 
 
-              child:
-              Text(
+            return Row(
 
-                "${entry.key} ${entry.value}",
+              mainAxisSize:
+
+              MainAxisSize.min,
 
 
-                style:
-                const TextStyle(
+              children: [
 
-                  color:
-                  Colors.white,
 
-                  fontSize:
-                  13,
+                Text(
+
+                  entry.key,
+
+                  style:
+
+                  const TextStyle(
+
+                    fontSize: 16,
+
+                  ),
 
                 ),
 
-              ),
+
+
+                const SizedBox(
+
+                  width: 4,
+
+                ),
+
+
+
+                Text(
+
+                  entry.value.toString(),
+
+                  style:
+
+                  const TextStyle(
+
+                    color:
+
+                    Colors.white70,
+
+                    fontSize:
+
+                    13,
+
+                    fontWeight:
+
+                    FontWeight.w600,
+
+                  ),
+
+                ),
+
+              ],
 
             );
 
 
           },
 
-        )
-            .toList(),
-
+        ).toList(),
 
       ),
 
