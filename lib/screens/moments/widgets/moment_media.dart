@@ -6,7 +6,7 @@ import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 
 
 
-class MomentMediaWidget extends StatelessWidget {
+class MomentMediaWidget extends StatefulWidget {
 
   final List<MomentMedia> media;
 
@@ -22,48 +22,231 @@ class MomentMediaWidget extends StatelessWidget {
 
 
   @override
+  State<MomentMediaWidget> createState() =>
+      _MomentMediaWidgetState();
+
+}
+
+
+
+class _MomentMediaWidgetState extends State<MomentMediaWidget> {
+
+
+  final PageController _controller =
+  PageController();
+
+
+
+  int _index = 0;
+
+
+
+  @override
   Widget build(BuildContext context) {
 
-    if (media.isEmpty) {
+
+    if(widget.media.isEmpty){
 
       return const SizedBox.shrink();
 
     }
 
 
-    return SizedBox(
 
-      height: 220,
+    return Stack(
 
-      child: ListView.builder(
-
-        scrollDirection:
-        Axis.horizontal,
+      children: [
 
 
-        itemCount:
-        media.length,
+
+        AspectRatio(
+
+          aspectRatio: 1,
+
+          child: PageView.builder(
+
+            controller: _controller,
+
+            itemCount: widget.media.length,
 
 
-        itemBuilder:
-            (context, index) {
+            onPageChanged: (value){
+
+              setState(() {
+
+                _index = value;
+
+              });
+
+            },
 
 
-          return _MediaItem(
-
-            media:
-            media[index],
-
-          );
+            itemBuilder: (context,index){
 
 
-        },
+              return _MediaItem(
 
-      ),
+                media:
+
+                widget.media[index],
+
+              );
+
+
+            },
+
+          ),
+
+        ),
+
+
+
+
+
+        if(widget.media.length > 1)
+
+          Positioned(
+
+            top: 12,
+
+            right: 12,
+
+            child: Container(
+
+              padding:
+
+              const EdgeInsets.symmetric(
+
+                horizontal: 10,
+
+                vertical: 5,
+
+              ),
+
+
+              decoration:
+
+              BoxDecoration(
+
+                color:
+
+                Colors.black54,
+
+
+                borderRadius:
+
+                BorderRadius.circular(20),
+
+              ),
+
+
+              child: Text(
+
+                "${_index + 1}/${widget.media.length}",
+
+
+                style:
+
+                const TextStyle(
+
+                  color: Colors.white,
+
+                  fontSize: 12,
+
+                ),
+
+              ),
+
+            ),
+
+          ),
+
+
+
+
+
+        if(widget.media.length > 1)
+
+          Positioned(
+
+            bottom: 12,
+
+            left: 0,
+
+            right: 0,
+
+            child: Row(
+
+              mainAxisAlignment:
+
+              MainAxisAlignment.center,
+
+
+              children:
+
+              List.generate(
+
+                widget.media.length,
+
+
+                    (i){
+
+                  return Container(
+
+                    margin:
+
+                    const EdgeInsets.symmetric(
+
+                      horizontal: 3,
+
+                    ),
+
+
+                    width:
+
+                    i == _index ? 18 : 6,
+
+
+                    height: 6,
+
+
+                    decoration:
+
+                    BoxDecoration(
+
+                      color:
+
+                      i == _index
+
+                          ? Colors.white
+
+                          : Colors.white38,
+
+
+                      borderRadius:
+
+                      BorderRadius.circular(10),
+
+                    ),
+
+                  );
+
+
+                },
+
+              ),
+
+            ),
+
+          ),
+
+
+      ],
 
     );
 
   }
+
 
 }
 
@@ -88,44 +271,23 @@ class _MediaItem extends StatelessWidget {
 
 
 
-
-
   @override
   Widget build(BuildContext context) {
 
 
-    return Container(
+    return ClipRRect(
 
-      width: 220,
+      borderRadius:
 
-      margin:
-      const EdgeInsets.only(
-        right: 10,
-      ),
-
-
-      decoration:
-      BoxDecoration(
-
-        borderRadius:
-        BorderRadius.circular(
-          18,
-        ),
-
-        color:
-        Colors.black26,
-
-      ),
-
-
-      clipBehavior:
-      Clip.antiAlias,
+      BorderRadius.circular(22),
 
 
       child:
+
       _buildMedia(),
 
     );
+
 
   }
 
@@ -135,11 +297,10 @@ class _MediaItem extends StatelessWidget {
 
 
 
+  Widget _buildMedia(){
 
-  Widget _buildMedia() {
 
-
-    switch(media.type) {
+    switch(media.type){
 
 
       case MomentMediaType.image:
@@ -155,6 +316,7 @@ class _MediaItem extends StatelessWidget {
 
     }
 
+
   }
 
 
@@ -163,11 +325,10 @@ class _MediaItem extends StatelessWidget {
 
 
 
+  Widget _image(){
 
-  Widget _image() {
 
-
-    if(media.url.startsWith('http')) {
+    if(media.url.startsWith("http")){
 
 
       return Image.network(
@@ -175,17 +336,16 @@ class _MediaItem extends StatelessWidget {
         media.url,
 
         fit:
+
         BoxFit.cover,
 
 
         errorBuilder:
-            (_, error, stackTrace) {
 
-          return _error();
-
-        },
+            (_,__,___)=>_error(),
 
       );
+
 
     }
 
@@ -193,20 +353,16 @@ class _MediaItem extends StatelessWidget {
 
     return Image.file(
 
-      File(
-        media.url,
-      ),
-
+      File(media.url),
 
       fit:
+
       BoxFit.cover,
 
+
       errorBuilder:
-          (_, error, stackTrace) {
 
-        return _error();
-
-      },
+          (_,__,___)=>_error(),
 
     );
 
@@ -219,14 +375,14 @@ class _MediaItem extends StatelessWidget {
 
 
 
-
-  Widget _video() {
+  Widget _video(){
 
 
     return Stack(
 
-      alignment:
-      Alignment.center,
+      fit:
+
+      StackFit.expand,
 
 
       children:[
@@ -235,27 +391,36 @@ class _MediaItem extends StatelessWidget {
         Container(
 
           color:
-          Colors.black45,
+
+          Colors.black87,
 
         ),
 
 
 
-        const Icon(
+        const Center(
 
-          Icons.play_circle_fill,
+          child:
 
-          size:
-          60,
+          Icon(
 
-          color:
-          Colors.white70,
+            Icons.play_circle_fill,
+
+            size:
+
+            70,
+
+            color:
+
+            Colors.white70,
+
+          ),
 
         ),
-
 
 
       ],
+
 
     );
 
@@ -268,30 +433,35 @@ class _MediaItem extends StatelessWidget {
 
 
 
-
-  Widget _error() {
+  Widget _error(){
 
 
     return Container(
 
       color:
+
       Colors.black26,
 
 
-      alignment:
-      Alignment.center,
-
-
       child:
-      const Icon(
 
-        Icons.broken_image_outlined,
+      const Center(
 
-        color:
-        Colors.white54,
+        child:
 
-        size:
-        40,
+        Icon(
+
+          Icons.broken_image_outlined,
+
+          color:
+
+          Colors.white54,
+
+          size:
+
+          40,
+
+        ),
 
       ),
 
@@ -299,5 +469,6 @@ class _MediaItem extends StatelessWidget {
 
 
   }
+
 
 }
