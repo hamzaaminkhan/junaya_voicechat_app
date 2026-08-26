@@ -15,17 +15,14 @@ import 'package:junaya_voicechat_app/screens/moments/storage/moment_storage.dart
 
 
 // ======================================================
-// STORAGE PROVIDER
+// STORAGE
 // ======================================================
 
 
 final momentStorageProvider =
-
 Provider<MomentStorage>((ref){
 
-
   return MomentStorage();
-
 
 });
 
@@ -35,15 +32,15 @@ Provider<MomentStorage>((ref){
 
 
 
+
+
 // ======================================================
-// REPOSITORY PROVIDER
+// REPOSITORY
 // ======================================================
 
 
 final momentRepositoryProvider =
-
 Provider<MomentRepository>((ref){
-
 
 
   return LocalMomentRepository(
@@ -51,29 +48,21 @@ Provider<MomentRepository>((ref){
     storage:
 
     ref.watch(
-
       momentStorageProvider,
-
     ),
-
 
 
     mediaStorage:
 
     ref.watch(
-
       mediaStorageProvider,
-
     ),
-
 
 
     pipeline:
 
     ref.watch(
-
       mediaPipelineProvider,
-
     ),
 
 
@@ -89,8 +78,9 @@ Provider<MomentRepository>((ref){
 
 
 
+
 // ======================================================
-// MOMENTS STATE
+// STATE
 // ======================================================
 
 
@@ -122,11 +112,7 @@ class MomentsNotifier
 
 
 
-  late MomentRepository _repository;
-
-
-
-
+  late final MomentRepository _repository;
 
 
 
@@ -167,7 +153,13 @@ class MomentsNotifier
 
     state =
 
-    const AsyncLoading();
+        AsyncLoading<List<Moment>>()
+
+            .copyWithPrevious(
+
+          state,
+
+        );
 
 
 
@@ -175,16 +167,27 @@ class MomentsNotifier
 
     await AsyncValue.guard(
 
-          () async {
+          () =>
 
-
-        return await _repository.getMoments();
-
-
-      },
+              _repository.getMoments(),
 
     );
 
+
+  }
+
+  Future<List<Moment>> loadPage({
+
+    required int limit,
+
+    String? cursor,
+
+  }){
+
+    return _repository.getMomentsPage(
+      limit:limit,
+      cursor:cursor,
+    );
 
   }
 
@@ -210,21 +213,21 @@ class MomentsNotifier
   }) async {
 
 
-
     final previous =
 
         state.value ?? [];
 
 
 
-
-
     state =
 
-    const AsyncLoading();
+        AsyncLoading<List<Moment>>()
 
+            .copyWithPrevious(
 
+          state,
 
+        );
 
 
 
@@ -235,14 +238,11 @@ class MomentsNotifier
           () async {
 
 
-
         await _repository.createMoment(
-
 
           moment:
 
           moment,
-
 
 
           mediaPaths:
@@ -253,11 +253,7 @@ class MomentsNotifier
         );
 
 
-
-
-
-        return await _repository.getMoments();
-
+        return _repository.getMoments();
 
 
       },
@@ -266,24 +262,15 @@ class MomentsNotifier
 
 
 
-
-
-
-
     if(state.hasError){
 
+      state = AsyncData(
 
-      state =
+        previous,
 
-          AsyncData(
-
-            previous,
-
-          );
-
+      );
 
     }
-
 
 
   }
@@ -308,10 +295,10 @@ class MomentsNotifier
       ) async {
 
 
+    try{
 
-    try {
 
-
+      final updated =
 
       await _repository.updateMoment(
 
@@ -320,33 +307,26 @@ class MomentsNotifier
       );
 
 
-
       _replace(
 
-        moment,
+        updated,
 
       );
 
 
     }
 
-
     catch(error,stack){
 
+      state = AsyncError(
 
-      state =
+        error,
 
-          AsyncError(
+        stack,
 
-            error,
-
-            stack,
-
-          );
-
+      );
 
     }
-
 
 
   }
@@ -365,39 +345,32 @@ class MomentsNotifier
 
 
   Future<void> deleteMoment(
-
       String id,
-
       ) async {
 
 
-
     final previous =
-
         state.value ?? [];
 
 
 
+    final filtered =
 
+    previous
+        .where(
+          (m) => m.id != id,
+    )
+        .toList();
+
+
+
+
+    // optimistic update
 
     state =
-
         AsyncData(
-
-          previous
-
-              .where(
-
-                (item)=>
-
-            item.id != id,
-
-          )
-
-              .toList(),
-
+          filtered,
         );
-
 
 
 
@@ -406,37 +379,28 @@ class MomentsNotifier
 
 
       await _repository.deleteMoment(
-
         id,
-
       );
 
 
     }
 
-
     catch(error,stack){
 
 
+      // rollback
 
       state =
-
-          AsyncError(
-
-            error,
-
-            stack,
-
+          AsyncData(
+            previous,
           );
 
 
 
       state =
-
-          AsyncData(
-
-            previous,
-
+          AsyncError(
+            error,
+            stack,
           );
 
 
@@ -444,10 +408,6 @@ class MomentsNotifier
 
 
   }
-
-
-
-
 
 
 
@@ -465,32 +425,26 @@ class MomentsNotifier
       ) async {
 
 
-
     final optimistic =
 
     moment.copyWith(
-
 
       isLiked:
 
       !moment.isLiked,
 
 
-
       stats:
 
       moment.stats.copyWith(
 
-
         likes:
-
 
         !moment.isLiked
 
             ?
 
         moment.stats.likes + 1
-
 
             :
 
@@ -500,18 +454,13 @@ class MomentsNotifier
 
         moment.stats.likes - 1
 
-
             :
 
         0,
 
-
       ),
 
-
     );
-
-
 
 
 
@@ -523,9 +472,7 @@ class MomentsNotifier
 
 
 
-
-
-    try {
+    try{
 
 
       final updated =
@@ -537,7 +484,6 @@ class MomentsNotifier
       );
 
 
-
       _replace(
 
         updated,
@@ -545,12 +491,9 @@ class MomentsNotifier
       );
 
 
-
     }
 
-
     catch(error,stack){
-
 
 
       _replace(
@@ -560,16 +503,13 @@ class MomentsNotifier
       );
 
 
+      state = AsyncError(
 
-      state =
+        error,
 
-          AsyncError(
+        stack,
 
-            error,
-
-            stack,
-
-          );
+      );
 
 
     }
@@ -602,25 +542,21 @@ class MomentsNotifier
 
 
 
-    try {
-
+    try{
 
 
       final updated =
 
       await _repository.addReaction(
 
-
         moment:
 
         moment,
 
 
-
         userId:
 
         userId,
-
 
 
         emoji:
@@ -629,9 +565,6 @@ class MomentsNotifier
 
 
       );
-
-
-
 
 
       _replace(
@@ -643,6 +576,245 @@ class MomentsNotifier
 
     }
 
+    catch(error,stack){
+
+
+      state = AsyncError(
+
+        error,
+
+        stack,
+
+      );
+
+
+    }
+
+
+  }
+
+
+
+
+
+
+
+
+
+  Future<void> removeReaction({
+
+    required Moment moment,
+
+    required String userId,
+
+    required String emoji,
+
+  }) async {
+
+
+    try {
+
+
+      final updated =
+      await _repository.removeReaction(
+
+        moment: moment,
+
+        userId:userId,
+
+        emoji:emoji,
+
+      );
+
+
+      _replace(updated);
+
+
+    }
+
+    catch(error,stack){
+
+      state =
+          AsyncError(
+            error,
+            stack,
+          );
+
+    }
+
+
+  }
+
+
+
+
+
+
+
+  // ======================================================
+  // MEDIA
+  // ======================================================
+
+
+  Future<void> addMedia({
+
+    required Moment moment,
+
+    required List<String> paths,
+
+  }) async {
+
+    try {
+
+      final updated =
+      await _repository.addMedia(
+
+        moment: moment,
+
+        mediaPaths: paths,
+
+      );
+
+
+      _replace(updated);
+
+
+    }
+
+    catch(error,stack){
+
+      state =
+          AsyncError(
+            error,
+            stack,
+          );
+
+    }
+
+  }
+
+
+
+
+  Future<void> removeMedia({
+
+    required Moment moment,
+
+    required String mediaId,
+
+  }) async {
+
+
+    try {
+
+
+      final updated =
+
+      await _repository.removeMedia(
+
+        moment: moment,
+
+        mediaId: mediaId,
+
+      );
+
+
+      _replace(
+        updated,
+      );
+
+
+    }
+
+    catch(error,stack){
+
+
+      state =
+          AsyncError(
+            error,
+            stack,
+          );
+
+
+    }
+
+
+  }
+
+
+
+
+
+
+
+  // ======================================================
+  // ENGAGEMENT
+  // ======================================================
+
+
+  Future<void> incrementViews(
+
+      String id,
+
+      ) async {
+
+
+    try {
+
+
+      final updated =
+      await _repository.incrementViews(
+        id,
+      );
+
+
+      _replace(updated);
+
+
+    }
+
+    catch(error,stack){
+
+
+      state =
+          AsyncError(
+            error,
+            stack,
+          );
+
+
+    }
+
+
+  }
+
+
+
+
+
+  Future<void> incrementShares(
+
+      String id,
+
+      ) async {
+
+
+    try {
+
+
+      final updated =
+
+      await _repository.incrementShares(
+
+        id,
+
+      );
+
+
+      _replace(updated);
+
+
+    }
 
     catch(error,stack){
 
@@ -661,12 +833,58 @@ class MomentsNotifier
     }
 
 
-
   }
 
 
 
 
+
+
+
+
+
+  Future<void> toggleSave(
+
+      Moment moment,
+
+      ) async {
+
+
+    try {
+
+
+      final updated =
+
+      await _repository.toggleSave(
+
+        moment,
+
+      );
+
+
+      _replace(updated);
+
+
+    }
+
+    catch(error,stack){
+
+
+      state =
+
+          AsyncError(
+
+            error,
+
+            stack,
+
+          );
+
+
+    }
+
+
+  }
 
 
 
@@ -681,15 +899,13 @@ class MomentsNotifier
 
       String query,
 
-      ) {
-
+      ){
 
     return _repository.searchMoments(
 
       query,
 
     );
-
 
   }
 
@@ -701,24 +917,17 @@ class MomentsNotifier
 
 
 
-  // ======================================================
-  // USER MOMENTS
-  // ======================================================
-
-
   Future<List<Moment>> getUserMoments(
 
       String userId,
 
-      ) {
-
+      ){
 
     return _repository.getUserMoments(
 
       userId,
 
     );
-
 
   }
 
@@ -744,7 +953,6 @@ class MomentsNotifier
   }) async {
 
 
-
     final moments =
 
         state.value ?? [];
@@ -755,12 +963,9 @@ class MomentsNotifier
 
     moments.indexWhere(
 
-          (item)=>
-
-      item.id == id,
+          (m)=>m.id == id,
 
     );
-
 
 
     if(index == -1){
@@ -771,13 +976,9 @@ class MomentsNotifier
 
 
 
-
-
     final old =
 
     moments[index];
-
-
 
 
 
@@ -791,13 +992,11 @@ class MomentsNotifier
 
         comments:
 
-
         increase
 
             ?
 
         old.stats.comments + 1
-
 
             :
 
@@ -807,33 +1006,35 @@ class MomentsNotifier
 
         old.stats.comments - 1
 
-
             :
 
         0,
-
 
       ),
 
     );
 
 
+    try {
 
+      await _repository.updateMoment(
+        updated,
+      );
 
+      _replace(
+        updated,
+      );
 
-    _replace(
+    }
+    catch(error,stack){
 
-      updated,
+      state =
+          AsyncError(
+            error,
+            stack,
+          );
 
-    );
-
-
-
-    await _repository.updateMoment(
-
-      updated,
-
-    );
+    }
 
 
   }
@@ -858,42 +1059,35 @@ class MomentsNotifier
       ){
 
 
-
     final current =
 
         state.value ?? [];
 
 
 
+    state = AsyncData(
 
+      current
 
-    state =
+          .map(
 
-        AsyncData(
+            (item)=>
 
-          current
+        item.id == updated.id
 
-              .map(
+            ?
 
-                  (item)=>
+        updated
 
+            :
 
-              item.id == updated.id
+        item,
 
-                  ?
+      )
 
-              updated
+          .toList(),
 
-                  :
-
-              item
-
-          )
-
-              .toList(),
-
-
-        );
+    );
 
 
   }

@@ -5,11 +5,21 @@ import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 abstract class MomentRepository {
 
 
+
   // ==================================================
-  // READ ALL
+  // READ
   // ==================================================
 
+
   Future<List<Moment>> getMoments();
+
+
+
+  Future<Moment?> getMoment(
+
+      String id,
+
+      );
 
 
 
@@ -22,6 +32,7 @@ abstract class MomentRepository {
   // Repository sends them through MediaPipeline.
   //
 
+
   Future<Moment> createMoment({
 
     required Moment moment,
@@ -33,22 +44,11 @@ abstract class MomentRepository {
 
 
 
-  // ==================================================
-  // READ SINGLE
-  // ==================================================
-
-  Future<Moment?> getMoment(
-
-      String id,
-
-      );
-
-
-
 
   // ==================================================
   // UPDATE
   // ==================================================
+
 
   Future<Moment> updateMoment(
 
@@ -59,9 +59,38 @@ abstract class MomentRepository {
 
 
 
+
+  // ==================================================
+  // MEDIA
+  // ==================================================
+
+
+  Future<Moment> addMedia({
+
+    required Moment moment,
+
+    required List<String> mediaPaths,
+
+  });
+
+
+
+  Future<Moment> removeMedia({
+
+    required Moment moment,
+
+    required String mediaId,
+
+  });
+
+
+
+
+
   // ==================================================
   // DELETE
   // ==================================================
+
 
   Future<void> deleteMoment(
 
@@ -72,9 +101,11 @@ abstract class MomentRepository {
 
 
 
+
   // ==================================================
   // LIKE
   // ==================================================
+
 
   Future<Moment> toggleLike(
 
@@ -85,9 +116,11 @@ abstract class MomentRepository {
 
 
 
+
   // ==================================================
-  // REACTION
+  // REACTIONS
   // ==================================================
+
 
   Future<Moment> addReaction({
 
@@ -101,10 +134,55 @@ abstract class MomentRepository {
 
 
 
+  Future<Moment> removeReaction({
+
+    required Moment moment,
+
+    required String userId,
+
+    required String emoji,
+
+  });
+
+
+
+
+
+  // ==================================================
+  // ENGAGEMENT
+  // ==================================================
+
+
+  Future<Moment> incrementViews(
+
+      String id,
+
+      );
+
+
+
+  Future<Moment> toggleSave(
+
+      Moment moment,
+
+      );
+
+
+
+  Future<Moment> incrementShares(
+
+      String id,
+
+      );
+
+
+
+
 
   // ==================================================
   // SEARCH
   // ==================================================
+
 
   Future<List<Moment>> searchMoments(
 
@@ -115,9 +193,11 @@ abstract class MomentRepository {
 
 
 
+
   // ==================================================
-  // USER MOMENTS
+  // USER
   // ==================================================
+
 
   Future<List<Moment>> getUserMoments(
 
@@ -128,9 +208,31 @@ abstract class MomentRepository {
 
 
 
+
   // ==================================================
-  // CLEAR
+  // PAGINATION READY
   // ==================================================
+  //
+  // For future API/Firebase migration.
+  //
+
+
+  Future<List<Moment>> getMomentsPage({
+
+    required int limit,
+
+    String? cursor,
+
+  });
+
+
+
+
+
+  // ==================================================
+  // CLEAR LOCAL DATA
+  // ==================================================
+
 
   Future<void> clearAll();
 

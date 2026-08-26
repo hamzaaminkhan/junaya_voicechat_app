@@ -69,8 +69,10 @@ class MediaPipeline {
 
 
     for(int index = 0;
+
     index < files.length;
-    index++){
+
+    index++) {
 
 
 
@@ -82,14 +84,7 @@ class MediaPipeline {
 
 
 
-
-
-        // ==========================
-        // VALIDATE
-        // ==========================
-
-
-        if(original.isEmpty){
+        if(original.trim().isEmpty){
 
           continue;
 
@@ -101,39 +96,12 @@ class MediaPipeline {
 
 
 
-        // ==========================
-        // DUPLICATE CHECK
-        // ==========================
-
-
-        final exists =
-
-        await duplicateChecker.exists(
-
-          original,
-
-        );
-
-
-
-        if(exists){
-
-          continue;
-
-        }
-
-
-
-
-
-
-
-        // ==========================
+        // =====================================
         // COMPRESS
-        // ==========================
+        // =====================================
 
 
-        final processedPath =
+        final compressed =
 
         await compressor.compress(
 
@@ -148,9 +116,37 @@ class MediaPipeline {
 
 
 
-        // ==========================
-        // SAVE LOCAL FILE
-        // ==========================
+        // =====================================
+        // DUPLICATE CHECK
+        // =====================================
+
+
+        final duplicate =
+
+        await duplicateChecker.exists(
+
+          compressed,
+
+        );
+
+
+
+        if(duplicate){
+
+          continue;
+
+        }
+
+
+
+
+
+
+
+
+        // =====================================
+        // SAVE LOCAL
+        // =====================================
 
 
         final saved =
@@ -166,14 +162,12 @@ class MediaPipeline {
 
           [
 
-            processedPath
+            compressed
 
           ],
 
 
         );
-
-
 
 
 
@@ -185,11 +179,7 @@ class MediaPipeline {
 
 
 
-
-
-        final media =
-
-            saved.first;
+        var media = saved.first;
 
 
 
@@ -197,61 +187,48 @@ class MediaPipeline {
 
 
 
-
-        // ==========================
+        // =====================================
         // THUMBNAIL
-        // ==========================
+        // =====================================
 
 
-        final thumb =
-
-        await thumbnail.generate(
-
-          media.url,
-
-        );
+        String? thumbnailPath;
 
 
+        try {
 
+          thumbnailPath =
+          await thumbnail.generate(
+            media.url,
+          );
 
+        }
+        catch(_){
 
+          thumbnailPath = null;
 
-
-
-        final updated =
-
-        media.copyWith(
-
-          thumbnail:
-
-          thumb,
-
-        );
+        }
 
 
 
 
-
-
-
-        // ==========================
-        // UPLOAD QUEUE
-        // ==========================
+        // =====================================
+        // QUEUE UPLOAD
+        // =====================================
 
 
         await uploadQueue.add(
-
 
           UploadTask(
 
             id:
 
-            updated.id,
+            media.id,
 
 
             filePath:
 
-            updated.url,
+            media.url,
 
 
             momentId:
@@ -259,8 +236,17 @@ class MediaPipeline {
             momentId,
 
 
-          ),
+            createdAt:
 
+            DateTime.now(),
+
+
+            updatedAt:
+
+            DateTime.now(),
+
+
+          ),
 
         );
 
@@ -273,22 +259,19 @@ class MediaPipeline {
 
         result.add(
 
-          updated,
+          media,
 
         );
-
 
 
 
       }
 
 
-      catch(error){
+      catch(error, stack){
 
 
-        // failed media should not
-        // break whole moment
-
+        // log later
 
         continue;
 
@@ -306,6 +289,7 @@ class MediaPipeline {
 
 
   }
+
 
 
 }

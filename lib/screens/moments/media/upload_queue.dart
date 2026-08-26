@@ -25,6 +25,8 @@ enum UploadStatus {
 
 
 
+
+
 // =====================================================
 // UPLOAD TASK
 // =====================================================
@@ -48,6 +50,18 @@ class UploadTask {
   final int retryCount;
 
 
+  final double progress;
+
+
+  final bool processing;
+
+
+  final DateTime createdAt;
+
+
+  final DateTime updatedAt;
+
+
 
 
 
@@ -65,7 +79,60 @@ class UploadTask {
     this.retryCount =
     0,
 
+    this.progress =
+    0,
+
+    this.processing =
+    false,
+
+    required this.createdAt,
+
+    required this.updatedAt,
+
   });
+
+
+
+
+
+
+
+
+
+  factory UploadTask.create({
+
+    required String id,
+
+    required String filePath,
+
+    required String momentId,
+
+  }) {
+
+
+    final now =
+    DateTime.now();
+
+
+
+    return UploadTask(
+
+      id: id,
+
+      filePath: filePath,
+
+      momentId: momentId,
+
+      createdAt: now,
+
+      updatedAt: now,
+
+    );
+
+
+  }
+
+
 
 
 
@@ -79,22 +146,20 @@ class UploadTask {
 
     int? retryCount,
 
+    double? progress,
+
+    bool? processing,
+
   }) {
 
 
     return UploadTask(
 
-      id:
-      id,
+      id: id,
 
+      filePath: filePath,
 
-      filePath:
-      filePath,
-
-
-      momentId:
-      momentId,
-
+      momentId: momentId,
 
       status:
 
@@ -108,10 +173,176 @@ class UploadTask {
           this.retryCount,
 
 
+      progress:
+
+      progress ??
+          this.progress,
+
+
+      processing:
+
+      processing ??
+          this.processing,
+
+
+      createdAt:
+
+      createdAt,
+
+
+      updatedAt:
+
+      DateTime.now(),
+
     );
 
 
   }
+
+
+
+
+
+
+
+
+
+  Map<String,dynamic> toJson(){
+
+
+    return {
+
+
+      "id": id,
+
+
+      "filePath": filePath,
+
+
+      "momentId": momentId,
+
+
+      "status": status.name,
+
+
+      "retryCount": retryCount,
+
+
+      "progress": progress,
+
+
+      "processing": processing,
+
+
+      "createdAt":
+      createdAt.toIso8601String(),
+
+
+      "updatedAt":
+      updatedAt.toIso8601String(),
+
+
+    };
+
+
+  }
+
+
+
+
+
+
+
+
+
+  factory UploadTask.fromJson(
+
+      Map<String,dynamic> json,
+
+      ){
+
+
+    return UploadTask(
+
+      id:
+
+      json['id'] ?? '',
+
+
+      filePath:
+
+      json['filePath'] ?? '',
+
+
+      momentId:
+
+      json['momentId'] ?? '',
+
+
+      status:
+
+      UploadStatus.values.firstWhere(
+
+            (item)=>
+
+        item.name == json['status'],
+
+        orElse:
+
+            ()=> UploadStatus.pending,
+
+      ),
+
+
+
+      retryCount:
+
+      json['retryCount'] ?? 0,
+
+
+      progress:
+
+      (json['progress'] ?? 0)
+
+          .toDouble(),
+
+
+      processing:
+
+      json['processing'] ?? false,
+
+
+      createdAt:
+
+      DateTime.tryParse(
+
+        json['createdAt'] ?? '',
+
+      )
+
+          ??
+
+          DateTime.now(),
+
+
+
+      updatedAt:
+
+      DateTime.tryParse(
+
+        json['updatedAt'] ?? '',
+
+      )
+
+          ??
+
+          DateTime.now(),
+
+    );
+
+
+  }
+
 
 
 }
@@ -132,7 +363,11 @@ class UploadTask {
 class UploadQueue {
 
 
+
   final List<UploadTask> _queue = [];
+
+
+
 
 
 
@@ -171,11 +406,361 @@ class UploadQueue {
 
 
 
-    _queue.add(
+    _queue.add(task);
 
-      task,
+
+    await _save();
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // =====================================================
+  // GET NEXT TASK
+  // =====================================================
+
+
+  Future<UploadTask?> next() async {
+
+
+    try {
+
+
+      return _queue.firstWhere(
+
+            (task)=>
+
+
+        (
+
+            task.status == UploadStatus.pending
+
+                ||
+
+                task.status == UploadStatus.failed
+
+        )
+
+            &&
+
+            !task.processing,
+
+
+      );
+
+
+    }
+
+
+    catch(_){
+
+
+      return null;
+
+
+    }
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // =====================================================
+  // START
+  // =====================================================
+
+
+  Future<void> start(
+
+      String id,
+
+      ) async {
+
+
+    await update(
+
+      id,
+
+          (task)=>
+
+          task.copyWith(
+
+            status:
+
+            UploadStatus.uploading,
+
+
+            processing:
+
+            true,
+
+          ),
 
     );
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // =====================================================
+  // COMPLETE
+  // =====================================================
+
+
+  Future<void> complete(
+
+      String id,
+
+      ) async {
+
+
+    await update(
+
+      id,
+
+          (task)=>
+
+          task.copyWith(
+
+            status:
+
+            UploadStatus.completed,
+
+
+            progress:
+
+            1,
+
+
+            processing:
+
+            false,
+
+          ),
+
+    );
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // =====================================================
+  // FAIL
+  // =====================================================
+
+
+  Future<void> fail(
+
+      String id,
+
+      ) async {
+
+
+    await update(
+
+      id,
+
+          (task)=>
+
+          task.copyWith(
+
+            status:
+
+            UploadStatus.failed,
+
+
+            processing:
+
+            false,
+
+          ),
+
+    );
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // =====================================================
+  // PROGRESS
+  // =====================================================
+
+
+  Future<void> updateProgress({
+
+    required String id,
+
+    required double progress,
+
+  }) async {
+
+
+    await update(
+
+      id,
+
+          (task)=>
+
+          task.copyWith(
+
+            progress:
+
+            progress.clamp(
+
+              0,
+
+              1,
+
+            ),
+
+          ),
+
+    );
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // =====================================================
+  // RETRY
+  // =====================================================
+
+
+  Future<void> retry(
+
+      String id,
+
+      ) async {
+
+
+    await update(
+
+      id,
+
+          (task)=>
+
+          task.copyWith(
+
+            status:
+
+            UploadStatus.pending,
+
+
+            retryCount:
+
+            task.retryCount + 1,
+
+
+            progress:
+
+            0,
+
+
+            processing:
+
+            false,
+
+          ),
+
+    );
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // =====================================================
+  // UPDATE
+  // =====================================================
+
+
+  Future<void> update(
+
+      String id,
+
+      UploadTask Function(
+          UploadTask task
+          )
+
+      action,
+
+      ) async {
+
+
+    final index =
+
+    _queue.indexWhere(
+
+          (task)=>
+
+      task.id == id,
+
+    );
+
+
+
+    if(index == -1){
+
+      return;
+
+    }
+
+
+
+    _queue[index] =
+
+        action(
+
+          _queue[index],
+
+        );
 
 
 
@@ -213,7 +798,6 @@ class UploadQueue {
     );
 
 
-
     await _save();
 
 
@@ -228,122 +812,43 @@ class UploadQueue {
 
 
   // =====================================================
-  // UPDATE STATUS
+  // RECOVER STUCK UPLOADS
   // =====================================================
 
 
-  Future<void> updateStatus({
-
-    required String id,
-
-    required UploadStatus status,
-
-  }) async {
+  Future<void> recover() async {
 
 
+    for(int i = 0; i < _queue.length; i++){
 
-    final index =
 
-    _queue.indexWhere(
-
-          (task)=>
-
-      task.id == id,
-
-    );
+      final task = _queue[i];
 
 
 
-    if(index == -1){
+      if(task.status == UploadStatus.uploading){
 
-      return;
+
+        _queue[i] =
+
+            task.copyWith(
+
+              status:
+
+              UploadStatus.pending,
+
+
+              processing:
+
+              false,
+
+            );
+
+
+      }
+
 
     }
-
-
-
-
-
-    _queue[index] =
-
-        _queue[index].copyWith(
-
-          status:
-
-          status,
-
-        );
-
-
-
-    await _save();
-
-
-  }
-
-
-
-
-
-
-
-
-
-  // =====================================================
-  // RETRY
-  // =====================================================
-
-
-  Future<void> retry(
-
-      String id,
-
-      ) async {
-
-
-
-    final index =
-
-    _queue.indexWhere(
-
-          (task)=>
-
-      task.id == id,
-
-    );
-
-
-
-    if(index == -1){
-
-      return;
-
-    }
-
-
-
-
-
-    final task =
-    _queue[index];
-
-
-
-    _queue[index] =
-
-        task.copyWith(
-
-          status:
-
-          UploadStatus.pending,
-
-
-          retryCount:
-
-          task.retryCount + 1,
-
-
-        );
 
 
 
@@ -365,17 +870,13 @@ class UploadQueue {
   // =====================================================
 
 
-  UnmodifiableListView<UploadTask> get pending {
+  UnmodifiableListView<UploadTask> get tasks =>
 
+      UnmodifiableListView(
 
-    return UnmodifiableListView(
+        _queue,
 
-      _queue,
-
-    );
-
-
-  }
+      );
 
 
 
@@ -385,24 +886,39 @@ class UploadQueue {
 
 
 
-  List<UploadTask> get failed {
+  List<UploadTask> get pending =>
 
 
-    return _queue
+      _queue.where(
 
-        .where(
+            (task)=>
 
-          (task)=>
+        task.status == UploadStatus.pending,
 
-      task.status ==
-          UploadStatus.failed,
+      )
 
-    )
-
-        .toList();
+          .toList();
 
 
-  }
+
+
+
+
+
+
+
+  List<UploadTask> get failed =>
+
+
+      _queue.where(
+
+            (task)=>
+
+        task.status == UploadStatus.failed,
+
+      )
+
+          .toList();
 
 
 
@@ -437,16 +953,18 @@ class UploadQueue {
 
 
   // =====================================================
-  // PERSISTENCE PLACEHOLDER
+  // PERSISTENCE
   // =====================================================
 
 
   Future<void> _save() async {
 
 
-    // Next step:
-    // Store queue in Hive/SQLite/SharedPreferences
-
+    // TODO:
+    // Hive / SQLite / SharedPreferences
+    //
+    // Save:
+    // _queue.map((e)=>e.toJson())
 
   }
 

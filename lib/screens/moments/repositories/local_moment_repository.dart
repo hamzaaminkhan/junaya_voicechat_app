@@ -9,7 +9,6 @@ import 'package:junaya_voicechat_app/screens/moments/media/media_pipeline.dart';
 
 
 class LocalMomentRepository
-
     implements MomentRepository {
 
 
@@ -41,48 +40,31 @@ class LocalMomentRepository
 
 
 
-
-  // =====================================================
-  // GET ALL
-  // =====================================================
+  // ==============================
+  // READ
+  // ==============================
 
 
   @override
   Future<List<Moment>> getMoments() async {
 
-
     return await storage.loadMoments();
-
 
   }
 
 
 
 
-
-
-
-
-
-  // =====================================================
-  // GET SINGLE
-  // =====================================================
 
 
   @override
   Future<Moment?> getMoment(
-
       String id,
-
       ) async {
 
-
     return await storage.getMoment(
-
       id,
-
     );
-
 
   }
 
@@ -94,9 +76,9 @@ class LocalMomentRepository
 
 
 
-  // =====================================================
+  // ==============================
   // CREATE
-  // =====================================================
+  // ==============================
 
 
   @override
@@ -110,22 +92,15 @@ class LocalMomentRepository
 
 
 
-    final processedMedia =
+    final media =
 
     await pipeline.process(
 
-      momentId:
+      momentId: moment.id,
 
-      moment.id,
-
-
-      files:
-
-      mediaPaths,
+      files: mediaPaths,
 
     );
-
-
 
 
 
@@ -133,20 +108,14 @@ class LocalMomentRepository
 
     moment.copyWith(
 
-      media:
-
-      processedMedia,
+      media: media,
 
     );
 
 
 
-
-
     return await storage.createMoment(
-
       updated,
-
     );
 
 
@@ -160,26 +129,20 @@ class LocalMomentRepository
 
 
 
-  // =====================================================
+  // ==============================
   // UPDATE
-  // =====================================================
+  // ==============================
 
 
   @override
   Future<Moment> updateMoment(
-
       Moment moment,
-
       ) async {
 
 
-
     await storage.updateMoment(
-
       moment,
-
     );
-
 
 
     return moment;
@@ -195,93 +158,30 @@ class LocalMomentRepository
 
 
 
-  // =====================================================
-  // DELETE
-  // =====================================================
+  // ==============================
+  // MEDIA
+  // ==============================
 
 
   @override
-  Future<void> deleteMoment(
+  Future<Moment> addMedia({
 
-      String id,
+    required Moment moment,
 
-      ) async {
+    required List<String> mediaPaths,
 
-
-
-    final existing =
-
-    await storage.getMoment(
-
-      id,
-
-    );
+  }) async {
 
 
+    final media =
 
+    await pipeline.process(
 
+      momentId: moment.id,
 
-    // remove database record first
-
-    await storage.deleteMoment(
-
-      id,
+      files: mediaPaths,
 
     );
-
-
-
-
-
-
-    // remove physical files
-
-    if(existing != null &&
-
-        existing.media.isNotEmpty){
-
-
-
-      await mediaStorage.deleteMedia(
-
-        existing.media,
-
-      );
-
-
-    }
-
-
-
-  }
-
-
-
-
-
-
-
-
-
-  // =====================================================
-  // LIKE
-  // =====================================================
-
-
-  @override
-  Future<Moment> toggleLike(
-
-      Moment moment,
-
-      ) async {
-
-
-
-    final liked =
-
-    !moment.isLiked;
-
-
 
 
 
@@ -289,56 +189,22 @@ class LocalMomentRepository
 
     moment.copyWith(
 
+      media:
 
-      isLiked:
+      [
 
-      liked,
+        ...moment.media,
 
+        ...media,
 
-
-      stats:
-
-      moment.stats.copyWith(
-
-
-        likes:
-
-
-        liked
-
-            ?
-
-        moment.stats.likes + 1
-
-
-            :
-
-        moment.stats.likes > 0
-
-            ?
-
-        moment.stats.likes - 1
-
-
-            :
-
-        0,
-
-
-      ),
-
+      ],
 
     );
 
 
 
-
-
-
     await storage.updateMoment(
-
       updated,
-
     );
 
 
@@ -356,9 +222,208 @@ class LocalMomentRepository
 
 
 
-  // =====================================================
-  // REACTION
-  // =====================================================
+  @override
+  Future<Moment> removeMedia({
+
+    required Moment moment,
+
+    required String mediaId,
+
+  }) async {
+
+
+
+    final removed =
+
+        moment.media.where(
+
+              (item) =>
+          item.id == mediaId,
+
+        ).firstOrNull;
+
+
+
+
+    final updated =
+
+    moment.copyWith(
+
+      media:
+
+      moment.media
+
+          .where(
+
+            (item)=>
+
+        item.id != mediaId,
+
+      )
+
+          .toList(),
+
+    );
+
+
+
+    await storage.updateMoment(
+      updated,
+    );
+
+
+
+
+
+    if(removed != null){
+
+      await mediaStorage.deleteMedia(
+        [
+          removed,
+        ],
+      );
+
+    }
+
+
+
+
+    return updated;
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // ==============================
+  // DELETE
+  // ==============================
+
+
+  @override
+  Future<void> deleteMoment(
+      String id,
+      ) async {
+
+
+    final existing =
+
+    await storage.getMoment(
+      id,
+    );
+
+
+
+    await storage.deleteMoment(
+      id,
+    );
+
+
+
+    if(existing != null &&
+        existing.media.isNotEmpty){
+
+
+      await mediaStorage.deleteMedia(
+        existing.media,
+      );
+
+
+    }
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // ==============================
+  // LIKE
+  // ==============================
+
+
+  @override
+  Future<Moment> toggleLike(
+      Moment moment,
+      ) async {
+
+
+    final liked =
+
+    !moment.isLiked;
+
+
+
+    final updated =
+
+    moment.copyWith(
+
+      isLiked: liked,
+
+
+      stats:
+
+      moment.stats.copyWith(
+
+        likes:
+
+        liked
+
+            ?
+
+        moment.stats.likes + 1
+
+            :
+
+        moment.stats.likes > 0
+
+            ?
+
+        moment.stats.likes - 1
+
+            :
+
+        0,
+
+      ),
+
+    );
+
+
+
+    await storage.updateMoment(
+      updated,
+    );
+
+
+
+    return updated;
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // ==============================
+  // REACTIONS
+  // ==============================
 
 
   @override
@@ -374,23 +439,11 @@ class LocalMomentRepository
 
 
 
-    final reactions =
-
-    List<MomentReaction>.from(
-
-      moment.reactions,
-
-    );
-
-
-
-
-
     final exists =
 
-    reactions.any(
+    moment.reactions.any(
 
-          (item) =>
+          (item)=>
 
       item.userId == userId &&
 
@@ -400,46 +453,40 @@ class LocalMomentRepository
 
 
 
-
-
     if(exists){
 
+      return await removeReaction(
 
-      reactions.removeWhere(
+        moment: moment,
 
-            (item) =>
+        userId: userId,
 
-        item.userId == userId &&
-
-            item.emoji == emoji,
-
-      );
-
-
-    }
-
-    else{
-
-
-      reactions.add(
-
-        MomentReaction(
-
-          userId:
-
-          userId,
-
-
-          emoji:
-
-          emoji,
-
-        ),
+        emoji: emoji,
 
       );
 
-
     }
+
+
+
+
+    final reactions =
+
+    [
+
+      ...moment.reactions,
+
+      MomentReaction(
+
+        userId: userId,
+
+        emoji: emoji,
+
+        createdAt: DateTime.now(),
+
+      ),
+
+    ];
 
 
 
@@ -449,20 +496,14 @@ class LocalMomentRepository
 
     moment.copyWith(
 
-      reactions:
-
-      reactions,
+      reactions: reactions,
 
     );
 
 
 
-
-
     await storage.updateMoment(
-
       updated,
-
     );
 
 
@@ -480,17 +521,277 @@ class LocalMomentRepository
 
 
 
-  // =====================================================
+  @override
+  Future<Moment> removeReaction({
+
+    required Moment moment,
+
+    required String userId,
+
+    required String emoji,
+
+  }) async {
+
+
+
+    final updated =
+
+    moment.copyWith(
+
+      reactions:
+
+      moment.reactions
+
+          .where(
+
+              (item)=>
+
+          !(
+
+              item.userId == userId &&
+
+                  item.emoji == emoji
+
+          )
+
+      )
+
+          .toList(),
+
+    );
+
+
+
+    await storage.updateMoment(
+      updated,
+    );
+
+
+
+    return updated;
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // ==============================
+  // ENGAGEMENT
+  // ==============================
+
+
+  @override
+  Future<Moment> incrementViews(
+      String id,
+      ) async {
+
+
+    final moment =
+
+    await storage.getMoment(
+      id,
+    );
+
+
+
+    if(moment == null){
+
+      throw Exception(
+        "Moment not found",
+      );
+
+    }
+
+
+
+    final updated =
+
+    moment.copyWith(
+
+      stats:
+
+      moment.stats.copyWith(
+
+        views:
+
+        moment.stats.views + 1,
+
+      ),
+
+    );
+
+
+
+    await storage.updateMoment(
+      updated,
+    );
+
+
+    return updated;
+
+
+  }
+
+
+
+
+
+
+
+
+
+  @override
+  Future<Moment> incrementShares(
+      String id,
+      ) async {
+
+
+    final moment =
+
+    await storage.getMoment(
+      id,
+    );
+
+
+
+    if(moment == null){
+
+      throw Exception(
+        "Moment not found",
+      );
+
+    }
+
+
+
+    final updated =
+
+    moment.copyWith(
+
+      stats:
+
+      moment.stats.copyWith(
+
+        shares:
+
+        moment.stats.shares + 1,
+
+      ),
+
+    );
+
+
+
+    await storage.updateMoment(
+      updated,
+    );
+
+
+    return updated;
+
+
+  }
+
+
+
+
+
+
+
+
+
+  @override
+  Future<Moment> toggleSave(
+      Moment moment,
+      ) async {
+
+
+    throw UnimplementedError(
+      "Add isSaved field to Moment model first",
+    );
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // ==============================
   // SEARCH
-  // =====================================================
+  // ==============================
 
 
   @override
   Future<List<Moment>> searchMoments(
-
       String query,
-
       ) async {
+
+
+    return await storage.search(
+      query,
+    );
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // ==============================
+  // USER
+  // ==============================
+
+
+  @override
+  Future<List<Moment>> getUserMoments(
+      String userId,
+      ) async {
+
+
+    return await storage.getUserMoments(
+      userId,
+    );
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // ==============================
+  // PAGINATION
+  // ==============================
+
+
+  @override
+  Future<List<Moment>> getMomentsPage({
+
+    required int limit,
+
+    String? cursor,
+
+  }) async {
 
 
 
@@ -500,72 +801,44 @@ class LocalMomentRepository
 
 
 
-
-
-    final value =
-
-    query.trim().toLowerCase();
+    var start = 0;
 
 
 
+    if(cursor != null){
 
 
-    if(value.isEmpty){
+      final index =
 
-      return moments;
+      moments.indexWhere(
+
+            (item)=>
+
+        item.id == cursor,
+
+      );
+
+
+
+      if(index != -1){
+
+        start = index + 1;
+
+      }
+
 
     }
 
 
 
 
+    return moments
 
-    return moments.where(
+        .skip(start)
 
-          (moment){
+        .take(limit)
 
-
-
-        final caption =
-
-        moment.caption.toLowerCase();
-
-
-
-        final username =
-
-        moment.author.username.toLowerCase();
-
-
-
-        final tags =
-
-        moment.hashtags
-
-            .join(' ')
-
-            .toLowerCase();
-
-
-
-
-
-        return caption.contains(value)
-
-            ||
-
-            username.contains(value)
-
-            ||
-
-            tags.contains(value);
-
-
-
-      },
-
-    ).toList();
-
+        .toList();
 
 
   }
@@ -578,67 +851,22 @@ class LocalMomentRepository
 
 
 
-  // =====================================================
-  // USER MOMENTS
-  // =====================================================
-
-
-  @override
-  Future<List<Moment>> getUserMoments(
-
-      String userId,
-
-      ) async {
-
-
-
-    final moments =
-
-    await storage.loadMoments();
-
-
-
-
-
-    return moments.where(
-
-          (moment) =>
-
-      moment.author.id == userId,
-
-    ).toList();
-
-
-  }
-
-
-
-
-
-
-
-
-
-  // =====================================================
-  // CLEAR ALL
-  // =====================================================
+  // ==============================
+  // CLEAR
+  // ==============================
 
 
   @override
   Future<void> clearAll() async {
 
 
-
     await storage.clear();
-
 
 
     await mediaStorage.clear();
 
 
-
   }
-
 
 
 }

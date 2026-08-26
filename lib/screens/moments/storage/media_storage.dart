@@ -149,8 +149,6 @@ class MediaStorage {
   // ==================================================
   // SAVE SINGLE FILE
   // ==================================================
-
-
   Future<MomentMedia> saveFile({
 
     required String momentId,
@@ -162,9 +160,7 @@ class MediaStorage {
   }) async {
 
 
-
-    final source =
-    File(path);
+    final source = File(path);
 
 
 
@@ -179,10 +175,7 @@ class MediaStorage {
 
 
 
-
-
-    final size =
-    await source.length();
+    final size = await source.length();
 
 
 
@@ -198,31 +191,18 @@ class MediaStorage {
 
 
 
-
-    final extension =
-    _extension(
+    final extension = _extension(
       source.path,
     );
 
 
 
-    if(extension == null){
+    if(extension == null ||
+        !_supported(extension)){
+
 
       throw Exception(
-        "Unsupported media type",
-      );
-
-    }
-
-
-
-
-
-
-    if(!_supported(extension)){
-
-      throw Exception(
-        "Unsupported extension",
+        "Unsupported media",
       );
 
     }
@@ -233,13 +213,17 @@ class MediaStorage {
 
 
     final detectedMime =
+
     lookupMimeType(
       source.path,
     );
 
 
 
+
+
     final folder =
+
     await _directory();
 
 
@@ -247,10 +231,15 @@ class MediaStorage {
 
 
 
+    final id = _generateId();
+
+
+
+
 
     final filename =
 
-        '${momentId}_${_generateId()}_$order$extension';
+        '${momentId}_${id}_$order$extension';
 
 
 
@@ -270,10 +259,13 @@ class MediaStorage {
 
 
 
+
     final copied =
 
     await source.copy(
+
       destination,
+
     );
 
 
@@ -283,30 +275,25 @@ class MediaStorage {
 
     return MomentMedia(
 
-      id:
-      _generateId(),
+      id:id,
 
 
-
-      url:
-      copied.path,
+      url:copied.path,
 
 
-
-      type:
-      _mediaType(
+      type:_mediaType(
         extension,
       ),
 
 
 
-      order:
-      order,
+      order:order,
 
 
 
       size:
-      size,
+
+      await copied.length(),
 
 
 
@@ -323,12 +310,6 @@ class MediaStorage {
 
 
   }
-
-
-
-
-
-
 
 
 

@@ -10,12 +10,18 @@ class MomentStorage {
 
 
   static const String _storageKey =
-      'junaya_moments_v5';
+      'junaya_moments_v6';
+
+
+  static const String _backupKey =
+      'junaya_moments_v6_backup';
+
 
 
 
   final SharedPreferencesAsync _preferences =
   SharedPreferencesAsync();
+
 
 
 
@@ -27,9 +33,12 @@ class MomentStorage {
 
 
 
-  // ==================================================
+
+
+
+  // =====================================================
   // CREATE
-  // ==================================================
+  // =====================================================
 
 
   Future<Moment> createMoment(
@@ -39,37 +48,41 @@ class MomentStorage {
       ) async {
 
 
-    final moments =
-    await loadMoments();
+    return _locked(() async {
 
 
 
-    final updatedList = [
-
-
-      moment,
-
-
-      ...moments.where(
-
-            (item) =>
-
-        item.id != moment.id,
-
-      ),
-
-
-    ];
+      final moments =
+      await _loadUnsafe();
 
 
 
-    await _write(
-      updatedList,
-    );
+      final updated = [
+
+        moment,
+
+        ...moments.where(
+
+              (item)=>
+
+          item.id != moment.id,
+
+        ),
+
+      ];
 
 
 
-    return moment;
+      await _writeUnsafe(
+        updated,
+      );
+
+
+
+      return moment;
+
+
+    });
 
 
   }
@@ -82,37 +95,53 @@ class MomentStorage {
 
 
 
-  // ==================================================
+  // =====================================================
   // READ ALL
-  // ==================================================
+  // =====================================================
 
 
   Future<List<Moment>> loadMoments() async {
 
+    return await _loadUnsafe();
 
-
-    final raw =
-
-    await _preferences.getString(
-      _storageKey,
-    );
-
-
-
-    if(raw == null || raw.isEmpty){
-
-      return [];
-
-    }
+  }
 
 
 
 
 
-    try{
+
+
+
+
+  Future<List<Moment>> _loadUnsafe() async {
+
+
+    try {
+
+
+
+      final raw =
+
+      await _preferences.getString(
+        _storageKey,
+      );
+
+
+
+      if(raw == null ||
+          raw.isEmpty){
+
+        return [];
+
+      }
+
+
+
 
 
       final decoded =
+
       jsonDecode(raw);
 
 
@@ -127,44 +156,251 @@ class MomentStorage {
 
 
 
+      return _decodeList(
+        decoded,
+      );
+
+
+
+    }
+
+
+    catch(_){
+
+
+
+      return await _restoreBackup();
+
+
+    }
+
+
+
+  }
+
+
+
+
+
+
+
+
+
+  List<Moment> _decodeList(
+
+      List data,
+
+      ){
+
+
+    final moments =
+
+    data
+
+        .whereType<Map>()
+
+        .map(
+
+            (item)=>
+
+            Moment.fromJson(
+
+              Map<String,dynamic>.from(
+
+                item,
+
+              ),
+
+            )
+
+    )
+
+        .toList();
+
+
+
+    moments.sort(
+
+          (a,b)=>
+
+          b.createdAt.compareTo(
+
+            a.createdAt,
+
+          ),
+
+    );
+
+
+
+    return moments;
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // =====================================================
+  // SINGLE
+  // =====================================================
+
+
+  Future<Moment?> getMoment(
+
+      String id,
+
+      ) async {
+
+
+    final moments =
+
+    await loadMoments();
+
+
+
+    for(final moment in moments){
+
+
+      if(moment.id == id){
+
+        return moment;
+
+      }
+
+
+    }
+
+
+
+    return null;
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // =====================================================
+  // UPDATE
+  // =====================================================
+
+
+  Future<void> updateMoment(
+
+      Moment moment,
+
+      ) async {
+
+
+
+    await _locked(() async {
+
+
+
       final moments =
 
-      decoded
-
-          .whereType<Map>()
-
-          .map(
-
-              (item)=>
-
-              Moment.fromJson(
-
-                Map<String,dynamic>.from(
-
-                  item,
-
-                ),
-
-              )
-
-      )
-
-          .toList();
+      await _loadUnsafe();
 
 
 
+      final index =
+
+      moments.indexWhere(
+
+            (item)=>
+
+        item.id == moment.id,
+
+      );
 
 
 
-      moments.sort(
+      if(index == -1){
 
-            (a,b)=>
 
-            b.createdAt.compareTo(
+        throw Exception(
 
-              a.createdAt,
+          "Moment not found",
 
-            ),
+        );
+
+
+      }
+
+
+
+
+
+      moments[index] = moment;
+
+
+
+      await _writeUnsafe(
+
+        moments,
+
+      );
+
+
+
+    });
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // =====================================================
+  // DELETE
+  // =====================================================
+
+
+  Future<void> deleteMoment(
+
+      String id,
+
+      ) async {
+
+
+
+    await _locked(() async {
+
+
+
+      final moments =
+
+      await _loadUnsafe();
+
+
+
+      final before =
+
+          moments.length;
+
+
+
+      moments.removeWhere(
+
+            (item)=>
+
+        item.id == id,
 
       );
 
@@ -172,7 +408,429 @@ class MomentStorage {
 
 
 
+      if(before != moments.length){
+
+
+        await _writeUnsafe(
+
+          moments,
+
+        );
+
+
+      }
+
+
+
+    });
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // =====================================================
+  // PAGINATION
+  // =====================================================
+
+
+  Future<List<Moment>> loadPage({
+
+    required int limit,
+
+    String? cursor,
+
+  }) async {
+
+
+
+    final moments =
+
+    await loadMoments();
+
+
+
+    var start = 0;
+
+
+
+    if(cursor != null){
+
+
+
+      final index =
+
+      moments.indexWhere(
+
+            (item)=>
+
+        item.id == cursor,
+
+      );
+
+
+
+      if(index != -1){
+
+        start = index + 1;
+
+      }
+
+
+
+    }
+
+
+
+
+    return moments
+
+        .skip(start)
+
+        .take(limit)
+
+        .toList();
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // =====================================================
+  // SEARCH
+  // =====================================================
+
+
+  Future<List<Moment>> search(
+
+      String query,
+
+      ) async {
+
+
+
+    final moments =
+
+    await loadMoments();
+
+
+
+    final value =
+
+    query.trim().toLowerCase();
+
+
+
+    if(value.isEmpty){
+
       return moments;
+
+    }
+
+
+
+
+
+    return moments.where(
+
+          (moment){
+
+
+
+        final caption =
+
+        moment.caption
+
+            .toLowerCase();
+
+
+
+        final username =
+
+        moment.author.username
+
+            .toLowerCase();
+
+
+
+        final hashtags =
+
+        moment.hashtags
+
+            .join(' ')
+
+            .toLowerCase();
+
+
+
+
+
+        return caption.contains(value)
+
+            ||
+
+            username.contains(value)
+
+            ||
+
+            hashtags.contains(value);
+
+
+
+      },
+
+    ).toList();
+
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // =====================================================
+  // USER MOMENTS
+  // =====================================================
+
+
+  Future<List<Moment>> getUserMoments(
+
+      String userId,
+
+      ) async {
+
+
+
+    final moments =
+
+    await loadMoments();
+
+
+
+    return moments.where(
+
+          (moment)=>
+
+      moment.author.id == userId,
+
+    ).toList();
+
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // =====================================================
+  // CLEAR
+  // =====================================================
+
+
+  Future<void> clear() async {
+
+
+    await _preferences.remove(
+
+      _storageKey,
+
+    );
+
+
+
+    await _preferences.remove(
+
+      _backupKey,
+
+    );
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // =====================================================
+  // WRITE
+  // =====================================================
+
+
+  Future<void> _writeUnsafe(
+
+      List<Moment> moments,
+
+      ) async {
+
+
+
+    final encoded =
+
+    jsonEncode(
+
+      moments
+
+          .map(
+
+            (item)=>
+
+            item.toJson(),
+
+      )
+
+          .toList(),
+
+    );
+
+
+
+
+
+    final old =
+
+    await _preferences.getString(
+
+      _storageKey,
+
+    );
+
+
+
+    if(old != null){
+
+
+      await _preferences.setString(
+
+        _backupKey,
+
+        old,
+
+      );
+
+
+    }
+
+
+
+
+
+    await _preferences.setString(
+
+      _storageKey,
+
+      encoded,
+
+    );
+
+
+
+
+
+    // remove stale backup
+
+    await _preferences.remove(
+
+      _backupKey,
+
+    );
+
+
+  }
+
+
+
+
+
+
+
+
+
+  // =====================================================
+  // RESTORE
+  // =====================================================
+
+
+  Future<List<Moment>> _restoreBackup() async {
+
+
+
+    try {
+
+
+
+      final backup =
+
+      await _preferences.getString(
+
+        _backupKey,
+
+      );
+
+
+
+      if(backup == null){
+
+        return [];
+
+      }
+
+
+
+
+
+      final decoded =
+
+      jsonDecode(
+
+        backup,
+
+      );
+
+
+
+
+
+      if(decoded is! List){
+
+        return [];
+
+      }
+
+
+
+
+
+      return _decodeList(
+
+        decoded,
+
+      );
 
 
 
@@ -198,446 +856,9 @@ class MomentStorage {
 
 
 
-  // ==================================================
-  // READ SINGLE
-  // ==================================================
-
-
-  Future<Moment?> getMoment(
-
-      String id,
-
-      ) async {
-
-
-
-    final moments =
-    await loadMoments();
-
-
-
-    try{
-
-
-      return moments.firstWhere(
-
-            (item)=>
-
-        item.id == id,
-
-      );
-
-
-    }
-
-    catch(_){
-
-
-      return null;
-
-
-    }
-
-
-
-  }
-
-
-
-
-
-
-
-
-
-  // ==================================================
-  // UPDATE
-  // ==================================================
-
-
-  Future<void> updateMoment(
-
-      Moment updated,
-
-      ) async {
-
-
-
-    final moments =
-    await loadMoments();
-
-
-
-    final index =
-
-    moments.indexWhere(
-
-          (item)=>
-
-      item.id == updated.id,
-
-    );
-
-
-
-    if(index == -1){
-
-
-      throw Exception(
-
-        'Moment not found',
-
-      );
-
-
-    }
-
-
-
-
-
-    moments[index] =
-        updated;
-
-
-
-    await _write(
-
-      moments,
-
-    );
-
-
-  }
-
-
-
-
-
-
-
-
-
-  // ==================================================
-  // DELETE
-  // ==================================================
-
-
-  Future<void> deleteMoment(
-
-      String id,
-
-      ) async {
-
-
-
-    final moments =
-    await loadMoments();
-
-
-
-    moments.removeWhere(
-
-          (item)=>
-
-      item.id == id,
-
-    );
-
-
-
-    await _write(
-
-      moments,
-
-    );
-
-
-  }
-
-
-
-
-
-
-
-
-
-  // ==================================================
-  // LIKE UPDATE
-  // ==================================================
-
-
-  Future<void> updateLike({
-
-    required String id,
-
-    required bool liked,
-
-  }) async {
-
-
-
-    final moment =
-    await getMoment(id);
-
-
-
-    if(moment == null){
-
-      return;
-
-    }
-
-
-
-
-
-    final likes =
-        moment.stats.likes;
-
-
-
-    final updated =
-
-    moment.copyWith(
-
-      isLiked:
-      liked,
-
-
-      stats:
-
-      moment.stats.copyWith(
-
-        likes:
-
-        liked
-
-            ?
-
-        likes + 1
-
-
-            :
-
-        likes > 0
-
-            ?
-
-        likes - 1
-
-            :
-
-        0,
-
-      ),
-
-    );
-
-
-
-
-
-    await updateMoment(
-
-      updated,
-
-    );
-
-
-  }
-
-
-
-
-
-
-
-
-
-  // ==================================================
-  // SEARCH SUPPORT
-  // ==================================================
-
-
-  Future<List<Moment>> search(
-
-      String query,
-
-      ) async {
-
-
-
-    final moments =
-    await loadMoments();
-
-
-
-    final value =
-    query.toLowerCase();
-
-
-
-    return moments.where(
-
-          (moment){
-
-
-        return moment.caption
-
-            .toLowerCase()
-
-            .contains(value);
-
-
-      },
-
-    ).toList();
-
-
-  }
-
-
-
-
-
-
-
-
-
-  // ==================================================
-  // USER MOMENTS
-  // ==================================================
-
-
-  Future<List<Moment>> getUserMoments(
-
-      String userId,
-
-      ) async {
-
-
-
-    final moments =
-    await loadMoments();
-
-
-
-    return moments.where(
-
-          (moment)=>
-
-      moment.author.id == userId,
-
-    ).toList();
-
-
-  }
-
-
-
-
-
-
-
-
-
-  // ==================================================
-  // CLEAR DATABASE
-  // ==================================================
-
-
-  Future<void> clear() async {
-
-
-
-    await _preferences.remove(
-
-      _storageKey,
-
-    );
-
-
-  }
-
-
-
-
-
-
-
-
-
-  // ==================================================
-  // WRITE
-  // ==================================================
-
-
-  Future<void> _write(
-
-      List<Moment> moments,
-
-      ) async {
-
-
-
-    final json =
-
-    jsonEncode(
-
-      moments
-
-          .map(
-
-              (item)=>
-
-              item.toJson()
-
-      )
-
-          .toList(),
-
-    );
-
-
-
-
-
-    await _locked(
-
-          () async {
-
-
-
-        await _preferences.setString(
-
-          _storageKey,
-
-          json,
-
-        );
-
-
-
-      },
-
-    );
-
-
-  }
-
-
-
-
-
-
-
-
-
-  // ==================================================
+  // =====================================================
   // WRITE LOCK
-  // ==================================================
+  // =====================================================
 
 
   Future<T> _locked<T>(
