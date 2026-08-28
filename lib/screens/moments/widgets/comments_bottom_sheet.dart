@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -29,22 +31,19 @@ class CommentsBottomSheet extends ConsumerStatefulWidget {
 
 
 
-
-
-
 class _CommentsBottomSheetState
     extends ConsumerState<CommentsBottomSheet> {
 
 
-  final TextEditingController _controller =
+  final TextEditingController controller =
   TextEditingController();
 
 
 
   @override
-  void dispose() {
+  void dispose(){
 
-    _controller.dispose();
+    controller.dispose();
 
     super.dispose();
 
@@ -52,31 +51,272 @@ class _CommentsBottomSheetState
 
 
 
+  @override
+  Widget build(BuildContext context){
+
+    final state =
+    ref.watch(
+      commentsProvider(
+        widget.momentId,
+      ),
+    );
 
 
+    return Container(
+
+      height:
+      MediaQuery.of(context).size.height * .78,
+
+
+      decoration:
+
+      const BoxDecoration(
+
+        color:
+        Color(0xff101010),
+
+        borderRadius:
+
+        BorderRadius.vertical(
+
+          top:
+          Radius.circular(28),
+
+        ),
+
+      ),
+
+
+      child:
+
+      Column(
+
+        children:[
+
+
+          Container(
+
+            margin:
+            const EdgeInsets.only(
+              top:12,
+            ),
+
+
+            width:
+            45,
+
+
+            height:
+            5,
+
+
+            decoration:
+
+            BoxDecoration(
+
+              color:
+              Colors.white30,
+
+              borderRadius:
+              BorderRadius.circular(20),
+
+            ),
+
+          ),
+
+
+
+          const SizedBox(
+
+            height:16,
+
+          ),
+
+
+
+          const Text(
+
+            "Comments",
+
+            style:
+
+            TextStyle(
+
+              color:
+              Colors.white,
+
+              fontSize:
+              18,
+
+              fontWeight:
+              FontWeight.bold,
+
+            ),
+
+          ),
+
+
+
+          const SizedBox(
+
+            height:12,
+
+          ),
+
+
+
+          Expanded(
+
+            child:
+
+            state.when(
+
+              loading:(){
+
+                return const Center(
+
+                  child:
+                  CircularProgressIndicator(),
+
+                );
+
+              },
+
+
+              error:(error,stack){
+
+                return const Center(
+
+                  child:
+                  Text(
+
+                    "Failed loading comments",
+
+                    style:
+                    TextStyle(
+
+                      color:
+                      Colors.white54,
+
+                    ),
+
+                  ),
+
+                );
+
+              },
+
+
+              data:(comments){
+
+
+                if(comments.isEmpty){
+
+                  return const Center(
+
+                    child:
+
+                    Text(
+
+                      "No comments yet",
+
+                      style:
+
+                      TextStyle(
+
+                        color:
+                        Colors.white54,
+
+                      ),
+
+                    ),
+
+                  );
+
+                }
+
+
+                return ListView.builder(
+
+                  padding:
+
+                  const EdgeInsets.symmetric(
+
+                    horizontal:16,
+
+                  ),
+
+
+                  itemCount:
+
+                  comments.length,
+
+
+                  itemBuilder:(context,index){
+
+                    return _CommentTile(
+
+                      comment:
+                      comments[index],
+
+                    );
+
+                  },
+
+                );
+
+
+              },
+
+            ),
+
+          ),
+
+
+
+          _CommentInput(
+
+            controller:
+            controller,
+
+
+            onSend:(){
+
+              _sendComment();
+
+            },
+
+          ),
+
+        ],
+
+      ),
+
+    );
+
+  }
 
 
 
   Future<void> _sendComment() async {
 
     final text =
-    _controller.text.trim();
+    controller.text.trim();
 
 
-    if(text.isEmpty) {
+    if(text.isEmpty){
 
       return;
 
     }
 
 
-
     final comment =
     Comment(
 
       id:
-      DateTime
-          .now()
+
+      DateTime.now()
           .microsecondsSinceEpoch
           .toString(),
 
@@ -86,6 +326,7 @@ class _CommentsBottomSheetState
 
 
       author:
+
       const CommentUser(
 
         id:
@@ -95,7 +336,7 @@ class _CommentsBottomSheetState
         "junaya",
 
         displayName:
-        "Junaya User",
+        "Junaya",
 
         avatar:
         "",
@@ -121,127 +362,204 @@ class _CommentsBottomSheetState
     );
 
 
-
     await ref
         .read(
       commentsProvider(
         widget.momentId,
-      )
-          .notifier,
+      ).notifier,
     )
         .addComment(
-      comment:
-      comment,
+      comment: comment,
     );
 
 
-
-    _controller.clear();
+    controller.clear();
 
   }
 
+}
+
+class _CommentTile extends StatelessWidget {
+
+  final Comment comment;
 
 
+  const _CommentTile({
 
+    required this.comment,
 
-
+  });
 
 
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context){
 
+    return Padding(
 
-    final commentsState =
-    ref.watch(
-      commentsProvider(
-        widget.momentId,
+      padding:
+
+      const EdgeInsets.only(
+
+        bottom:18,
+
       ),
-    );
 
-
-
-    return SafeArea(
 
       child:
-      Container(
 
-        height:
-        MediaQuery.of(context)
-            .size
-            .height *
-            .75,
+      Row(
 
+        crossAxisAlignment:
 
-        padding:
-        const EdgeInsets.all(16),
+        CrossAxisAlignment.start,
 
 
-        decoration:
-        const BoxDecoration(
-
-          color:
-          Color(0xff151515),
+        children:[
 
 
-          borderRadius:
-          BorderRadius.vertical(
+          CircleAvatar(
 
-            top:
-            Radius.circular(28),
+            radius:20,
+
+
+            backgroundImage:
+
+            _avatar(),
+
+
+            child:
+
+            comment.author.avatar.isEmpty
+
+                ? const Icon(
+
+              Icons.person,
+
+              color:
+
+              Colors.white54,
+
+            )
+
+                : null,
 
           ),
 
-        ),
+
+
+          const SizedBox(
+
+            width:12,
+
+          ),
 
 
 
-        child:
-        Column(
+          Expanded(
 
-          children: [
+            child:
 
-            _title(),
+            Column(
 
+              crossAxisAlignment:
 
-            const SizedBox(
-              height: 16,
-            ),
+              CrossAxisAlignment.start,
 
 
-            Expanded(
+              children:[
 
-              child:
 
-              commentsState.when(
 
-                loading:
+                Row(
 
-                    () =>
-                const Center(
+                  children:[
 
-                  child:
-                  CircularProgressIndicator(),
+
+                    Text(
+
+                      comment.author.displayName,
+
+
+                      style:
+
+                      const TextStyle(
+
+                        color:
+                        Colors.white,
+
+                        fontSize:
+                        14,
+
+                        fontWeight:
+                        FontWeight.w700,
+
+                      ),
+
+                    ),
+
+
+
+                    if(comment.author.verified)
+
+                      const Padding(
+
+                        padding:
+
+                        EdgeInsets.only(
+
+                          left:5,
+
+                        ),
+
+
+                        child:
+
+                        Icon(
+
+                          Icons.verified,
+
+                          color:
+                          Colors.blue,
+
+                          size:
+                          15,
+
+                        ),
+
+                      ),
+
+
+                  ],
 
                 ),
 
 
 
-                error:
 
-                    (_, __) =>
-                const Center(
+                const SizedBox(
 
-                  child:
-                  Text(
+                  height:3,
 
-                    "Unable to load comments",
+                ),
 
-                    style:
-                    TextStyle(
-                      color:
-                      Colors.white,
-                    ),
+
+
+
+                Text(
+
+                  "@${comment.author.username}",
+
+
+                  style:
+
+                  const TextStyle(
+
+                    color:
+                    Colors.white38,
+
+                    fontSize:
+                    12,
 
                   ),
 
@@ -250,383 +568,511 @@ class _CommentsBottomSheetState
 
 
 
-                data:
+                const SizedBox(
 
-                    (comments) {
+                  height:6,
 
-                  if(comments.isEmpty) {
+                ),
 
-                    return const Center(
 
-                      child:
-                      Text(
 
-                        "No comments yet",
 
-                        style:
-                        TextStyle(
-                          color:
-                          Colors.white54,
-                        ),
+                Text(
+
+                  comment.text,
+
+
+                  style:
+
+                  const TextStyle(
+
+                    color:
+                    Colors.white,
+
+                    fontSize:
+                    15,
+
+                    height:
+                    1.35,
+
+                  ),
+
+                ),
+
+
+
+
+                const SizedBox(
+
+                  height:8,
+
+                ),
+
+
+
+
+                Row(
+
+                  children:[
+
+
+
+                    Text(
+
+                      _timeAgo(
+
+                        comment.createdAt,
 
                       ),
 
-                    );
 
-                  }
+                      style:
 
+                      const TextStyle(
 
+                        color:
+                        Colors.white38,
 
-                  return ListView.builder(
+                        fontSize:
+                        12,
 
-                    itemCount:
-                    comments.length,
+                      ),
 
+                    ),
 
-                    itemBuilder:
-                        (_, index) {
 
 
-                      return _CommentTile(
 
-                        comment:
-                        comments[index],
+                    const SizedBox(
 
+                      width:18,
 
-                        onLike:
+                    ),
 
-                            () =>
-                            ref
-                                .read(
-                              commentsProvider(
-                                widget.momentId,
-                              )
-                                  .notifier,
-                            )
-                                .toggleLike(
-                              comments[index],
-                            ),
 
 
 
-                        onDelete:
+                    Row(
 
-                            () =>
-                            ref
-                                .read(
-                              commentsProvider(
-                                widget.momentId,
-                              )
-                                  .notifier,
-                            )
-                                .deleteComment(
-                              comments[index],
-                            )
+                      children:[
 
-                      );
 
+                        Icon(
 
-                    },
+                          comment.isLiked
 
-                  );
+                              ? Icons.favorite
 
+                              : Icons.favorite_border,
 
-                },
 
-              ),
+                          size:
+                          16,
 
-            ),
 
+                          color:
 
+                          comment.isLiked
 
+                              ? Colors.red
 
-            _input(),
+                              : Colors.white54,
 
+                        ),
 
-          ],
 
-        ),
 
-      ),
+                        const SizedBox(
 
-    );
+                          width:5,
 
-  }
+                        ),
 
 
 
+                        Text(
 
+                          comment.likesCount.toString(),
 
 
+                          style:
 
+                          const TextStyle(
 
-  Widget _title() {
+                            color:
+                            Colors.white54,
 
-    return Row(
+                            fontSize:
+                            12,
 
-      mainAxisAlignment:
-      MainAxisAlignment.spaceBetween,
+                          ),
 
+                        ),
 
-      children: [
 
-        const Text(
+                      ],
 
-          "Comments",
+                    ),
 
-          style:
-          TextStyle(
 
-            color:
-            Colors.white,
 
-            fontSize:
-            20,
 
-            fontWeight:
-            FontWeight.bold,
+                    const SizedBox(
 
-          ),
+                      width:18,
 
-        ),
+                    ),
 
 
 
-        IconButton(
 
-          onPressed:
-              () =>
-              Navigator.pop(
-                context,
-              ),
+                    const Text(
 
-          icon:
-          const Icon(
+                      "Reply",
 
-            Icons.close,
+                      style:
 
-            color:
-            Colors.white,
+                      TextStyle(
 
-          ),
+                        color:
+                        Colors.white54,
 
-        ),
+                        fontSize:
+                        12,
 
-      ],
+                      ),
 
-    );
+                    ),
 
-  }
 
+                  ],
 
+                ),
 
-
-
-
-
-
-  Widget _input() {
-
-    return Row(
-
-      children: [
-
-        Expanded(
-
-          child:
-          TextField(
-
-            controller:
-            _controller,
-
-
-            style:
-            const TextStyle(
-              color:
-              Colors.white,
-            ),
-
-
-            decoration:
-            const InputDecoration(
-
-              hintText:
-              "Write a comment...",
-
-
-              hintStyle:
-              TextStyle(
-                color:
-                Colors.white54,
-              ),
-
-            ),
-
-          ),
-
-        ),
-
-
-
-        IconButton(
-
-          onPressed:
-          _sendComment,
-
-
-          icon:
-          const Icon(
-
-            Icons.send,
-
-            color:
-            Colors.purpleAccent,
-
-          ),
-
-        ),
-
-      ],
-
-    );
-
-  }
-
-}
-
-
-
-
-
-
-
-class _CommentTile extends StatelessWidget {
-
-
-  final Comment comment;
-
-  final VoidCallback onLike;
-
-  final VoidCallback onDelete;
-
-
-
-  const _CommentTile({
-
-    required this.comment,
-
-    required this.onLike,
-
-    required this.onDelete,
-
-  });
-
-
-
-
-
-  @override
-  Widget build(BuildContext context) {
-
-
-    return ListTile(
-
-      contentPadding:
-      EdgeInsets.zero,
-
-
-      leading:
-      CircleAvatar(
-
-        child:
-        const Icon(
-          Icons.person,
-        ),
-
-      ),
-
-
-      title:
-      Text(
-
-        comment.author.displayName,
-
-        style:
-        const TextStyle(
-          color:
-          Colors.white,
-        ),
-
-      ),
-
-
-
-      subtitle:
-      Text(
-
-        comment.text,
-
-        style:
-        const TextStyle(
-          color:
-          Colors.white70,
-        ),
-
-      ),
-
-
-
-      trailing:
-      Row(
-
-        mainAxisSize:
-        MainAxisSize.min,
-
-
-        children: [
-
-          IconButton(
-
-            onPressed:
-            onLike,
-
-
-            icon:
-            Icon(
-
-              comment.isLiked
-                  ? Icons.favorite
-                  : Icons.favorite_border,
-
-
-              color:
-              Colors.pinkAccent,
-
-            ),
-
-          ),
-
-
-
-          IconButton(
-
-            onPressed:
-            onDelete,
-
-
-            icon:
-            const Icon(
-
-              Icons.delete_outline,
-
-              color:
-              Colors.white54,
+              ],
 
             ),
 
           ),
 
         ],
+
+      ),
+
+    );
+
+  }
+
+
+
+
+
+  ImageProvider? _avatar(){
+
+    if(comment.author.avatar.isEmpty){
+
+      return null;
+
+    }
+
+
+    if(comment.author.avatar.startsWith(
+      "http",
+    )){
+
+      return NetworkImage(
+        comment.author.avatar,
+      );
+
+    }
+
+
+    return FileImage(
+      File(
+        comment.author.avatar,
+      ),
+    );
+
+  }
+
+
+
+
+
+  String _timeAgo(DateTime date){
+
+    final diff =
+    DateTime.now().difference(date);
+
+
+    if(diff.inMinutes < 1){
+
+      return "now";
+
+    }
+
+
+    if(diff.inHours < 1){
+
+      return "${diff.inMinutes}m";
+
+    }
+
+
+    if(diff.inDays < 1){
+
+      return "${diff.inHours}h";
+
+    }
+
+
+    return "${diff.inDays}d";
+
+  }
+
+}
+
+class _CommentInput extends StatelessWidget {
+
+  final TextEditingController controller;
+
+  final VoidCallback onSend;
+
+
+  const _CommentInput({
+
+    required this.controller,
+
+    required this.onSend,
+
+  });
+
+
+
+  @override
+  Widget build(BuildContext context){
+
+    return SafeArea(
+
+      child:
+
+      Container(
+
+        padding:
+
+        const EdgeInsets.fromLTRB(
+
+          14,
+
+          8,
+
+          14,
+
+          12,
+
+        ),
+
+
+        decoration:
+
+        const BoxDecoration(
+
+          color:
+          Color(0xff151515),
+
+
+          border:
+
+          Border(
+
+            top:
+
+            BorderSide(
+
+              color:
+              Colors.white10,
+
+            ),
+
+          ),
+
+        ),
+
+
+        child:
+
+        Row(
+
+          children:[
+
+
+            Expanded(
+
+              child:
+
+              Container(
+
+                padding:
+
+                const EdgeInsets.symmetric(
+
+                  horizontal:
+                  16,
+
+                ),
+
+
+                decoration:
+
+                BoxDecoration(
+
+                  color:
+                  Color(0xff202020),
+
+
+                  borderRadius:
+
+                  BorderRadius.circular(
+
+                    24,
+
+                  ),
+
+                ),
+
+
+                child:
+
+                TextField(
+
+                  controller:
+
+                  controller,
+
+
+                  minLines:
+
+                  1,
+
+
+                  maxLines:
+
+                  4,
+
+
+                  style:
+
+                  const TextStyle(
+
+                    color:
+                    Colors.white,
+
+                    fontSize:
+                    15,
+
+                  ),
+
+
+                  decoration:
+
+                  const InputDecoration(
+
+                    hintText:
+
+                    "Add a comment...",
+
+
+                    hintStyle:
+
+                    TextStyle(
+
+                      color:
+                      Colors.white38,
+
+                    ),
+
+
+                    border:
+
+                    InputBorder.none,
+
+
+                  ),
+
+                ),
+
+              ),
+
+            ),
+
+
+
+
+            const SizedBox(
+
+              width:
+              10,
+
+            ),
+
+
+
+
+            GestureDetector(
+
+              onTap:
+
+              onSend,
+
+
+              child:
+
+              Container(
+
+                width:
+                42,
+
+
+                height:
+                42,
+
+
+                decoration:
+
+                const BoxDecoration(
+
+                  shape:
+                  BoxShape.circle,
+
+
+                  color:
+                  Colors.purpleAccent,
+
+                ),
+
+
+                child:
+
+                const Icon(
+
+                  Icons.send_rounded,
+
+                  color:
+                  Colors.white,
+
+                  size:
+                  20,
+
+                ),
+
+              ),
+
+            ),
+
+
+          ],
+
+        ),
 
       ),
 

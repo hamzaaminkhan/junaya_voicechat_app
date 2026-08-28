@@ -2,48 +2,104 @@ import 'moment_model.dart';
 
 final List<Moment> sampleMoments = [
   Moment(
-    id: "1",
+
+    id:"1",
+
     author: MomentUser(
-      id: "user1",
-      username: "sarah",
-      displayName: "Sarah",
-      avatar: "assets/images/avatar1.png",
-      verified: true,
-      followers: 1200,
-      isOnline: true,
+
+      id:"user1",
+
+      username:"ayaan.voice",
+
+      displayName:"Ayaan",
+
+      avatar:
+      "assets/images/moments/ali_avatar.jpg",
+
+      verified:true,
+
     ),
+
+
     caption:
-    "Had an amazing voice chat tonight ✨\nNew friends, new memories 💜",
-    media: [
+
+    "Sunrise hits different in the mountains 🏔️✨",
+
+
+    media:[
+
       MomentMedia.image(
-        path: "assets/images/moment1.jpg",
-        order: 0,
+
+        path:
+        "assets/images/moments/pinky_post_1.jpg",
+
+        order:0,
+
       ),
+
+
       MomentMedia.image(
-        path: "assets/images/moment2.jpg",
-        order: 1,
+
+        path:
+        "assets/images/moments/pinky_post_2.jpg",
+
+        order:1,
+
       ),
+
     ],
-    createdAt: DateTime.now().subtract(
-      const Duration(minutes: 5),
+
+
+    createdAt:
+
+    DateTime.now().subtract(
+
+      const Duration(
+
+        minutes:12,
+
+      ),
+
     ),
-    visibility: MomentVisibility.public,
-    hashtags: const [
-      "voicechat",
-      "friends",
+
+
+    visibility:
+
+    MomentVisibility.public,
+
+
+    hashtags:
+
+    const [
+
+      "travel",
+
+      "nature",
+
     ],
-    stats: MomentStats(
-      likes: 124,
-      comments: 18,
-      views: 340,
+
+
+    stats:
+
+    const MomentStats(
+
+      likes:124,
+
+      comments:18,
+
+      views:340,
+
     ),
-    isLiked: false,
-    isSaved: false,
-    reactions: const [],
-    isPinned: false,
-    location: MomentLocation(
-      name: "Hunza Valley, Pakistan",
-    ),
+
+
+    isLiked:false,
+
+    isSaved:false,
+
+    reactions:const [],
+
+    isPinned:false,
+
   ),
   Moment(
     id: "2",

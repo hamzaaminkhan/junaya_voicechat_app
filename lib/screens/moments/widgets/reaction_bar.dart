@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
-import 'package:junaya_voicechat_app/screens/moments/providers/moments_provider.dart';
-import 'package:junaya_voicechat_app/screens/moments/widgets/comments_bottom_sheet.dart';
 
-import 'reaction_picker.dart';
-
-class ReactionBar extends ConsumerWidget {
+class ReactionBar extends StatelessWidget {
   final Moment moment;
   final VoidCallback? onLike;
   final VoidCallback? onComment;
@@ -24,151 +18,91 @@ class ReactionBar extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref){
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-      ),
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        _ActionItem(
+          icon: Icons.favorite,
+          count: 0,
+          color: const Color(0xffFF3B7A),
+          onTap: onLike,
+        ),
+        const SizedBox(width: 26),
+        _ActionItem(
+          icon: Icons.chat_bubble_outline,
+          count: 0,
+          color: const Color(0xffA7A7BC),
+          onTap: onComment,
+        ),
+        const SizedBox(width: 26),
+        _ActionItem(
+          icon: Icons.auto_awesome,
+          count: moment.reactions.length,
+          color: const Color(0xffA855F7),
+        ),
+        const Spacer(),
+        IconButton(
+          onPressed: onShare,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+          icon: const Icon(
+            Icons.reply_rounded,
+            color: Color(0xffA7A7BC),
+            size: 26,
+          ),
+        ),
+        const SizedBox(width: 22),
+        IconButton(
+          onPressed: onSave,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+          icon: const Icon(
+            Icons.bookmark_border,
+            color: Color(0xffA7A7BC),
+            size: 26,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ActionItem extends StatelessWidget {
+  final IconData icon;
+  final int count;
+  final Color color;
+  final VoidCallback? onTap;
+
+  const _ActionItem({
+    required this.icon,
+    required this.count,
+    required this.color,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: Row(
         children: [
-          GestureDetector(
-            onLongPress: (){
-              _showReactionPicker(
-                context,
-                ref,
-              );
-            },
-            child: const Icon(
-              Icons.add_reaction_outlined,
-              color: Colors.white54,
-              size: 24,
-            ),
+          Icon(
+            icon,
+            size: 25,
+            color: color,
           ),
-
-          const SizedBox(width: 12),
-
-          InkWell(
-            onTap: onLike,
-            child: Row(
-              children: [
-                Icon(
-                  moment.isLiked
-                      ? Icons.favorite
-                      : Icons.favorite_border,
-                  color: moment.isLiked
-                      ? Colors.redAccent
-                      : Colors.white54,
-                  size: 24,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  moment.stats.likes.toString(),
-                  style: const TextStyle(
-                    color: Colors.white70,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(width: 20),
-
-          InkWell(
-            onTap: (){
-              onComment?.call();
-
-              _openComments(
-                context,
-              );
-            },
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.chat_bubble_outline,
-                  color: Colors.white54,
-                  size: 24,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  moment.stats.comments.toString(),
-                  style: const TextStyle(
-                    color: Colors.white70,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const Spacer(),
-
-          InkWell(
-            onTap: onShare,
-            child: const Icon(
-              Icons.share_outlined,
-              color: Colors.white54,
-              size: 24,
-            ),
-          ),
-
-          const SizedBox(width: 18),
-
-          InkWell(
-            onTap: onSave,
-            child: Icon(
-              moment.isSaved
-                  ? Icons.bookmark
-                  : Icons.bookmark_border,
-              color: moment.isSaved
-                  ? Colors.amber
-                  : Colors.white54,
-              size: 24,
+          const SizedBox(width: 7),
+          Text(
+            count.toString(),
+            style: TextStyle(
+              color: color,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
       ),
-    );
-  }
-
-  void _openComments(BuildContext context){
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_){
-        return CommentsBottomSheet(
-          momentId: moment.id,
-        );
-      },
-    );
-  }
-
-  void _showReactionPicker(
-      BuildContext context,
-      WidgetRef ref,
-      ){
-    showDialog(
-      context: context,
-      barrierColor: Colors.black54,
-      builder: (_){
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: ReactionPicker(
-            onSelected: (emoji) async {
-              Navigator.pop(context);
-
-              await ref
-                  .read(
-                momentsProvider.notifier,
-              )
-                  .addReaction(
-                moment: moment,
-                userId: "local_user",
-                emoji: emoji,
-              );
-            },
-          ),
-        );
-      },
     );
   }
 }

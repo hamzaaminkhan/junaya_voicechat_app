@@ -3,335 +3,566 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 import 'package:junaya_voicechat_app/screens/moments/providers/moments_provider.dart';
-import 'package:junaya_voicechat_app/screens/moments/screens/create_moment_screen.dart';
-import 'package:junaya_voicechat_app/screens/moments/widgets/create_button.dart';
+import 'package:junaya_voicechat_app/screens/moments/widgets/moments_tab_header.dart';
 import 'package:junaya_voicechat_app/screens/moments/widgets/moment_card.dart';
 
-class MomentsScreen extends ConsumerWidget {
+
+
+class MomentsScreen extends ConsumerStatefulWidget {
+
   const MomentsScreen({
     super.key,
   });
 
-  Future<void> _createMoment(
-      BuildContext context,
-      WidgetRef ref,
-      ) async {
 
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const CreateMomentScreen(),
-      ),
-    );
+  @override
+  ConsumerState<MomentsScreen> createState() =>
+      _MomentsScreenState();
 
-    if(result == true){
-      ref.read(momentsProvider.notifier).refresh();
-    }
-  }
+}
 
-  Future<void> _deleteMoment(
-      WidgetRef ref,
-      Moment moment,
-      ) async {
+
+
+class _MomentsScreenState
+    extends ConsumerState<MomentsScreen> {
+
+
+
+  Future<void> _refresh() async {
 
     await ref
         .read(momentsProvider.notifier)
-        .deleteMoment(
-      moment.id,
-    );
+        .refresh();
+
   }
+
+
 
   @override
-  Widget build(
-      BuildContext context,
-      WidgetRef ref,
-      ){
+  Widget build(BuildContext context) {
 
-    final state = ref.watch(
-      momentsProvider,
-    );
+
+    final momentsAsync =
+    ref.watch(momentsProvider);
+
+
 
     return Scaffold(
-      backgroundColor: const Color(0xff090909),
 
-      floatingActionButton: CreateMomentButton(
-        onPressed: (){
-          _createMoment(
-            context,
-            ref,
-          );
-        },
-      ),
+      backgroundColor: Colors.transparent,
 
-      bottomNavigationBar: _bottomBar(),
 
       body: SafeArea(
+
+        bottom: false,
+
+
         child: Column(
+
           children: [
 
-            _header(),
+
+
+            MomentsTabHeader(
+
+              selectedIndex: 1,
+
+
+              onChanged: (index) {
+
+                // Following tab later
+
+              },
+
+            ),
+
+
+
 
             Expanded(
-              child: state.when(
 
-                loading: (){
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                },
+              child: RefreshIndicator(
 
-                error: (error,stack){
-                  return Center(
-                    child: TextButton(
-                      onPressed: (){
-                        ref
-                            .read(momentsProvider.notifier)
-                            .refresh();
-                      },
-                      child: const Text(
-                        "Retry",
-                      ),
-                    ),
-                  );
-                },
+                color:
 
-                data: (moments){
+                const Color(0xffA855F7),
 
-                  if(moments.isEmpty){
-                    return _emptyState();
-                  }
 
-                  return RefreshIndicator(
-                    onRefresh: (){
-                      return ref
-                          .read(momentsProvider.notifier)
-                          .refresh();
-                    },
+                backgroundColor:
 
-                    child: ListView.builder(
-                      padding: const EdgeInsets.only(
-                        top: 8,
+                const Color(0xff151522),
+
+
+                onRefresh: _refresh,
+
+
+
+                child: momentsAsync.when(
+
+
+                  loading: () {
+
+                    return _loading();
+
+                  },
+
+
+
+                  error: (error, stack) {
+
+                    return _errorState();
+
+                  },
+
+
+
+                  data: (List<Moment> moments) {
+
+
+                    if (moments.isEmpty) {
+
+                      return _emptyState();
+
+                    }
+
+
+
+                    return ListView.builder(
+
+
+                      physics:
+
+                      const BouncingScrollPhysics(),
+
+
+
+                      padding:
+
+                      const EdgeInsets.only(
+
+                        top: 4,
+
                         bottom: 120,
+
                       ),
 
-                      itemCount: moments.length,
 
-                      itemBuilder: (context,index){
 
-                        final moment = moments[index];
+                      itemCount:
 
-                        return MomentCard(
-                          moment: moment,
+                      moments.length,
 
-                          onDelete: (){
-                            _deleteMoment(
-                              ref,
-                              moment,
+
+
+                      itemBuilder:
+
+                          (context, index) {
+
+
+
+                        final Moment moment =
+                        moments[index];
+
+
+
+                        return TweenAnimationBuilder<double>(
+
+
+                          tween:
+
+                          Tween(
+
+                            begin: 0,
+
+                            end: 1,
+
+                          ),
+
+
+
+                          duration:
+
+                          Duration(
+
+                            milliseconds:
+
+                            250 +
+
+                                (index * 40),
+
+                          ),
+
+
+
+                          builder:
+
+                              (context, value, child) {
+
+
+                            return Opacity(
+
+                              opacity: value,
+
+
+                              child:
+
+                              Transform.translate(
+
+                                offset:
+
+                                Offset(
+
+                                  0,
+
+                                  12 *
+
+                                      (1 - value),
+
+                                ),
+
+
+                                child: child,
+
+                              ),
+
                             );
+
                           },
 
-                          onLike: (){
-                            ref
-                                .read(
-                              momentsProvider.notifier,
-                            )
-                                .toggleLike(
-                              moment,
-                            );
-                          },
 
-                          onComment: (){},
 
-                          onShare: (){
-                            ref
-                                .read(
-                              momentsProvider.notifier,
-                            )
-                                .incrementShares(
-                              moment.id,
-                            );
-                          },
+                          child: MomentCard(
 
-                          onSave: (){
-                            ref
-                                .read(
-                              momentsProvider.notifier,
-                            )
-                                .toggleSave(
-                              moment,
-                            );
-                          },
+                            moment: moment,
+
+
+                            onDelete: () {
+
+                              ref
+
+                                  .read(
+                                  momentsProvider
+                                      .notifier
+                              )
+
+                                  .deleteMoment(
+
+                                moment.id,
+
+                              );
+
+                            },
+
+
+
+                            onLike: () {
+
+                              ref
+
+                                  .read(
+                                  momentsProvider
+                                      .notifier
+                              )
+
+                                  .toggleLike(
+
+                                moment,
+
+                              );
+
+                            },
+
+
+
+                            onComment: () {
+
+
+
+                            },
+
+
+
+                            onShare: () {
+
+                              ref
+
+                                  .read(
+                                  momentsProvider
+                                      .notifier
+                              )
+
+                                  .incrementShares(
+
+                                moment.id,
+
+                              );
+
+                            },
+
+
+
+                            onSave: () {
+
+                              ref
+
+                                  .read(
+                                  momentsProvider
+                                      .notifier
+                              )
+
+                                  .toggleSave(
+
+                                moment,
+
+                              );
+
+                            },
+
+
+                          ),
+
                         );
+
                       },
-                    ),
-                  );
-                },
+
+                    );
+
+                  },
+
+                ),
+
               ),
+
             ),
+
           ],
-        ),
-      ),
-    );
-  }
 
-  Widget _header(){
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        20,
-        16,
-        20,
-        12,
-      ),
-
-      child: Row(
-        children: [
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-
-              children: [
-
-                const Text(
-                  "Moments ✨",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 30,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-
-                const SizedBox(
-                  height: 6,
-                ),
-
-                const Text(
-                  "Real stories. Real people. Real moments.",
-                  style: TextStyle(
-                    color: Colors.white54,
-                    fontSize: 15,
-                  ),
-                ),
-
-              ],
-            ),
-          ),
-
-          Container(
-            width: 55,
-            height: 55,
-
-            decoration: BoxDecoration(
-              color: const Color(0xff171321),
-              borderRadius: BorderRadius.circular(18),
-            ),
-
-            child: const Icon(
-              Icons.tune,
-              color: Colors.white70,
-              size: 26,
-            ),
-          ),
-
-        ],
-      ),
-    );
-  }
-
-  Widget _bottomBar(){
-
-    return Container(
-      height: 80,
-
-      decoration: BoxDecoration(
-        color: const Color(0xff101010),
-
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(28),
-          topRight: Radius.circular(28),
         ),
 
-        border: Border.all(
-          color: Colors.white10,
+      ),
+
+    );
+
+  }
+
+
+
+
+
+
+
+  Widget _loading() {
+
+
+    return ListView.builder(
+
+      itemCount: 3,
+
+
+      padding:
+
+      const EdgeInsets.only(
+
+        top:12,
+
+      ),
+
+
+      itemBuilder: (_, index) {
+
+
+        return Container(
+
+          height:300,
+
+
+          margin:
+
+          const EdgeInsets.symmetric(
+
+            horizontal:14,
+
+            vertical:8,
+
+          ),
+
+
+
+          decoration:
+
+          BoxDecoration(
+
+            color:
+
+            const Color(0xff12121A),
+
+
+            borderRadius:
+
+            BorderRadius.circular(24),
+
+          ),
+
+        );
+
+      },
+
+    );
+
+  }
+
+
+
+
+
+
+
+  Widget _emptyState() {
+
+
+    return ListView(
+
+      physics:
+
+      const AlwaysScrollableScrollPhysics(),
+
+
+      children: [
+
+
+        SizedBox(
+
+          height:
+
+          MediaQuery.of(context).size.height *
+
+              .32,
+
         ),
-      ),
 
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
 
-        children: [
 
-          Icon(
-            Icons.home_outlined,
-            color: Colors.white54,
+        const Center(
+
+          child: Column(
+
+            children: [
+
+
+
+              Icon(
+
+                Icons.auto_awesome,
+
+                size:52,
+
+                color:Colors.white30,
+
+              ),
+
+
+
+              SizedBox(height:16),
+
+
+
+              Text(
+
+                "No moments yet",
+
+                style:TextStyle(
+
+                  color:Colors.white,
+
+                  fontSize:18,
+
+                  fontWeight:FontWeight.w600,
+
+                ),
+
+              ),
+
+
+
+              SizedBox(height:6),
+
+
+
+              Text(
+
+                "Share your first moment",
+
+                style:TextStyle(
+
+                  color:Colors.white54,
+
+                ),
+
+              ),
+
+            ],
+
           ),
 
-          Icon(
-            Icons.auto_awesome,
-            color: Colors.purpleAccent,
-          ),
+        ),
 
-          Icon(
-            Icons.mic_none,
-            color: Colors.white54,
-          ),
+      ],
 
-          Icon(
-            Icons.chat_bubble_outline,
-            color: Colors.white54,
-          ),
-
-          Icon(
-            Icons.person_outline,
-            color: Colors.white54,
-          ),
-
-        ],
-      ),
     );
+
   }
 
-  Widget _emptyState(){
 
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
 
-        children: [
 
-          Icon(
-            Icons.auto_awesome,
-            color: Colors.purpleAccent,
-            size: 70,
-          ),
 
-          SizedBox(
-            height: 16,
-          ),
 
-          Text(
-            "No moments yet",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+
+  Widget _errorState() {
+
+
+    return ListView(
+
+      physics:
+
+      const AlwaysScrollableScrollPhysics(),
+
+
+      children: [
+
+
+        SizedBox(
+
+          height:
+
+          MediaQuery.of(context).size.height *
+
+              .35,
+
+        ),
+
+
+
+        const Center(
+
+          child: Text(
+
+            "Unable to load moments",
+
+            style:TextStyle(
+
+              color:Colors.white,
+
             ),
+
           ),
 
-          SizedBox(
-            height: 8,
-          ),
+        ),
 
-          Text(
-            "Create your first memory",
-            style: TextStyle(
-              color: Colors.white54,
-            ),
-          ),
+      ],
 
-        ],
-      ),
     );
+
   }
+
 }

@@ -19,11 +19,20 @@ class ReactionPicker extends StatelessWidget {
   static const List<String> reactions = [
 
     "❤️",
-    "😂",
-    "😍",
-    "😮",
-    "😢",
+
     "🔥",
+
+    "😂",
+
+    "😍",
+
+    "👏",
+
+    "😮",
+
+    "😢",
+
+    "✨",
 
   ];
 
@@ -36,42 +45,65 @@ class ReactionPicker extends StatelessWidget {
     return Container(
 
       padding:
-      const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 8,
-      ),
+
+      const EdgeInsets.all(20),
 
 
       decoration:
+
       BoxDecoration(
 
         color:
-        const Color(0xff222222),
+
+        const Color(0xff151515),
+
 
         borderRadius:
-        BorderRadius.circular(30),
+
+        BorderRadius.circular(28),
+
+
+        border:
+
+        Border.all(
+
+          color:
+          Colors.white12,
+
+        ),
 
       ),
 
 
-
       child:
-      Row(
 
-        mainAxisSize:
-        MainAxisSize.min,
+      Wrap(
+
+        alignment:
+
+        WrapAlignment.center,
+
+
+        spacing:
+
+        18,
+
+
+        runSpacing:
+
+        18,
 
 
         children:
 
         reactions.map(
 
-              (emoji) {
+              (emoji){
 
 
             return GestureDetector(
 
-              onTap: () {
+              onTap:(){
 
                 onSelected(
                   emoji,
@@ -82,22 +114,51 @@ class ReactionPicker extends StatelessWidget {
 
               child:
 
-              Padding(
+              Container(
 
-                padding:
-                const EdgeInsets.symmetric(
-                  horizontal: 8,
+                width:
+                48,
+
+                height:
+                48,
+
+
+                decoration:
+
+                BoxDecoration(
+
+                  color:
+                  Colors.white10,
+
+
+                  borderRadius:
+
+                  BorderRadius.circular(
+                    18,
+                  ),
+
                 ),
 
 
                 child:
-                Text(
 
-                  emoji,
+                Center(
 
-                  style:
-                  const TextStyle(
-                    fontSize: 26,
+                  child:
+
+                  Text(
+
+                    emoji,
+
+                    style:
+
+                    const TextStyle(
+
+                      fontSize:
+                      25,
+
+                    ),
+
                   ),
 
                 ),
@@ -106,12 +167,9 @@ class ReactionPicker extends StatelessWidget {
 
             );
 
-
           },
 
-        )
-            .toList(),
-
+        ).toList(),
 
       ),
 
