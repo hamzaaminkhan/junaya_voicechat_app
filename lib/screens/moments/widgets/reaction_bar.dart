@@ -7,12 +7,8 @@ import 'package:junaya_voicechat_app/screens/moments/widgets/comments_bottom_she
 
 import 'reaction_picker.dart';
 
-
-
 class ReactionBar extends ConsumerWidget {
-
   final Moment moment;
-
   final VoidCallback? onLike;
   final VoidCallback? onComment;
   final VoidCallback? onShare;
@@ -27,130 +23,143 @@ class ReactionBar extends ConsumerWidget {
     this.onSave,
   });
 
-
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-
-    return Row(
-      children: [
-
-        GestureDetector(
-          onLongPress: () => _showReactionPicker(context, ref),
-          child: const Icon(
-            Icons.add_reaction_outlined,
-            color: Colors.white54,
-            size: 24,
+  Widget build(BuildContext context, WidgetRef ref){
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onLongPress: (){
+              _showReactionPicker(
+                context,
+                ref,
+              );
+            },
+            child: const Icon(
+              Icons.add_reaction_outlined,
+              color: Colors.white54,
+              size: 24,
+            ),
           ),
-        ),
 
-        const SizedBox(width: 10),
+          const SizedBox(width: 12),
 
-        InkWell(
-          onTap: onLike,
-          child: Row(
-            children: [
-              Icon(
-                moment.isLiked
-                    ? Icons.favorite
-                    : Icons.favorite_border,
-                color: moment.isLiked
-                    ? Colors.red
-                    : Colors.white54,
-                size: 24,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                moment.stats.likes.toString(),
-                style: const TextStyle(
-                  color: Colors.white,
+          InkWell(
+            onTap: onLike,
+            child: Row(
+              children: [
+                Icon(
+                  moment.isLiked
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                  color: moment.isLiked
+                      ? Colors.redAccent
+                      : Colors.white54,
+                  size: 24,
                 ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(width: 20),
-
-        InkWell(
-          onTap: () {
-            onComment?.call();
-
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (_) => CommentsBottomSheet(
-                momentId: moment.id,
-              ),
-            );
-          },
-          child: Row(
-            children: [
-              const Icon(
-                Icons.chat_bubble_outline,
-                color: Colors.white54,
-                size: 24,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                moment.stats.comments.toString(),
-                style: const TextStyle(
-                  color: Colors.white,
+                const SizedBox(width: 6),
+                Text(
+                  moment.stats.likes.toString(),
+                  style: const TextStyle(
+                    color: Colors.white70,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
 
-        const Spacer(),
+          const SizedBox(width: 20),
 
-        InkWell(
-          onTap: onShare,
-          child: const Icon(
-            Icons.share_outlined,
-            color: Colors.white54,
-            size: 24,
+          InkWell(
+            onTap: (){
+              onComment?.call();
+
+              _openComments(
+                context,
+              );
+            },
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.chat_bubble_outline,
+                  color: Colors.white54,
+                  size: 24,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  moment.stats.comments.toString(),
+                  style: const TextStyle(
+                    color: Colors.white70,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
 
-        const SizedBox(width: 16),
+          const Spacer(),
 
-        InkWell(
-          onTap: onSave,
-          child: Icon(
-            moment.isSaved
-                ? Icons.bookmark
-                : Icons.bookmark_border,
-            color: Colors.white54,
-            size: 24,
+          InkWell(
+            onTap: onShare,
+            child: const Icon(
+              Icons.share_outlined,
+              color: Colors.white54,
+              size: 24,
+            ),
           ),
-        ),
-      ],
+
+          const SizedBox(width: 18),
+
+          InkWell(
+            onTap: onSave,
+            child: Icon(
+              moment.isSaved
+                  ? Icons.bookmark
+                  : Icons.bookmark_border,
+              color: moment.isSaved
+                  ? Colors.amber
+                  : Colors.white54,
+              size: 24,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-
+  void _openComments(BuildContext context){
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_){
+        return CommentsBottomSheet(
+          momentId: moment.id,
+        );
+      },
+    );
+  }
 
   void _showReactionPicker(
       BuildContext context,
       WidgetRef ref,
-      ) {
-
+      ){
     showDialog(
       context: context,
       barrierColor: Colors.black54,
-      builder: (_) {
-
+      builder: (_){
         return Dialog(
           backgroundColor: Colors.transparent,
           child: ReactionPicker(
             onSelected: (emoji) async {
-
               Navigator.pop(context);
 
               await ref
-                  .read(momentsProvider.notifier)
+                  .read(
+                momentsProvider.notifier,
+              )
                   .addReaction(
                 moment: moment,
                 userId: "local_user",

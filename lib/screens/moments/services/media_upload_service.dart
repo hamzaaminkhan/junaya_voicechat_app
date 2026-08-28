@@ -5,206 +5,83 @@ import '../media/media_uploader.dart';
 import '../media/upload_queue.dart';
 
 class MediaUploadService {
-
   final MediaUploader uploader;
   final MomentRepository repository;
-
 
   MediaUploadService({
     required this.uploader,
     required this.repository,
   });
 
-
   Future<void> uploadMedia({
     required String momentId,
     required MomentMedia media,
   }) async {
-
-
-    final remoteUrl =
-    await uploader.upload(
-
-      filePath:
-      media.localPath,
-
-      momentId:
-      momentId,
-
-      onProgress:
-          (progress){
-
-        // progress provider later
-
-      },
-
+    final remoteUrl = await uploader.upload(
+      filePath: media.localPath,
+      momentId: momentId,
+      onProgress: (progress) {},
     );
 
-
-
-    final moment =
-    await repository.getMoment(
-      momentId,
+    await _updateMedia(
+      momentId: momentId,
+      mediaId: media.id,
+      remoteUrl: remoteUrl,
     );
-
-
-    if(moment == null){
-
-      throw Exception(
-        "Moment not found",
-      );
-
-    }
-
-
-
-    final updatedMedia =
-    media.copyWith(
-
-      remoteUrl:
-      remoteUrl,
-
-      uploaded:
-      true,
-
-      uploadProgress:
-      1,
-
-    );
-
-
-
-    final updatedList =
-    moment.media.map(
-
-          (item){
-
-        if(item.id == media.id){
-
-          return updatedMedia;
-
-        }
-
-        return item;
-
-      },
-
-    ).toList();
-
-
-
-    final updatedMoment =
-    moment.copyWith(
-
-      media:
-      updatedList,
-
-      updatedAt:
-      DateTime.now(),
-
-    );
-
-
-
-    await repository.updateMoment(
-      updatedMoment,
-    );
-
   }
 
-
-
-  Future<void> uploadMomentMedia(
-      Moment moment,
-      ) async {
-
-
-    final pending =
-    moment.media.where(
-
-          (item)=>
-
-      !item.uploaded,
-
-    ).toList();
-
-
+  Future<void> uploadMomentMedia(Moment moment) async {
+    final pending = moment.media
+        .where((item) => !item.uploaded)
+        .toList();
 
     for(final media in pending){
-
-
       await uploadMedia(
-
-        momentId:
-        moment.id,
-
-        media:
-        media,
-
+        momentId: moment.id,
+        media: media,
       );
-
-
     }
-
   }
 
   Future<void> uploadMediaByTask({
     required UploadTask task,
     required String remoteUrl,
   }) async {
-
-    final moment =
-    await repository.getMoment(
-      task.momentId,
+    await _updateMedia(
+      momentId: task.momentId,
+      mediaId: task.id,
+      remoteUrl: remoteUrl,
     );
+  }
 
+  Future<void> _updateMedia({
+    required String momentId,
+    required String mediaId,
+    required String remoteUrl,
+  }) async {
+    final moment = await repository.getMoment(momentId);
 
     if(moment == null){
-      throw Exception(
-        "Moment not found",
-      );
+      throw Exception("Moment not found");
     }
 
-
-    final updatedMedia =
-    moment.media.map(
-
-          (media){
-
-        if(media.id == task.id){
-
-          return media.copyWith(
-
-            remoteUrl:
-            remoteUrl,
-
-            uploaded:
-            true,
-
-            uploadProgress:
-            1,
-
-          );
-
-        }
-
+    final updatedMedia = moment.media.map((media){
+      if(media.id != mediaId){
         return media;
+      }
 
-      },
-
-    ).toList();
-
+      return media.copyWith(
+        remoteUrl: remoteUrl,
+        uploaded: true,
+        uploadProgress: 1,
+      );
+    }).toList();
 
     await repository.updateMoment(
-
       moment.copyWith(
         media: updatedMedia,
         updatedAt: DateTime.now(),
       ),
-
     );
-
   }
-
-
 }

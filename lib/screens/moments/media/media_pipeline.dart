@@ -7,15 +7,12 @@ import 'thumbnail_generator.dart';
 import 'media_duplicate_checker.dart';
 import 'upload_queue.dart';
 
-
 class MediaPipeline {
-
   final MediaStorage storage;
   final MediaCompressor compressor;
   final ThumbnailGenerator thumbnail;
   final MediaDuplicateChecker duplicateChecker;
   final UploadQueue uploadQueue;
-
 
   MediaPipeline({
     required this.storage,
@@ -25,121 +22,74 @@ class MediaPipeline {
     required this.uploadQueue,
   });
 
-
   Future<List<MomentMedia>> process({
     required String momentId,
     required List<String> files,
   }) async {
-
-    final List<MomentMedia> result = [];
-
+    final result = <MomentMedia>[];
 
     for(int index = 0; index < files.length; index++){
-
       try{
-
         final original = files[index];
-
 
         if(original.trim().isEmpty){
           continue;
         }
 
+        final compressed = await compressor.compress(original);
 
-        final compressed =
-        await compressor.compress(
-          original,
-        );
+        if(compressed.trim().isEmpty){
+          continue;
+        }
 
-
-        final duplicate =
-        await duplicateChecker.exists(
-          compressed,
-        );
-
+        final duplicate = await duplicateChecker.exists(compressed);
 
         if(duplicate){
           continue;
         }
 
-
-        final saved =
-        await storage.saveMedia(
+        final saved = await storage.saveMedia(
           momentId: momentId,
-          paths: [
-            compressed,
-          ],
+          paths: [compressed],
         );
-
 
         if(saved.isEmpty){
           continue;
         }
 
-
         var media = saved.first;
-
 
         String? thumbnailPath;
 
-
         try{
-
-          thumbnailPath =
-          await thumbnail.generate(
+          thumbnailPath = await thumbnail.generate(
             media.localPath,
           );
-
-        }
-        catch(_){
-
+        }catch(_){
           thumbnailPath = null;
-
         }
 
-
-        media =
-            media.copyWith(
-              thumbnail: thumbnailPath,
-              processing: false,
-              uploaded: false,
-              uploadProgress: 0,
-            );
-
-
+        media = media.copyWith(
+          thumbnail: thumbnailPath,
+          processing: false,
+          uploaded: false,
+          uploadProgress: 0,
+        );
 
         await uploadQueue.add(
-
           UploadTask.create(
-
             id: media.id,
-
             filePath: media.localPath,
-
             momentId: momentId,
-
           ),
-
         );
 
-
-        result.add(
-          media,
-        );
-
-
-      }
-      catch(_){
-
+        result.add(media);
+      }catch(_){
         continue;
-
       }
-
     }
 
-
     return result;
-
   }
-
 }
