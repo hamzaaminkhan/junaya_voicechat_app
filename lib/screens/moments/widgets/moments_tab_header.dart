@@ -15,18 +15,19 @@ class MomentsTabHeader extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         20,
-        12,
+        14,
         20,
-        8,
+        6,
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           _TabItem(
             title: "Following",
             active: selectedIndex == 0,
             onTap: () => onChanged(0),
           ),
-          const SizedBox(width: 34),
+          const SizedBox(width: 32),
           _TabItem(
             title: "Moments",
             active: selectedIndex == 1,
@@ -54,43 +55,55 @@ class _TabItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: active
-                  ? Colors.white
-                  : const Color(0xff8C8C9B),
-              fontSize: 17,
-              fontWeight: active
-                  ? FontWeight.w700
-                  : FontWeight.w500,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: 4,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AnimatedDefaultTextStyle(
+              duration: const Duration(
+                milliseconds: 180,
+              ),
+              curve: Curves.easeOut,
+              style: TextStyle(
+                color: active
+                    ? Colors.white
+                    : const Color(0xff858596),
+                fontSize: 17,
+                fontWeight: active
+                    ? FontWeight.w700
+                    : FontWeight.w500,
+                letterSpacing: -0.2,
+              ),
+              child: Text(title),
             ),
-          ),
-          const SizedBox(height: 8),
-          AnimatedContainer(
-            duration: const Duration(
-              milliseconds: 220,
+            const SizedBox(height: 8),
+            AnimatedContainer(
+              duration: const Duration(
+                milliseconds: 220,
+              ),
+              curve: Curves.easeOutCubic,
+              height: 3,
+              width: active ? _indicatorWidth(title) : 0,
+              decoration: BoxDecoration(
+                color: const Color(0xffA855F7),
+                borderRadius: BorderRadius.circular(20),
+              ),
             ),
-            curve: Curves.easeOut,
-            height: 3,
-            width: active ? _textWidth(title) : 0,
-            decoration: BoxDecoration(
-              color: const Color(0xffA855F7),
-              borderRadius: BorderRadius.circular(20),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  double _textWidth(String text) {
-    if (text == "Moments") {
-      return 50;
+  double _indicatorWidth(String title) {
+    if (title == "Following") {
+      return 62;
     }
-    return 58;
+
+    return 50;
   }
 }

@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 import 'package:junaya_voicechat_app/screens/moments/widgets/fullscreen_media_viewer.dart';
@@ -11,11 +13,14 @@ class MomentMediaWidget extends StatefulWidget {
   });
 
   @override
-  State<MomentMediaWidget> createState() => _MomentMediaWidgetState();
+  State<MomentMediaWidget> createState() =>
+      _MomentMediaWidgetState();
 }
 
-class _MomentMediaWidgetState extends State<MomentMediaWidget> {
-  final PageController _controller = PageController();
+class _MomentMediaWidgetState
+    extends State<MomentMediaWidget> {
+  final PageController _controller =
+  PageController();
 
   int _currentIndex = 0;
 
@@ -32,15 +37,19 @@ class _MomentMediaWidgetState extends State<MomentMediaWidget> {
     }
 
     return AspectRatio(
-      aspectRatio: 1.25,
+      aspectRatio: 1.15,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius:
+        BorderRadius.circular(22),
         child: Stack(
           fit: StackFit.expand,
           children: [
             PageView.builder(
               controller: _controller,
-              itemCount: widget.media.length,
+              itemCount:
+              widget.media.length,
+              physics:
+              const BouncingScrollPhysics(),
               onPageChanged: (index) {
                 setState(() {
                   _currentIndex = index;
@@ -51,64 +60,124 @@ class _MomentMediaWidgetState extends State<MomentMediaWidget> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => FullscreenMediaViewer(
-                          media: widget.media,
-                          initialIndex: index,
+                      PageRouteBuilder(
+                        transitionDuration:
+                        const Duration(
+                          milliseconds: 250,
                         ),
+                        pageBuilder: (_, animation, __) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child:
+                            FullscreenMediaViewer(
+                              media:
+                              widget.media,
+                              initialIndex:
+                              index,
+                            ),
+                          );
+                        },
                       ),
                     );
                   },
-                  child: _buildMedia(widget.media[index]),
+                  child: _buildMedia(
+                    widget.media[index],
+                  ),
                 );
               },
             ),
+
             Positioned(
-              top: 14,
-              right: 14,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(.65),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  "${_currentIndex + 1}/${widget.media.length}",
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 80,
+              child: IgnorePointer(
+                child: Container(
+                  decoration:
+                  const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin:
+                      Alignment.topCenter,
+                      end:
+                      Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black54,
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
+
             if (widget.media.length > 1)
               Positioned(
-                bottom: 12,
+                top: 14,
+                right: 14,
+                child: Container(
+                  padding:
+                  const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                    Colors.black.withOpacity(.55),
+                    borderRadius:
+                    BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    "${_currentIndex + 1}/${widget.media.length}",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight:
+                      FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+
+            if (widget.media.length > 1)
+              Positioned(
+                bottom: 14,
                 left: 0,
                 right: 0,
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment:
+                  MainAxisAlignment.center,
                   children: List.generate(
                     widget.media.length,
                         (index) {
-                      final active = index == _currentIndex;
+                      final active =
+                          index == _currentIndex;
 
                       return AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 4,
+                        duration:
+                        const Duration(
+                          milliseconds: 220,
                         ),
-                        width: active ? 18 : 7,
-                        height: 7,
-                        decoration: BoxDecoration(
+                        curve:
+                        Curves.easeOut,
+                        margin:
+                        const EdgeInsets.symmetric(
+                          horizontal: 3,
+                        ),
+                        width:
+                        active ? 20 : 6,
+                        height: 6,
+                        decoration:
+                        BoxDecoration(
                           color: active
-                              ? const Color(0xff8B5CF6)
+                              ? const Color(
+                            0xffA855F7,
+                          )
                               : Colors.white38,
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius:
+                          BorderRadius.circular(
+                            20,
+                          ),
                         ),
                       );
                     },
@@ -125,24 +194,34 @@ class _MomentMediaWidgetState extends State<MomentMediaWidget> {
     return Image.network(
       item.url,
       fit: BoxFit.cover,
-      loadingBuilder: (context, child, progress) {
+      loadingBuilder:
+          (context, child, progress) {
         if (progress == null) {
           return child;
         }
 
-        return const Center(
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
+        return Container(
+          color:
+          const Color(0xff151522),
+          child: const Center(
+            child:
+            CircularProgressIndicator(
+              strokeWidth: 2,
+              color:
+              Color(0xffA855F7),
+            ),
           ),
         );
       },
       errorBuilder: (_, __, ___) {
         return Container(
-          color: const Color(0xff181820),
+          color:
+          const Color(0xff151522),
           child: const Icon(
             Icons.broken_image_outlined,
-            color: Colors.white38,
-            size: 40,
+            size: 42,
+            color:
+            Colors.white38,
           ),
         );
       },

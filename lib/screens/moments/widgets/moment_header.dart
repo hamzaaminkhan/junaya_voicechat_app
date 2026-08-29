@@ -36,24 +36,24 @@ class MomentHeader extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         16,
-        14,
+        16,
         12,
-        8,
+        10,
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: 46,
-            height: 46,
-            padding: const EdgeInsets.all(1.5),
+            width: 48,
+            height: 48,
+            padding: const EdgeInsets.all(1.8),
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
                 colors: [
-                  Color(0xffFFD700),
-                  Color(0xff8B5CF6),
-                  Color(0xffFF4081),
+                  Color(0xffFACC15),
+                  Color(0xffA855F7),
+                  Color(0xffEC4899),
                 ],
               ),
             ),
@@ -62,7 +62,7 @@ class MomentHeader extends StatelessWidget {
                   ? Image.network(
                 user.avatar,
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) {
+                errorBuilder: (_, __, ___) {
                   return _fallbackAvatar();
                 },
               )
@@ -72,7 +72,8 @@ class MomentHeader extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
@@ -81,21 +82,26 @@ class MomentHeader extends StatelessWidget {
                         user.displayName.isNotEmpty
                             ? user.displayName
                             : user.username,
-                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        overflow:
+                        TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 15,
-                          fontWeight: FontWeight.w700,
+                          fontWeight:
+                          FontWeight.w700,
                         ),
                       ),
                     ),
                     if (user.verified)
                       const Padding(
-                        padding: EdgeInsets.only(left: 5),
+                        padding:
+                        EdgeInsets.only(left: 5),
                         child: Icon(
                           Icons.verified,
                           size: 16,
-                          color: Color(0xff8B5CF6),
+                          color:
+                          Color(0xff8B5CF6),
                         ),
                       ),
                   ],
@@ -106,23 +112,29 @@ class MomentHeader extends StatelessWidget {
                     Text(
                       "@${user.username}",
                       style: const TextStyle(
-                        color: Color(0xff9999A8),
+                        color:
+                        Color(0xff8F8F9F),
                         fontSize: 13,
                       ),
                     ),
                     const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 6),
+                      padding:
+                      EdgeInsets.symmetric(
+                        horizontal: 6,
+                      ),
                       child: Text(
                         "•",
                         style: TextStyle(
-                          color: Color(0xff666675),
+                          color:
+                          Color(0xff666675),
                         ),
                       ),
                     ),
                     Text(
                       _timeAgo(moment.createdAt),
                       style: const TextStyle(
-                        color: Color(0xff9999A8),
+                        color:
+                        Color(0xff8F8F9F),
                         fontSize: 13,
                       ),
                     ),
@@ -130,21 +142,27 @@ class MomentHeader extends StatelessWidget {
                 ),
                 if (moment.location != null)
                   Padding(
-                    padding: const EdgeInsets.only(top: 5),
+                    padding:
+                    const EdgeInsets.only(
+                      top: 5,
+                    ),
                     child: Row(
                       children: [
                         const Icon(
                           Icons.location_on,
                           size: 13,
-                          color: Color(0xffA855F7),
+                          color:
+                          Color(0xffA855F7),
                         ),
                         const SizedBox(width: 3),
                         Flexible(
                           child: Text(
                             moment.location!.name,
-                            overflow: TextOverflow.ellipsis,
+                            overflow:
+                            TextOverflow.ellipsis,
                             style: const TextStyle(
-                              color: Color(0xffB99CFF),
+                              color:
+                              Color(0xffC4B5FD),
                               fontSize: 12,
                             ),
                           ),
@@ -155,43 +173,53 @@ class MomentHeader extends StatelessWidget {
               ],
             ),
           ),
-          if (moment.visibility.toString().contains("public"))
+          if (moment.visibility
+              .toString()
+              .contains("public"))
             Container(
-              margin: const EdgeInsets.only(top: 4),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 6,
+              padding:
+              const EdgeInsets.symmetric(
+                horizontal: 9,
+                vertical: 5,
               ),
               decoration: BoxDecoration(
-                color: const Color(0xff06352B),
-                borderRadius: BorderRadius.circular(18),
+                color:
+                const Color(0xff06352B),
+                borderRadius:
+                BorderRadius.circular(20),
               ),
               child: const Row(
                 children: [
                   Icon(
                     Icons.public,
                     size: 13,
-                    color: Color(0xff00E6A0),
+                    color:
+                    Color(0xff00E6A0),
                   ),
                   SizedBox(width: 4),
                   Text(
                     "Public",
                     style: TextStyle(
-                      color: Color(0xff00E6A0),
+                      color:
+                      Color(0xff00E6A0),
                       fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      fontWeight:
+                      FontWeight.w600,
                     ),
                   ),
                 ],
               ),
             ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           GestureDetector(
-            onTap: onDelete,
+            onTap: () {
+              _showMenu(context);
+            },
             child: const Icon(
-              Icons.more_vert,
-              size: 22,
-              color: Color(0xffB8B8C8),
+              Icons.more_horiz,
+              size: 24,
+              color:
+              Color(0xffB8B8C8),
             ),
           ),
         ],
@@ -199,12 +227,56 @@ class MomentHeader extends StatelessWidget {
     );
   }
 
+  void _showMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor:
+      const Color(0xff151522),
+      shape:
+      const RoundedRectangleBorder(
+        borderRadius:
+        BorderRadius.vertical(
+          top: Radius.circular(24),
+        ),
+      ),
+      builder: (_) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize:
+            MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(
+                  Icons.delete_outline,
+                  color: Colors.redAccent,
+                ),
+                title: const Text(
+                  "Delete moment",
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  onDelete();
+                },
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _fallbackAvatar() {
     return Container(
-      color: const Color(0xff20202A),
+      color:
+      const Color(0xff20202A),
       child: const Icon(
         Icons.person,
-        color: Colors.white54,
+        color:
+        Colors.white54,
       ),
     );
   }
