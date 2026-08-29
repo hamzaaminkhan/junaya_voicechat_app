@@ -26,7 +26,7 @@ class MomentsScreen extends ConsumerStatefulWidget {
 class _MomentsScreenState
     extends ConsumerState<MomentsScreen> {
 
-
+  int _selectedTab = 1;
 
   Future<void> _refresh() async {
 
@@ -64,16 +64,12 @@ class _MomentsScreenState
 
 
             MomentsTabHeader(
-
-              selectedIndex: 1,
-
-
+              selectedIndex: _selectedTab,
               onChanged: (index) {
-
-                // Following tab later
-
+                setState(() {
+                  _selectedTab = index;
+                });
               },
-
             ),
 
 
@@ -97,7 +93,9 @@ class _MomentsScreenState
 
 
 
-                child: momentsAsync.when(
+                child: _selectedTab == 0
+                    ? _followingState()
+                    : momentsAsync.when(
 
 
                   loading: () {
@@ -563,6 +561,44 @@ class _MomentsScreenState
 
     );
 
+  }
+
+  Widget _followingState() {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height * .32,
+        ),
+        const Center(
+          child: Column(
+            children: [
+              Icon(
+                Icons.people_outline,
+                size: 52,
+                color: Colors.white30,
+              ),
+              SizedBox(height: 16),
+              Text(
+                "Following",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: 6),
+              Text(
+                "Moments from people you follow",
+                style: TextStyle(
+                  color: Colors.white54,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
 }
