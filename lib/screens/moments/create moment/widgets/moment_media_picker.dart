@@ -3,6 +3,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class MomentMediaPicker extends StatefulWidget {
   final ValueChanged<List<String>>? onChanged;
@@ -21,9 +22,74 @@ class MomentMediaPicker extends StatefulWidget {
 
 class _MomentMediaPickerState
     extends State<MomentMediaPicker> {
+  final ImagePicker _picker = ImagePicker();
   final List<String> _media = [];
 
+  bool _picking = false;
+
+  Future<void> _addMedia() async {
+    if (_picking ||
+        _media.length >= widget.maxMedia) {
+      return;
+    }
+
+    setState(() {
+      _picking = true;
+    });
+
+    try {
+      final remaining =
+          widget.maxMedia - _media.length;
+
+      final files = await _picker.pickMultiImage(
+        imageQuality: 90,
+      );
+
+      if (files.isEmpty) {
+        return;
+      }
+
+      final selected = files
+          .take(remaining)
+          .map((file) => file.path)
+          .toList();
+
+      setState(() {
+        _media.addAll(selected);
+      });
+
+      widget.onChanged?.call(
+        List.unmodifiable(_media),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Unable to select photos',
+            ),
+          ),
+        );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _picking = false;
+        });
+      }
+    }
+  }
+
   void _removeMedia(int index) {
+    if (index < 0 ||
+        index >= _media.length) {
+      return;
+    }
+
     setState(() {
       _media.removeAt(index);
     });
@@ -33,16 +99,11 @@ class _MomentMediaPickerState
     );
   }
 
-  void _addMedia() {
-    if (_media.length >= widget.maxMedia) {
-      return;
-    }
-
-    // Connect image_picker/file_picker here.
-  }
-
   @override
   Widget build(BuildContext context) {
+    final canAdd =
+        _media.length < widget.maxMedia;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(
         14,
@@ -90,16 +151,14 @@ class _MomentMediaPickerState
               scrollDirection: Axis.horizontal,
               physics:
               const BouncingScrollPhysics(),
-              itemCount:
-              _media.length +
-                  (_media.length < widget.maxMedia
-                      ? 1
-                      : 0),
+              itemCount: _media.length +
+                  (canAdd ? 1 : 0),
               separatorBuilder: (_, __) =>
               const SizedBox(width: 9),
               itemBuilder: (context, index) {
                 if (index == _media.length) {
                   return _AddMediaButton(
+                    loading: _picking,
                     onTap: _addMedia,
                   );
                 }
@@ -171,7 +230,8 @@ class _MediaItem extends StatelessWidget {
                 width: 23,
                 height: 23,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(.7),
+                  color:
+                  Colors.black.withOpacity(.7),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -188,43 +248,30 @@ class _MediaItem extends StatelessWidget {
   }
 
   Widget _buildImage() {
-    if (path.startsWith('http://') ||
-        path.startsWith('https://')) {
-      return Image.network(
-        path,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) {
-          return _placeholder();
-        },
-      );
-    }
-
     return Image.file(
       File(path),
       fit: BoxFit.cover,
       errorBuilder: (_, __, ___) {
-        return _placeholder();
+        return Container(
+          color: const Color(0xff20202A),
+          child: const Icon(
+            Icons.broken_image_outlined,
+            color: Colors.white30,
+            size: 26,
+          ),
+        );
       },
-    );
-  }
-
-  Widget _placeholder() {
-    return Container(
-      color: const Color(0xff20202A),
-      child: const Icon(
-        Icons.image_outlined,
-        color: Colors.white30,
-        size: 26,
-      ),
     );
   }
 }
 
 class _AddMediaButton extends StatelessWidget {
   final VoidCallback onTap;
+  final bool loading;
 
   const _AddMediaButton({
     required this.onTap,
+    required this.loading,
   });
 
   @override
@@ -233,7 +280,7 @@ class _AddMediaButton extends StatelessWidget {
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
-        onTap: onTap,
+        onTap: loading ? null : onTap,
         borderRadius: BorderRadius.circular(14),
         child: Ink(
           width: 84,
@@ -245,10 +292,17 @@ class _AddMediaButton extends StatelessWidget {
             border: Border.all(
               color: const Color(0xff8B5CF6)
                   .withOpacity(.55),
-              width: 1,
             ),
           ),
-          child: const Column(
+          child: loading
+              ? const Center(
+            child:
+            CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Color(0xffA855F7),
+            ),
+          )
+              : const Column(
             mainAxisAlignment:
             MainAxisAlignment.center,
             children: [

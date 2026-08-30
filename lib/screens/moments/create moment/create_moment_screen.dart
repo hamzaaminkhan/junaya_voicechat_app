@@ -1,27 +1,178 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:junaya_voicechat_app/screens/moments/create%20moment/widgets/moment_media_picker.dart';
 import 'package:junaya_voicechat_app/screens/moments/create%20moment/widgets/moment_option_tile.dart';
 import 'package:junaya_voicechat_app/screens/moments/create%20moment/widgets/voice_note_tile.dart';
+import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
+import 'package:junaya_voicechat_app/screens/moments/providers/moments_provider.dart';
 
-class CreateMomentScreen extends StatefulWidget {
+class CreateMomentScreen extends ConsumerStatefulWidget {
   const CreateMomentScreen({
     super.key,
   });
 
   @override
-  State<CreateMomentScreen> createState() =>
+  ConsumerState<CreateMomentScreen> createState() =>
       _CreateMomentScreenState();
 }
 
 class _CreateMomentScreenState
-    extends State<CreateMomentScreen> {
-  final TextEditingController _caption =
+    extends ConsumerState<CreateMomentScreen> {
+  final TextEditingController _captionController =
   TextEditingController();
+
+  List<String> _mediaPaths = [];
+  MomentLocation? _location;
+  MomentVisibility _visibility =
+      MomentVisibility.public;
+  bool _posting = false;
 
   @override
   void dispose() {
-    _caption.dispose();
+    _captionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _createMoment() async {
+    final caption =
+    _captionController.text.trim();
+
+    if (caption.isEmpty && _mediaPaths.isEmpty) {
+      _showMessage(
+        'Add text or photos',
+      );
+      return;
+    }
+
+    if (_posting) {
+      return;
+    }
+
+    setState(() {
+      _posting = true;
+    });
+
+    try {
+      final moment = Moment(
+        id: generateId(),
+        author: const MomentUser(
+          id: 'local_user',
+          username: 'junaya',
+          displayName: 'Junaya User',
+          avatar: '',
+        ),
+        caption: caption,
+        media: const [],
+        createdAt: DateTime.now(),
+        visibility: _visibility,
+        location: _location,
+        hashtags: const [],
+        stats: const MomentStats(),
+        isLiked: false,
+        reactions: const [],
+        isPinned: false,
+        isSaved: false,
+      );
+
+      await ref
+          .read(momentsProvider.notifier)
+          .createMoment(
+        moment: moment,
+        mediaPaths: _mediaPaths,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.of(context).pop(true);
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Create moment error: $error',
+      );
+      debugPrint(
+        stackTrace.toString(),
+      );
+
+      if (mounted) {
+        _showMessage(
+          'Failed creating moment',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _posting = false;
+        });
+      }
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+        ),
+      );
+  }
+
+  Future<void> _selectVisibility() async {
+    final selected =
+    await showModalBottomSheet<MomentVisibility>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return _VisibilitySheet(
+          current: _visibility,
+        );
+      },
+    );
+
+    if (selected == null || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _visibility = selected;
+    });
+  }
+
+  Future<void> _selectLocation() async {
+    final controller =
+    TextEditingController(
+      text: _location?.name ?? '',
+    );
+
+    final name =
+    await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return _LocationSheet(
+          controller: controller,
+        );
+      },
+    );
+
+    controller.dispose();
+
+    if (!mounted || name == null) {
+      return;
+    }
+
+    setState(() {
+      _location = name.trim().isEmpty
+          ? null
+          : MomentLocation(
+        name: name.trim(),
+      );
+    });
   }
 
   @override
@@ -35,8 +186,10 @@ class _CreateMomentScreenState
             _buildHeader(),
             Expanded(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(
+                physics:
+                const BouncingScrollPhysics(),
+                padding:
+                const EdgeInsets.fromLTRB(
                   16,
                   4,
                   16,
@@ -50,7 +203,14 @@ class _CreateMomentScreenState
                     const SizedBox(height: 20),
                     _buildCaption(),
                     const SizedBox(height: 14),
-                    const MomentMediaPicker(),
+                    MomentMediaPicker(
+                      onChanged: (paths) {
+                        setState(() {
+                          _mediaPaths =
+                          List<String>.from(paths);
+                        });
+                      },
+                    ),
                     const SizedBox(height: 14),
                     _buildOptions(),
                   ],
@@ -75,7 +235,9 @@ class _CreateMomentScreenState
       child: Row(
         children: [
           IconButton(
-            onPressed: () {
+            onPressed: _posting
+                ? null
+                : () {
               Navigator.of(context).pop();
             },
             splashRadius: 22,
@@ -97,23 +259,8 @@ class _CreateMomentScreenState
               ),
             ),
           ),
-          GestureDetector(
-            onTap: () {},
-            behavior: HitTestBehavior.opaque,
-            child: const Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: 8,
-                vertical: 10,
-              ),
-              child: Text(
-                'Drafts',
-                style: TextStyle(
-                  color: Color(0xffA855F7),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
+          const SizedBox(
+            width: 48,
           ),
         ],
       ),
@@ -170,7 +317,9 @@ class _CreateMomentScreenState
             ],
           ),
         ),
-        _VisibilityBadge(),
+        _VisibilityBadge(
+          visibility: _visibility,
+        ),
       ],
     );
   }
@@ -190,11 +339,11 @@ class _CreateMomentScreenState
         color: const Color(0xff11111A),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withValues(alpha: .06),
+          color: Colors.white.withOpacity(.06),
         ),
       ),
       child: TextField(
-        controller: _caption,
+        controller: _captionController,
         maxLength: 500,
         minLines: 5,
         maxLines: 8,
@@ -228,7 +377,7 @@ class _CreateMomentScreenState
         color: const Color(0xff11111A),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withValues(alpha: .05),
+          color: Colors.white.withOpacity(.05),
         ),
       ),
       child: Column(
@@ -237,20 +386,34 @@ class _CreateMomentScreenState
             icon: Icons.location_on_outlined,
             color: const Color(0xffA855F7),
             title: 'Location',
-            value: 'Add location',
+            value: _location?.name ??
+                'Add location',
+            onTap: _selectLocation,
           ),
           _divider(),
           MomentOptionTile(
             icon: Icons.public_rounded,
             color: const Color(0xff22C55E),
             title: 'Visibility',
-            value: 'Public',
+            value: _visibilityLabel,
+            onTap: _selectVisibility,
           ),
           _divider(),
           const VoiceNoteTile(),
         ],
       ),
     );
+  }
+
+  String get _visibilityLabel {
+    switch (_visibility) {
+      case MomentVisibility.public:
+        return 'Public';
+      case MomentVisibility.friends:
+        return 'Friends';
+      case MomentVisibility.private:
+        return 'Only me';
+    }
   }
 
   Widget _divider() {
@@ -260,7 +423,7 @@ class _CreateMomentScreenState
       ),
       child: Divider(
         height: 1,
-        color: Colors.white.withValues(alpha: .05),
+        color: Colors.white.withOpacity(.05),
       ),
     );
   }
@@ -277,7 +440,7 @@ class _CreateMomentScreenState
         color: const Color(0xff07070D),
         border: Border(
           top: BorderSide(
-            color: Colors.white.withValues(alpha: .05),
+            color: Colors.white.withOpacity(.05),
           ),
         ),
       ),
@@ -285,17 +448,31 @@ class _CreateMomentScreenState
         width: double.infinity,
         height: 52,
         child: ElevatedButton(
-          onPressed: () {},
+          onPressed:
+          _posting ? null : _createMoment,
           style: ElevatedButton.styleFrom(
             elevation: 0,
             backgroundColor:
             const Color(0xff8B5CF6),
+            disabledBackgroundColor:
+            const Color(0xff3A3345),
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius:
+              BorderRadius.circular(16),
             ),
           ),
-          child: const Text(
+          child: _posting
+              ? const SizedBox(
+            width: 20,
+            height: 20,
+            child:
+            CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Colors.white,
+            ),
+          )
+              : const Text(
             'Share Moment',
             style: TextStyle(
               fontSize: 15,
@@ -309,10 +486,17 @@ class _CreateMomentScreenState
 }
 
 class _VisibilityBadge extends StatelessWidget {
-  const _VisibilityBadge();
+  final MomentVisibility visibility;
+
+  const _VisibilityBadge({
+    required this.visibility,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final isPublic =
+        visibility == MomentVisibility.public;
+
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 11,
@@ -322,24 +506,309 @@ class _VisibilityBadge extends StatelessWidget {
         color: const Color(0xff191923),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.public_rounded,
-            color: Color(0xffA7A7B5),
+            isPublic
+                ? Icons.public_rounded
+                : Icons.lock_outline_rounded,
+            color: const Color(0xffA7A7B5),
             size: 14,
           ),
-          SizedBox(width: 5),
+          const SizedBox(width: 5),
           Text(
-            'Public',
-            style: TextStyle(
+            _label,
+            style: const TextStyle(
               color: Color(0xffD5D5DD),
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  String get _label {
+    switch (visibility) {
+      case MomentVisibility.public:
+        return 'Public';
+      case MomentVisibility.friends:
+        return 'Friends';
+      case MomentVisibility.private:
+        return 'Only me';
+    }
+  }
+}
+
+class _VisibilitySheet extends StatelessWidget {
+  final MomentVisibility current;
+
+  const _VisibilitySheet({
+    required this.current,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        20,
+        12,
+        20,
+        28,
+      ),
+      decoration: const BoxDecoration(
+        color: Color(0xff11111A),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(26),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _handle(),
+          const SizedBox(height: 18),
+          const Text(
+            'Who can see this moment?',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 18),
+          _option(
+            context,
+            MomentVisibility.public,
+            Icons.public_rounded,
+            'Public',
+            'Everyone can see this',
+          ),
+          _option(
+            context,
+            MomentVisibility.friends,
+            Icons.people_outline_rounded,
+            'Friends',
+            'Only your friends can see this',
+          ),
+          _option(
+            context,
+            MomentVisibility.private,
+            Icons.lock_outline_rounded,
+            'Only me',
+            'Only you can see this',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _option(
+      BuildContext context,
+      MomentVisibility value,
+      IconData icon,
+      String title,
+      String subtitle,
+      ) {
+    final selected = current == value;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context, value);
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: 10,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: selected
+                    ? const Color(0xffA855F7)
+                    .withOpacity(.14)
+                    : const Color(0xff20202A),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: selected
+                    ? const Color(0xffA855F7)
+                    : Colors.white54,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment:
+                CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: Colors.white38,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (selected)
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Color(0xffA855F7),
+                size: 21,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _handle() {
+    return Container(
+      width: 38,
+      height: 4,
+      decoration: BoxDecoration(
+        color: Colors.white24,
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+  }
+}
+
+class _LocationSheet extends StatelessWidget {
+  final TextEditingController controller;
+
+  const _LocationSheet({
+    required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 12,
+        bottom:
+        MediaQuery.of(context)
+            .viewInsets
+            .bottom +
+            24,
+      ),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(
+          20,
+          12,
+          20,
+          20,
+        ),
+        decoration: const BoxDecoration(
+          color: Color(0xff11111A),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(26),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 38,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius:
+                BorderRadius.circular(10),
+              ),
+            ),
+            const SizedBox(height: 18),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Add location',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              textCapitalization:
+              TextCapitalization.words,
+              style: const TextStyle(
+                color: Colors.white,
+              ),
+              decoration: InputDecoration(
+                hintText: 'Enter a location',
+                hintStyle: const TextStyle(
+                  color: Colors.white38,
+                ),
+                prefixIcon: const Icon(
+                  Icons.location_on_outlined,
+                  color: Color(0xffA855F7),
+                ),
+                filled: true,
+                fillColor:
+                const Color(0xff20202A),
+                border: OutlineInputBorder(
+                  borderRadius:
+                  BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(
+                    context,
+                    controller.text,
+                  );
+                },
+                style:
+                ElevatedButton.styleFrom(
+                  backgroundColor:
+                  const Color(0xff8B5CF6),
+                  elevation: 0,
+                  shape:
+                  RoundedRectangleBorder(
+                    borderRadius:
+                    BorderRadius.circular(15),
+                  ),
+                ),
+                child: const Text(
+                  'Save location',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
