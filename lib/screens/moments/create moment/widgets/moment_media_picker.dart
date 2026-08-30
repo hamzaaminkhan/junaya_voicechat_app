@@ -1,8 +1,17 @@
+// ignore_for_file: deprecated_member_use
+
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 class MomentMediaPicker extends StatefulWidget {
+  final ValueChanged<List<String>>? onChanged;
+  final int maxMedia;
+
   const MomentMediaPicker({
     super.key,
+    this.onChanged,
+    this.maxMedia = 10,
   });
 
   @override
@@ -12,182 +21,253 @@ class MomentMediaPicker extends StatefulWidget {
 
 class _MomentMediaPickerState
     extends State<MomentMediaPicker> {
-
   final List<String> _media = [];
+
+  void _removeMedia(int index) {
+    setState(() {
+      _media.removeAt(index);
+    });
+
+    widget.onChanged?.call(
+      List.unmodifiable(_media),
+    );
+  }
+
+  void _addMedia() {
+    if (_media.length >= widget.maxMedia) {
+      return;
+    }
+
+    // Connect image_picker/file_picker here.
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(
+        14,
+        15,
+        14,
+        14,
+      ),
       decoration: BoxDecoration(
         color: const Color(0xff11111A),
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white10,
+          color: Colors.white.withOpacity(.05),
         ),
       ),
       child: Column(
         crossAxisAlignment:
         CrossAxisAlignment.start,
         children: [
-
           Row(
-            mainAxisAlignment:
-            MainAxisAlignment.spaceBetween,
             children: [
-
-              const Text(
-                "Add photos / videos",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
+              const Expanded(
+                child: Text(
+                  'Photos & videos',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-
               Text(
-                "${_media.length}/10",
+                '${_media.length}/${widget.maxMedia}',
                 style: const TextStyle(
-                  color: Colors.white54,
-                  fontSize: 14,
+                  color: Color(0xff777787),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
           ),
-
-          const SizedBox(height:16),
-
+          const SizedBox(height: 13),
           SizedBox(
-            height:92,
-            child: ListView(
-              scrollDirection:
-              Axis.horizontal,
-              children: [
+            height: 84,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              physics:
+              const BouncingScrollPhysics(),
+              itemCount:
+              _media.length +
+                  (_media.length < widget.maxMedia
+                      ? 1
+                      : 0),
+              separatorBuilder: (_, __) =>
+              const SizedBox(width: 9),
+              itemBuilder: (context, index) {
+                if (index == _media.length) {
+                  return _AddMediaButton(
+                    onTap: _addMedia,
+                  );
+                }
 
-                ..._media.map(
-                      (item) {
-                    return _mediaItem(item);
+                return _MediaItem(
+                  path: _media[index],
+                  onRemove: () {
+                    _removeMedia(index);
                   },
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 11),
+          const Row(
+            children: [
+              Icon(
+                Icons.info_outline_rounded,
+                size: 14,
+                color: Color(0xff666675),
+              ),
+              SizedBox(width: 5),
+              Text(
+                'Up to 10 photos or videos',
+                style: TextStyle(
+                  color: Color(0xff666675),
+                  fontSize: 11.5,
                 ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-                if(_media.length < 10)
-                  _addButton(),
+class _MediaItem extends StatelessWidget {
+  final String path;
+  final VoidCallback onRemove;
 
-              ],
+  const _MediaItem({
+    required this.path,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 84,
+      height: 84,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius:
+              BorderRadius.circular(14),
+              child: _buildImage(),
             ),
           ),
-
-          const SizedBox(height:14),
-
-          const Text(
-            "You can add up to 10 photos or videos",
-            style: TextStyle(
-              color: Colors.white38,
-              fontSize:13,
+          Positioned(
+            top: 5,
+            right: 5,
+            child: GestureDetector(
+              onTap: onRemove,
+              behavior:
+              HitTestBehavior.opaque,
+              child: Container(
+                width: 23,
+                height: 23,
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(.7),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.close_rounded,
+                  size: 14,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
-
         ],
       ),
     );
   }
 
+  Widget _buildImage() {
+    if (path.startsWith('http://') ||
+        path.startsWith('https://')) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) {
+          return _placeholder();
+        },
+      );
+    }
 
-  Widget _mediaItem(String image) {
+    return Image.file(
+      File(path),
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) {
+        return _placeholder();
+      },
+    );
+  }
+
+  Widget _placeholder() {
     return Container(
-      width:86,
-      height:86,
-      margin:
-      const EdgeInsets.only(right:10),
-      decoration:BoxDecoration(
-        color:
-        const Color(0xff20202A),
-        borderRadius:
-        BorderRadius.circular(14),
+      color: const Color(0xff20202A),
+      child: const Icon(
+        Icons.image_outlined,
+        color: Colors.white30,
+        size: 26,
       ),
-      child:Stack(
-        children:[
+    );
+  }
+}
 
-          ClipRRect(
+class _AddMediaButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _AddMediaButton({
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Ink(
+          width: 84,
+          height: 84,
+          decoration: BoxDecoration(
+            color: const Color(0xff0D0D14),
             borderRadius:
             BorderRadius.circular(14),
-            child:Image.network(
-              image,
-              width:86,
-              height:86,
-              fit:BoxFit.cover,
+            border: Border.all(
+              color: const Color(0xff8B5CF6)
+                  .withOpacity(.55),
+              width: 1,
             ),
           ),
-
-          Positioned(
-            top:5,
-            right:5,
-            child:Container(
-              width:22,
-              height:22,
-              decoration:
-              const BoxDecoration(
-                color:Colors.black54,
-                shape:BoxShape.circle,
+          child: const Column(
+            mainAxisAlignment:
+            MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.add_rounded,
+                color: Color(0xffA855F7),
+                size: 27,
               ),
-              child:const Icon(
-                Icons.close,
-                size:14,
-                color:Colors.white,
+              SizedBox(height: 3),
+              Text(
+                'Add',
+                style: TextStyle(
+                  color: Color(0xffC084FC),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
+            ],
           ),
-
-        ],
-      ),
-    );
-  }
-
-
-  Widget _addButton() {
-    return GestureDetector(
-      onTap:(){
-
-        // Image picker later
-
-      },
-      child:Container(
-        width:86,
-        height:86,
-        decoration:BoxDecoration(
-          borderRadius:
-          BorderRadius.circular(14),
-          border:Border.all(
-            color:
-            const Color(0xffA855F7),
-            style:
-            BorderStyle.solid,
-          ),
-          color:
-          const Color(0xff0D0D14),
-        ),
-        child:const Column(
-          mainAxisAlignment:
-          MainAxisAlignment.center,
-          children:[
-
-            Icon(
-              Icons.add,
-              color:
-              Color(0xffA855F7),
-              size:30,
-            ),
-
-            Text(
-              "Add Media",
-              style:TextStyle(
-                color:
-                Color(0xffC084FC),
-                fontSize:12,
-              ),
-            ),
-
-          ],
         ),
       ),
     );
