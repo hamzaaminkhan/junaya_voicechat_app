@@ -19,6 +19,84 @@ class CreateMomentScreen extends ConsumerStatefulWidget {
 
 class _CreateMomentScreenState
     extends ConsumerState<CreateMomentScreen> {
+
+  Future<void> _handleClose() async {
+    final hasChanges =
+        _captionController.text.trim().isNotEmpty ||
+            _mediaPaths.isNotEmpty ||
+            _location != null;
+
+    if (!hasChanges) {
+      Navigator.of(context).pop();
+      return;
+    }
+
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xff151522),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+          ),
+          title: const Text(
+            'Discard moment?',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          content: const Text(
+            'Your changes will be lost.',
+            style: TextStyle(
+              color: Color(0xff9999A8),
+              fontSize: 14,
+              height: 1.4,
+            ),
+          ),
+          actionsPadding: const EdgeInsets.fromLTRB(
+            16,
+            0,
+            16,
+            14,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: const Text(
+                'Keep editing',
+                style: TextStyle(
+                  color: Color(0xffA855F7),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              child: const Text(
+                'Discard',
+                style: TextStyle(
+                  color: Color(0xffFF4D6D),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (discard == true && mounted) {
+      Navigator.of(context).pop();
+    }
+  }
+
+
   final TextEditingController _captionController =
   TextEditingController();
 
@@ -176,7 +254,17 @@ class _CreateMomentScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) {
+            return;
+          }
+
+          _handleClose();
+        },
+
+      child : Scaffold(
       backgroundColor: const Color(0xff07070D),
       resizeToAvoidBottomInset: true,
       body: SafeArea(
@@ -220,6 +308,7 @@ class _CreateMomentScreenState
           ],
         ),
       ),
+    )
     );
   }
 
@@ -236,9 +325,7 @@ class _CreateMomentScreenState
           IconButton(
             onPressed: _posting
                 ? null
-                : () {
-              Navigator.of(context).pop();
-            },
+                : _handleClose,
             splashRadius: 22,
             icon: const Icon(
               Icons.close_rounded,
