@@ -15,12 +15,10 @@ class VoiceRecordingResult {
 }
 
 class VoiceRecordingSheet extends StatefulWidget {
-  final String? existingPath;
-  final Duration? existingDuration;
+  final String? existingDuration;
 
   const VoiceRecordingSheet({
     super.key,
-    this.existingPath,
     this.existingDuration,
   });
 
@@ -31,216 +29,291 @@ class VoiceRecordingSheet extends StatefulWidget {
 
 class _VoiceRecordingSheetState
     extends State<VoiceRecordingSheet> {
-  final MomentVoiceRecorderService
-  _recorder = MomentVoiceRecorderService();
+  final MomentVoiceRecorderService _recorder =
+  MomentVoiceRecorderService();
 
   Timer? _timer;
 
   Duration _duration = Duration.zero;
 
-  String? _recordedPath;
+  String? _recordingPath;
 
   bool _recording = false;
 
-  bool _busy = false;
+  bool _paused = false;
 
-  String? _error;
+  bool _saving = false;
+
+  DateTime? _startedAt;
 
   @override
   void initState() {
     super.initState();
-
-    _recordedPath = widget.existingPath;
-
-    _duration =
-        widget.existingDuration ??
-            Duration.zero;
   }
 
   @override
   void dispose() {
     _timer?.cancel();
-
     _cleanupRecorder();
-
     super.dispose();
   }
 
   Future<void> _cleanupRecorder() async {
     try {
-      if (await _recorder.isRecording) {
+      final recording =
+      await _recorder.isRecording;
+
+      if (recording) {
         await _recorder.cancel();
       }
-
-      await _recorder.dispose();
     } catch (_) {}
-  }
 
-  Future<void> _toggleRecording() async {
-    if (_busy) {
-      return;
-    }
-
-    if (_recording) {
-      await _stopRecording();
-    } else {
-      await _startRecording();
-    }
+    await _recorder.dispose();
   }
 
   Future<void> _startRecording() async {
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
+    if (_recording || _saving) {
+      return;
+    }
 
     try {
       final permission =
       await _recorder.hasPermission();
 
       if (!permission) {
-        throw const VoiceRecorderException(
-          'Microphone permission is required.',
-        );
+        if (mounted) {
+          _showMessage(
+            'Microphone permission is required.',
+          );
+        }
+        return;
       }
-
-      if (_recordedPath != null) {
-        await _recorder.deleteFile(
-          _recordedPath!,
-        );
-
-        _recordedPath = null;
-      }
-
-      _duration = Duration.zero;
 
       final path =
       await _recorder.start();
 
+      if (!mounted) {
+        await _recorder.cancel();
+        return;
+      }
+
+      setState(() {
+        _recordingPath = path;
+        _recording = true;
+        _paused = false;
+        _duration = Duration.zero;
+        _startedAt = DateTime.now();
+      });
+
+      _startTimer();
+    } catch (error) {
+      if (mounted) {
+        _showMessage(
+          error.toString(),
+        );
+      }
+    }
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+
+    _timer = Timer.periodic(
+      const Duration(milliseconds: 100),
+          (_) {
+        if (!mounted ||
+            !_recording ||
+            _paused ||
+            _startedAt == null) {
+          return;
+        }
+
+        setState(() {
+          _duration =
+              DateTime.now()
+                  .difference(_startedAt!);
+        });
+      },
+    );
+  }
+
+  Future<void> _pauseRecording() async {
+    if (!_recording || _paused) {
+      return;
+    }
+
+    try {
+      await _recorder.pause();
+
+      if (!mounted) {
+        return;
+      }
+
       _timer?.cancel();
 
-      _timer = Timer.periodic(
-        const Duration(seconds: 1),
-            (_) {
-          if (!mounted) {
-            return;
-          }
-
-          setState(() {
-            _duration +=
-            const Duration(seconds: 1);
-          });
-        },
-      );
-
-      if (!mounted) {
-        return;
-      }
-
       setState(() {
-        _recordedPath = path;
-        _recording = true;
-        _busy = false;
+        _paused = true;
       });
     } catch (error) {
+      if (mounted) {
+        _showMessage(
+          error.toString(),
+        );
+      }
+    }
+  }
+
+  Future<void> _resumeRecording() async {
+    if (!_recording || !_paused) {
+      return;
+    }
+
+    try {
+      await _recorder.resume();
+
       if (!mounted) {
         return;
       }
 
       setState(() {
-        _busy = false;
-        _error = error.toString();
+        _paused = false;
+        _startedAt =
+            DateTime.now()
+                .subtract(_duration);
       });
+
+      _startTimer();
+    } catch (error) {
+      if (mounted) {
+        _showMessage(
+          error.toString(),
+        );
+      }
     }
   }
 
   Future<void> _stopRecording() async {
-    setState(() {
-      _busy = true;
-    });
-
-    try {
-      _timer?.cancel();
-      _timer = null;
-
-      final path =
-      await _recorder.stop();
-
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _recordedPath = path;
-        _recording = false;
-        _busy = false;
-      });
-    } catch (error) {
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _recording = false;
-        _busy = false;
-        _error = error.toString();
-      });
-    }
-  }
-
-  Future<void> _deleteRecording() async {
-    if (_recording || _busy) {
+    if (!_recording || _saving) {
       return;
     }
 
-    final path = _recordedPath;
+    setState(() {
+      _saving = true;
+    });
 
-    if (path != null) {
-      await _recorder.deleteFile(path);
+    _timer?.cancel();
+
+    try {
+      final path =
+      await _recorder.stop();
+
+      if (path == null ||
+          path.isEmpty) {
+        throw const VoiceRecorderException(
+          'No voice recording was created.',
+        );
+      }
+
+      final duration = _duration;
+
+      if (duration.inMilliseconds < 300) {
+        await _recorder.deleteFile(path);
+
+        throw const VoiceRecorderException(
+          'Voice note is too short.',
+        );
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _recordingPath = path;
+        _recording = false;
+        _paused = false;
+      });
+
+      Navigator.of(context).pop(
+        VoiceRecordingResult(
+          path: path,
+          duration: duration,
+        ),
+      );
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _recording = false;
+          _paused = false;
+        });
+
+        _showMessage(
+          error.toString(),
+        );
+      }
     }
+  }
+
+  Future<void> _cancelRecording() async {
+    _timer?.cancel();
+
+    try {
+      await _recorder.cancel();
+    } catch (_) {}
 
     if (!mounted) {
       return;
     }
 
-    setState(() {
-      _recordedPath = null;
-      _duration = Duration.zero;
-      _error = null;
-    });
+    Navigator.of(context).pop();
   }
 
-  void _useRecording() {
-    final path = _recordedPath;
-
-    if (path == null ||
-        path.isEmpty ||
-        _duration == Duration.zero ||
-        _recording ||
-        _busy) {
+  Future<void> _close() async {
+    if (_recording || _paused) {
+      await _cancelRecording();
       return;
     }
 
-    Navigator.of(context).pop(
-      VoiceRecordingResult(
-        path: path,
-        duration: _duration,
-      ),
-    );
+    Navigator.of(context).pop();
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+        ),
+      );
+  }
+
+  String _formatDuration(
+      Duration value,
+      ) {
+    final minutes =
+    value.inMinutes
+        .remainder(60)
+        .toString()
+        .padLeft(2, '0');
+
+    final seconds =
+    value.inSeconds
+        .remainder(60)
+        .toString()
+        .padLeft(2, '0');
+
+    return '$minutes:$seconds';
   }
 
   @override
   Widget build(BuildContext context) {
-    final hasRecording =
-        _recordedPath != null &&
-            _duration > Duration.zero;
-
     return Container(
       padding: const EdgeInsets.fromLTRB(
         20,
         10,
         20,
-        24,
+        28,
       ),
       decoration: const BoxDecoration(
         color: Color(0xff11111A),
@@ -253,320 +326,193 @@ class _VoiceRecordingSheetState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _handle(),
+            Container(
+              width: 38,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius:
+                BorderRadius.circular(20),
+              ),
+            ),
 
-            const SizedBox(height: 18),
+            const SizedBox(height: 20),
 
-            _header(),
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Voice note',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 19,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
 
-            const SizedBox(height: 24),
+                IconButton(
+                  onPressed:
+                  _saving ? null : _close,
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    color: Color(0xff777787),
+                  ),
+                ),
+              ],
+            ),
 
-            _recorderButton(),
+            const SizedBox(height: 8),
 
-            const SizedBox(height: 22),
+            Text(
+              _recording
+                  ? _paused
+                  ? 'Recording paused'
+                  : 'Recording…'
+                  : 'Tap the microphone to record',
+              style: const TextStyle(
+                color: Color(0xff858593),
+                fontSize: 13,
+              ),
+            ),
 
-            _waveform(),
-
-            const SizedBox(height: 10),
+            const SizedBox(height: 26),
 
             Text(
               _formatDuration(_duration),
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
+                fontSize: 36,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1,
               ),
             ),
 
-            if (_error != null) ...[
+            const SizedBox(height: 26),
+
+            GestureDetector(
+              onTap: _recording
+                  ? (_paused
+                  ? _resumeRecording
+                  : _pauseRecording)
+                  : _startRecording,
+              child: AnimatedContainer(
+                duration:
+                const Duration(
+                  milliseconds: 180,
+                ),
+                width: 82,
+                height: 82,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _recording
+                      ? const Color(0xffA855F7)
+                      : const Color(0xff8B5CF6),
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                      const Color(0xff8B5CF6)
+                          .withValues(
+                        alpha: .22,
+                      ),
+                      blurRadius: 28,
+                      spreadRadius: 4,
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  _recording
+                      ? (_paused
+                      ? Icons.play_arrow_rounded
+                      : Icons.pause_rounded)
+                      : Icons.mic_none_rounded,
+                  color: Colors.white,
+                  size: 34,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 22),
+
+            if (_recording)
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed:
+                  _saving
+                      ? null
+                      : _stopRecording,
+                  icon: const Icon(
+                    Icons.stop_rounded,
+                  ),
+                  label: const Text(
+                    'Finish recording',
+                  ),
+                  style:
+                  ElevatedButton.styleFrom(
+                    backgroundColor:
+                    const Color(0xff191923),
+                    foregroundColor:
+                    Colors.white,
+                    elevation: 0,
+                    shape:
+                    RoundedRectangleBorder(
+                      borderRadius:
+                      BorderRadius.circular(
+                        15,
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            else
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: TextButton(
+                  onPressed:
+                  _saving
+                      ? null
+                      : _close,
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color:
+                      Color(0xff858593),
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+
+            if (_recording &&
+                !_paused) ...[
               const SizedBox(height: 10),
-              Text(
-                _error!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Color(0xffF87171),
+              const Text(
+                'Tap the microphone to pause',
+                style: TextStyle(
+                  color: Color(0xff626270),
                   fontSize: 12,
                 ),
               ),
             ],
 
-            const SizedBox(height: 22),
-
-            _controls(),
-
-            if (hasRecording) ...[
+            if (_saving) ...[
               const SizedBox(height: 14),
-              _useButton(),
+              const SizedBox(
+                width: 20,
+                height: 20,
+                child:
+                CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Color(0xffA855F7),
+                ),
+              ),
             ],
           ],
         ),
       ),
     );
-  }
-
-  Widget _handle() {
-    return Container(
-      width: 38,
-      height: 4,
-      decoration: BoxDecoration(
-        color: Colors.white24,
-        borderRadius:
-        BorderRadius.circular(20),
-      ),
-    );
-  }
-
-  Widget _header() {
-    return Row(
-      children: [
-        const Expanded(
-          child: Column(
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Voice note',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              SizedBox(height: 4),
-              Text(
-                'Record a voice note for your moment.',
-                style: TextStyle(
-                  color: Color(0xff666675),
-                  fontSize: 13,
-                ),
-              ),
-            ],
-          ),
-        ),
-        IconButton(
-          onPressed: _recording || _busy
-              ? null
-              : () {
-            Navigator.of(context).pop();
-          },
-          splashRadius: 20,
-          icon: const Icon(
-            Icons.close_rounded,
-            color: Color(0xff777787),
-            size: 21,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _recorderButton() {
-    final active = _recording;
-
-    return AnimatedContainer(
-      duration:
-      const Duration(milliseconds: 220),
-      width: 104,
-      height: 104,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: active
-            ? const Color(0xffFF3B7A)
-            .withOpacity(.12)
-            : const Color(0xffA855F7)
-            .withOpacity(.10),
-        border: Border.all(
-          color: active
-              ? const Color(0xffFF3B7A)
-              : const Color(0xffA855F7),
-        ),
-      ),
-      child: Center(
-        child: AnimatedContainer(
-          duration:
-          const Duration(milliseconds: 220),
-          width: 72,
-          height: 72,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: active
-                ? const Color(0xffFF3B7A)
-                : const Color(0xffA855F7),
-          ),
-          child: _busy
-              ? const Padding(
-            padding: EdgeInsets.all(22),
-            child:
-            CircularProgressIndicator(
-              strokeWidth: 2,
-              color: Colors.white,
-            ),
-          )
-              : Icon(
-            active
-                ? Icons.stop_rounded
-                : Icons.mic_rounded,
-            color: Colors.white,
-            size: 30,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _waveform() {
-    const heights = [
-      8.0,
-      13.0,
-      20.0,
-      11.0,
-      17.0,
-      25.0,
-      14.0,
-      20.0,
-      30.0,
-      18.0,
-      12.0,
-      24.0,
-      16.0,
-      28.0,
-      20.0,
-      11.0,
-      23.0,
-      16.0,
-      27.0,
-      14.0,
-      9.0,
-      18.0,
-      24.0,
-      13.0,
-    ];
-
-    return SizedBox(
-      height: 32,
-      child: Row(
-        mainAxisAlignment:
-        MainAxisAlignment.center,
-        children: [
-          for (final height in heights)
-            Padding(
-              padding:
-              const EdgeInsets.symmetric(
-                horizontal: 2,
-              ),
-              child: AnimatedContainer(
-                duration:
-                const Duration(milliseconds: 180),
-                width: 3,
-                height: _duration ==
-                    Duration.zero &&
-                    !_recording
-                    ? 4
-                    : height,
-                decoration: BoxDecoration(
-                  color: _recording
-                      ? const Color(0xffFF3B7A)
-                      : const Color(0xffA855F7),
-                  borderRadius:
-                  BorderRadius.circular(10),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _controls() {
-    return Row(
-      mainAxisAlignment:
-      MainAxisAlignment.center,
-      children: [
-        if (_duration > Duration.zero)
-          IconButton(
-            onPressed:
-            _recording || _busy
-                ? null
-                : _deleteRecording,
-            splashRadius: 24,
-            icon: const Icon(
-              Icons.delete_outline_rounded,
-              color: Color(0xff777787),
-              size: 23,
-            ),
-          ),
-
-        if (_duration > Duration.zero)
-          const SizedBox(width: 18),
-
-        GestureDetector(
-          onTap:
-          _busy ? null : _toggleRecording,
-          child: Container(
-            width: 58,
-            height: 58,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: _recording
-                  ? const Color(0xffFF3B7A)
-                  : const Color(0xffA855F7),
-            ),
-            child: Icon(
-              _recording
-                  ? Icons.stop_rounded
-                  : Icons.mic_rounded,
-              color: Colors.white,
-              size: 26,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _useButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton(
-        onPressed:
-        _recording || _busy
-            ? null
-            : _useRecording,
-        style: ElevatedButton.styleFrom(
-          elevation: 0,
-          backgroundColor:
-          const Color(0xff8B5CF6),
-          disabledBackgroundColor:
-          const Color(0xff302A38),
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius:
-            BorderRadius.circular(15),
-          ),
-        ),
-        child: const Text(
-          'Use voice note',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _formatDuration(Duration value) {
-    final minutes = value.inMinutes
-        .remainder(60)
-        .toString()
-        .padLeft(2, '0');
-
-    final seconds = value.inSeconds
-        .remainder(60)
-        .toString()
-        .padLeft(2, '0');
-
-    return '$minutes:$seconds';
   }
 }

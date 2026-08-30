@@ -15,8 +15,7 @@ class VoiceNoteResult {
   });
 }
 
-class VoiceNoteSheet
-    extends StatefulWidget {
+class VoiceNoteSheet extends StatefulWidget {
   final String? existingPath;
   final Duration? existingDuration;
 
@@ -33,9 +32,7 @@ class VoiceNoteSheet
 
 class _VoiceNoteSheetState
     extends State<VoiceNoteSheet> {
-  late final MomentVoiceRecorderService
-  _recorder;
-
+  late final MomentVoiceRecorderService _recorder;
   late final AudioPlayer _player;
 
   Timer? _timer;
@@ -60,7 +57,8 @@ class _VoiceNoteSheetState
     _recorder =
         MomentVoiceRecorderService();
 
-    _player = AudioPlayer();
+    _player =
+        AudioPlayer();
 
     _recordedPath =
         widget.existingPath;
@@ -85,6 +83,7 @@ class _VoiceNoteSheetState
   @override
   void dispose() {
     _timer?.cancel();
+
     _player.dispose();
     _recorder.dispose();
 
@@ -100,19 +99,16 @@ class _VoiceNoteSheetState
         20,
         24,
       ),
-      decoration:
-      const BoxDecoration(
+      decoration: const BoxDecoration(
         color: Color(0xff11111A),
-        borderRadius:
-        BorderRadius.vertical(
+        borderRadius: BorderRadius.vertical(
           top: Radius.circular(28),
         ),
       ),
       child: SafeArea(
         top: false,
         child: Column(
-          mainAxisSize:
-          MainAxisSize.min,
+          mainAxisSize: MainAxisSize.min,
           children: [
             _buildHandle(),
 
@@ -141,8 +137,7 @@ class _VoiceNoteSheetState
     return Container(
       width: 38,
       height: 4,
-      decoration:
-      BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white24,
         borderRadius:
         BorderRadius.circular(20),
@@ -159,20 +154,17 @@ class _VoiceNoteSheetState
             style: TextStyle(
               color: Colors.white,
               fontSize: 18,
-              fontWeight:
-              FontWeight.w700,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
         IconButton(
-          onPressed: _isBusy
-              ? null
-              : _close,
+          onPressed:
+          _isBusy ? null : _close,
           splashRadius: 20,
           icon: const Icon(
             Icons.close_rounded,
-            color:
-            Color(0xff777787),
+            color: Color(0xff777787),
             size: 21,
           ),
         ),
@@ -186,15 +178,12 @@ class _VoiceNoteSheetState
         Container(
           width: 118,
           height: 118,
-          decoration:
-          BoxDecoration(
+          decoration: BoxDecoration(
             color: _isRecording
-                ? const Color(
-              0xffEC4899,
-            ).withOpacity(.10)
-                : const Color(
-              0xffA855F7,
-            ).withOpacity(.10),
+                ? const Color(0xffEC4899)
+                .withOpacity(.10)
+                : const Color(0xffA855F7)
+                .withOpacity(.10),
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -204,22 +193,13 @@ class _VoiceNoteSheetState
                 milliseconds: 180,
               ),
               width:
-              _isRecording
-                  ? 82
-                  : 72,
+              _isRecording ? 82 : 72,
               height:
-              _isRecording
-                  ? 82
-                  : 72,
-              decoration:
-              BoxDecoration(
+              _isRecording ? 82 : 72,
+              decoration: BoxDecoration(
                 color: _isRecording
-                    ? const Color(
-                  0xffEC4899,
-                )
-                    : const Color(
-                  0xff8B5CF6,
-                ),
+                    ? const Color(0xffEC4899)
+                    : const Color(0xff8B5CF6),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -244,8 +224,7 @@ class _VoiceNoteSheetState
           style: const TextStyle(
             color: Colors.white,
             fontSize: 28,
-            fontWeight:
-            FontWeight.w700,
+            fontWeight: FontWeight.w700,
             fontFeatures: [
               FontFeature.tabularFigures(),
             ],
@@ -261,8 +240,7 @@ class _VoiceNoteSheetState
               : 'Recording...')
               : 'Tap the microphone to record',
           style: const TextStyle(
-            color:
-            Color(0xff777787),
+            color: Color(0xff777787),
             fontSize: 12.5,
           ),
         ),
@@ -279,12 +257,12 @@ class _VoiceNoteSheetState
 
   Widget _buildStartButton() {
     return GestureDetector(
-      onTap: _startRecording,
+      onTap:
+      _isBusy ? null : _startRecording,
       child: Container(
         width: 64,
         height: 64,
-        decoration:
-        const BoxDecoration(
+        decoration: const BoxDecoration(
           color: Color(0xff8B5CF6),
           shape: BoxShape.circle,
         ),
@@ -306,21 +284,19 @@ class _VoiceNoteSheetState
           icon: _isPaused
               ? Icons.play_arrow_rounded
               : Icons.pause_rounded,
-          onTap:
-          _togglePause,
+          onTap: _togglePause,
         ),
 
         const SizedBox(width: 22),
 
         GestureDetector(
-          onTap: _stopRecording,
+          onTap:
+          _isBusy ? null : _stopRecording,
           child: Container(
             width: 68,
             height: 68,
-            decoration:
-            const BoxDecoration(
-              color:
-              Color(0xffEC4899),
+            decoration: const BoxDecoration(
+              color: Color(0xffEC4899),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -334,8 +310,12 @@ class _VoiceNoteSheetState
         const SizedBox(width: 22),
 
         _CircleButton(
-          icon: Icons.delete_outline_rounded,
-          onTap: _cancelRecording,
+          icon:
+          Icons.delete_outline_rounded,
+          onTap:
+          _isBusy
+              ? () {}
+              : _cancelRecording,
         ),
       ],
     );
@@ -347,17 +327,13 @@ class _VoiceNoteSheetState
         Container(
           padding:
           const EdgeInsets.all(18),
-          decoration:
-          BoxDecoration(
-            color:
-            const Color(0xff191923),
+          decoration: BoxDecoration(
+            color: const Color(0xff191923),
             borderRadius:
-            BorderRadius.circular(
-              20,
-            ),
+            BorderRadius.circular(20),
             border: Border.all(
-              color: Colors.white
-                  .withOpacity(.05),
+              color:
+              Colors.white.withOpacity(.05),
             ),
           ),
           child: Row(
@@ -369,16 +345,13 @@ class _VoiceNoteSheetState
                   height: 52,
                   decoration:
                   const BoxDecoration(
-                    color:
-                    Color(0xff8B5CF6),
+                    color: Color(0xff8B5CF6),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     _isPlaying
-                        ? Icons
-                        .pause_rounded
-                        : Icons
-                        .play_arrow_rounded,
+                        ? Icons.pause_rounded
+                        : Icons.play_arrow_rounded,
                     color: Colors.white,
                     size: 27,
                   ),
@@ -390,29 +363,23 @@ class _VoiceNoteSheetState
               Expanded(
                 child: Column(
                   crossAxisAlignment:
-                  CrossAxisAlignment
-                      .start,
+                  CrossAxisAlignment.start,
                   children: [
                     const Text(
                       'Voice note',
-                      style:
-                      TextStyle(
-                        color:
-                        Colors.white,
+                      style: TextStyle(
+                        color: Colors.white,
                         fontSize: 14,
                         fontWeight:
                         FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(
-                      height: 5,
-                    ),
+                    const SizedBox(height: 5),
                     Text(
                       _formatDuration(
                         _recordedDuration,
                       ),
-                      style:
-                      const TextStyle(
+                      style: const TextStyle(
                         color:
                         Color(0xff777787),
                         fontSize: 12,
@@ -424,13 +391,14 @@ class _VoiceNoteSheetState
 
               IconButton(
                 onPressed:
-                _deleteRecording,
+                _isBusy
+                    ? null
+                    : _deleteRecording,
                 splashRadius: 20,
                 icon: const Icon(
                   Icons
                       .delete_outline_rounded,
-                  color:
-                  Color(0xffF87171),
+                  color: Color(0xffF87171),
                   size: 21,
                 ),
               ),
@@ -443,8 +411,7 @@ class _VoiceNoteSheetState
         const Text(
           'Your voice note is ready.',
           style: TextStyle(
-            color:
-            Color(0xff777787),
+            color: Color(0xff777787),
             fontSize: 12.5,
           ),
         ),
@@ -472,16 +439,13 @@ class _VoiceNoteSheetState
           elevation: 0,
           backgroundColor:
           const Color(0xff8B5CF6),
-          foregroundColor:
-          Colors.white,
+          foregroundColor: Colors.white,
           disabledBackgroundColor:
           const Color(0xff292433),
           shape:
           RoundedRectangleBorder(
             borderRadius:
-            BorderRadius.circular(
-              15,
-            ),
+            BorderRadius.circular(15),
           ),
         ),
         child: _isBusy
@@ -507,8 +471,7 @@ class _VoiceNoteSheetState
   }
 
   Future<void> _startRecording() async {
-    if (_isBusy ||
-        _isRecording) {
+    if (_isBusy || _isRecording) {
       return;
     }
 
@@ -517,10 +480,27 @@ class _VoiceNoteSheetState
     });
 
     try {
+      /*
+       * If there is an old recording from
+       * this sheet, remove it before creating
+       * a replacement.
+       */
+      final oldPath = _recordedPath;
+
+      if (oldPath != null &&
+          oldPath != widget.existingPath) {
+        await _recorder.deleteFile(
+          oldPath,
+        );
+      }
+
+      await _player.stop();
+
       final path =
       await _recorder.start();
 
       if (!mounted) {
+        await _recorder.cancel();
         return;
       }
 
@@ -528,9 +508,11 @@ class _VoiceNoteSheetState
         _recordedPath = path;
         _recordedDuration =
             Duration.zero;
-        _elapsed = Duration.zero;
+        _elapsed =
+            Duration.zero;
         _isRecording = true;
         _isPaused = false;
+        _isPlaying = false;
         _isBusy = false;
       });
 
@@ -573,8 +555,7 @@ class _VoiceNoteSheetState
   }
 
   Future<void> _togglePause() async {
-    if (!_isRecording ||
-        _isBusy) {
+    if (!_isRecording || _isBusy) {
       return;
     }
 
@@ -608,8 +589,7 @@ class _VoiceNoteSheetState
   }
 
   Future<void> _stopRecording() async {
-    if (!_isRecording ||
-        _isBusy) {
+    if (!_isRecording || _isBusy) {
       return;
     }
 
@@ -627,6 +607,18 @@ class _VoiceNoteSheetState
           path.isEmpty) {
         throw const VoiceRecorderException(
           'No recording was created.',
+        );
+      }
+
+      if (_elapsed < const Duration(
+        seconds: 1,
+      )) {
+        await _recorder.deleteFile(
+          path,
+        );
+
+        throw const VoiceRecorderException(
+          'Voice note is too short.',
         );
       }
 
@@ -654,12 +646,18 @@ class _VoiceNoteSheetState
       });
 
       _showMessage(
-        'Unable to finish recording.',
+        error is VoiceRecorderException
+            ? error.message
+            : 'Unable to finish recording.',
       );
     }
   }
 
   Future<void> _cancelRecording() async {
+    if (_isBusy) {
+      return;
+    }
+
     _timer?.cancel();
 
     try {
@@ -670,29 +668,58 @@ class _VoiceNoteSheetState
       return;
     }
 
+    /*
+     * Return to the previous preview if
+     * there was an existing voice note.
+     */
+    if (widget.existingPath != null) {
+      setState(() {
+        _recordedPath =
+            widget.existingPath;
+        _recordedDuration =
+            widget.existingDuration ??
+                Duration.zero;
+        _elapsed =
+            Duration.zero;
+        _isRecording = false;
+        _isPaused = false;
+        _isPlaying = false;
+        _isBusy = false;
+      });
+
+      return;
+    }
+
     setState(() {
       _recordedPath = null;
       _recordedDuration =
           Duration.zero;
-      _elapsed = Duration.zero;
+      _elapsed =
+          Duration.zero;
       _isRecording = false;
       _isPaused = false;
+      _isPlaying = false;
       _isBusy = false;
     });
   }
 
   Future<void> _deleteRecording() async {
+    if (_isBusy) {
+      return;
+    }
+
     final path = _recordedPath;
 
-    if (path != null) {
+    await _player.stop();
+
+    if (path != null &&
+        path != widget.existingPath) {
       try {
         await _recorder.deleteFile(
           path,
         );
       } catch (_) {}
     }
-
-    await _player.stop();
 
     if (!mounted) {
       return;
@@ -702,7 +729,8 @@ class _VoiceNoteSheetState
       _recordedPath = null;
       _recordedDuration =
           Duration.zero;
-      _elapsed = Duration.zero;
+      _elapsed =
+          Duration.zero;
       _isPlaying = false;
     });
   }
@@ -711,7 +739,8 @@ class _VoiceNoteSheetState
     final path = _recordedPath;
 
     if (path == null ||
-        path.isEmpty) {
+        path.isEmpty ||
+        _isBusy) {
       return;
     }
 
@@ -813,8 +842,7 @@ class _VoiceNoteSheetState
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content:
-          Text(message),
+          content: Text(message),
           behavior:
           SnackBarBehavior.floating,
           margin:
@@ -822,9 +850,7 @@ class _VoiceNoteSheetState
           shape:
           RoundedRectangleBorder(
             borderRadius:
-            BorderRadius.circular(
-              14,
-            ),
+            BorderRadius.circular(14),
           ),
         ),
       );
@@ -848,14 +874,13 @@ class _CircleButton
       child: Container(
         width: 52,
         height: 52,
-        decoration:
-        BoxDecoration(
+        decoration: BoxDecoration(
           color:
           const Color(0xff191923),
           shape: BoxShape.circle,
           border: Border.all(
-            color: Colors.white
-                .withOpacity(.06),
+            color:
+            Colors.white.withOpacity(.06),
           ),
         ),
         child: Icon(

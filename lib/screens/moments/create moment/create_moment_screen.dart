@@ -11,6 +11,8 @@ import 'package:junaya_voicechat_app/screens/moments/providers/drafts_provider.d
 import 'package:junaya_voicechat_app/screens/moments/data/moment_publisher.dart';
 import 'package:junaya_voicechat_app/screens/moments/providers/moments_provider.dart';
 import 'package:junaya_voicechat_app/screens/moments/services/moment_media_service.dart';
+import 'package:junaya_voicechat_app/screens/moments/create%20moment/widgets/voice_recording_sheet.dart';
+import 'package:junaya_voicechat_app/screens/moments/services/moment_voice_recorder_service.dart';
 
 class CreateMomentScreen
     extends ConsumerStatefulWidget {
@@ -907,6 +909,29 @@ class _CreateMomentScreenState
           draft.voiceDuration;
 
       _hasChanges = false;
+    });
+  }
+
+  Future<void> _recordVoice() async {
+    final result =
+    await showModalBottomSheet<VoiceRecordingResult>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
+      builder: (_) {
+        return const VoiceRecordingSheet();
+      },
+    );
+
+    if (!mounted || result == null) {
+      return;
+    }
+
+    setState(() {
+      _voicePath = result.path;
+      _voiceDuration = result.duration;
     });
   }
 
