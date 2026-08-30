@@ -97,48 +97,37 @@ class MomentsNotifier extends AsyncNotifier<List<Moment>> {
   }
 
 
-
-  Future<void> createMoment({
-
+  Future<Moment?> createMoment({
     required Moment moment,
-
     required List<String> mediaPaths,
-
   }) async {
+    final previous = state.value ?? [];
 
+    state = AsyncLoading<List<Moment>>()
+        .copyWithPrevious(state);
 
-    final previous =
-        state.value ?? [];
-
-
-    state =
-        AsyncLoading<List<Moment>>()
-            .copyWithPrevious(state);
-
-
-
-    state =
-    await AsyncValue.guard(() async {
-
-      await _repository.createMoment(
+    final result = await AsyncValue.guard<Moment>(() async {
+      return _repository.createMoment(
         moment: moment,
         mediaPaths: mediaPaths,
       );
-
-
-      return _repository.getMoments();
-
     });
 
-
-
-    if(state.hasError){
-
-      state =
-          AsyncData(previous);
-
+    if (result.hasError) {
+      state = AsyncData(previous);
+      return null;
     }
 
+    final created = result.value!;
+
+    state = AsyncData([
+      created,
+      ...previous.where(
+            (item) => item.id != created.id,
+      ),
+    ]);
+
+    return created;
   }
 
 
@@ -220,59 +209,32 @@ class MomentsNotifier extends AsyncNotifier<List<Moment>> {
   Future<void> toggleLike(
       Moment moment,
       ) async {
-
-
-    final optimistic =
-    moment.copyWith(
-
-      isLiked:
-      !moment.isLiked,
-
-      stats:
-      moment.stats.copyWith(
-
-        likes:
-
-        !moment.isLiked
-
+    final optimistic = moment.copyWith(
+      isLiked: !moment.isLiked,
+      stats: moment.stats.copyWith(
+        likes: !moment.isLiked
             ? moment.stats.likes + 1
-
             : moment.stats.likes > 0
             ? moment.stats.likes - 1
             : 0,
-
       ),
-
     );
 
-
-    _replace(
-      optimistic,
-    );
-
+    _replace(optimistic);
 
     try {
-
       final updated =
-      await _repository.toggleLike(
-        optimistic,
-      );
+      await _repository.toggleLike(moment);
 
       _replace(updated);
-
-    }
-    catch(error,stack){
-
+    } catch (error, stack) {
       _replace(moment);
 
-      state =
-          AsyncError(
-            error,
-            stack,
-          );
-
+      state = AsyncError(
+        error,
+        stack,
+      );
     }
-
   }
 
 
