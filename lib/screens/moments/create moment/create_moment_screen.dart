@@ -1,7 +1,6 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:junaya_voicechat_app/screens/moments/create%20moment/drafts_screen.dart';
 import 'package:junaya_voicechat_app/screens/moments/create%20moment/widgets/moment_media_picker.dart';
 import 'package:junaya_voicechat_app/screens/moments/create%20moment/widgets/moment_option_tile.dart';
 import 'package:junaya_voicechat_app/screens/moments/create%20moment/widgets/voice_note_tile.dart';
@@ -247,6 +246,7 @@ class _CreateMomentScreenState
               size: 24,
             ),
           ),
+
           const Expanded(
             child: Center(
               child: Text(
@@ -259,8 +259,30 @@ class _CreateMomentScreenState
               ),
             ),
           ),
-          const SizedBox(
-            width: 48,
+
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const DraftsScreen(),
+                ),
+              );
+            },
+            behavior: HitTestBehavior.opaque,
+            child: const Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 10,
+              ),
+              child: Text(
+                'Drafts',
+                style: TextStyle(
+                  color: Color(0xffA855F7),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -339,7 +361,7 @@ class _CreateMomentScreenState
         color: const Color(0xff11111A),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withOpacity(.06),
+          color: Colors.white.withValues(alpha: .06),
         ),
       ),
       child: TextField(
@@ -377,7 +399,7 @@ class _CreateMomentScreenState
         color: const Color(0xff11111A),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withOpacity(.05),
+          color: Colors.white.withValues(alpha: .05),
         ),
       ),
       child: Column(
@@ -423,7 +445,7 @@ class _CreateMomentScreenState
       ),
       child: Divider(
         height: 1,
-        color: Colors.white.withOpacity(.05),
+        color: Colors.white.withValues(alpha: .05),
       ),
     );
   }
@@ -440,7 +462,7 @@ class _CreateMomentScreenState
         color: const Color(0xff07070D),
         border: Border(
           top: BorderSide(
-            color: Colors.white.withOpacity(.05),
+            color: Colors.white.withValues(alpha: .05),
           ),
         ),
       ),
@@ -630,7 +652,7 @@ class _VisibilitySheet extends StatelessWidget {
               decoration: BoxDecoration(
                 color: selected
                     ? const Color(0xffA855F7)
-                    .withOpacity(.14)
+                    .withValues(alpha: .14)
                     : const Color(0xff20202A),
                 shape: BoxShape.circle,
               ),
