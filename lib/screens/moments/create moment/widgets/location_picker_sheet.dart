@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class LocationPickerSheet extends StatefulWidget {
   final String? selectedLocation;
-  final ValueChanged<String?>? onSelected;
+  final ValueChanged<String>? onSelected;
 
   const LocationPickerSheet({
     super.key,
@@ -20,195 +20,71 @@ class _LocationPickerSheetState
   final TextEditingController _searchController =
   TextEditingController();
 
-  final List<_LocationItem> _locations = const [
-    _LocationItem(
-      name: 'Dubai',
-      subtitle: 'Dubai, United Arab Emirates',
-      icon: Icons.location_city_outlined,
-    ),
-    _LocationItem(
-      name: 'Abu Dhabi',
-      subtitle: 'Abu Dhabi, United Arab Emirates',
-      icon: Icons.location_city_outlined,
-    ),
-    _LocationItem(
-      name: 'Sharjah',
-      subtitle: 'Sharjah, United Arab Emirates',
-      icon: Icons.location_city_outlined,
-    ),
-    _LocationItem(
-      name: 'Downtown Dubai',
-      subtitle: 'Dubai, United Arab Emirates',
-      icon: Icons.place_outlined,
-    ),
+  final List<String> _locations = const [
+    'Current location',
+    'Islamabad, Pakistan',
+    'Lahore, Pakistan',
+    'Karachi, Pakistan',
+    'Rawalpindi, Pakistan',
   ];
 
-  List<_LocationItem> _filtered = [];
+  String _query = '';
 
   @override
   void initState() {
     super.initState();
 
-    _filtered = List.from(_locations);
-
-    _searchController.addListener(
-      _filterLocations,
-    );
+    _searchController.addListener(() {
+      setState(() {
+        _query = _searchController.text.trim();
+      });
+    });
   }
 
   @override
   void dispose() {
-    _searchController
-      ..removeListener(_filterLocations)
-      ..dispose();
-
+    _searchController.dispose();
     super.dispose();
   }
 
-  void _filterLocations() {
-    final query =
-    _searchController.text.trim().toLowerCase();
+  List<String> get _filteredLocations {
+    if (_query.isEmpty) {
+      return _locations;
+    }
 
-    setState(() {
-      if (query.isEmpty) {
-        _filtered = List.from(_locations);
-      } else {
-        _filtered = _locations
-            .where(
-              (location) =>
-          location.name
-              .toLowerCase()
-              .contains(query) ||
-              location.subtitle
-                  .toLowerCase()
-                  .contains(query),
-        )
-            .toList();
-      }
-    });
-  }
-
-  void _select(String location) {
-    widget.onSelected?.call(location);
-    Navigator.of(context).pop(location);
-  }
-
-  void _clear() {
-    widget.onSelected?.call(null);
-    Navigator.of(context).pop(null);
+    return _locations
+        .where(
+          (location) => location
+          .toLowerCase()
+          .contains(_query.toLowerCase()),
+    )
+        .toList();
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height:
-      MediaQuery.of(context).size.height * .72,
+      height: MediaQuery.of(context).size.height * .62,
       decoration: const BoxDecoration(
         color: Color(0xff11111A),
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(26),
+          top: Radius.circular(28),
         ),
       ),
       child: SafeArea(
         top: false,
         child: Column(
           children: [
-            const SizedBox(height: 10),
-
             _handle(),
 
-            const SizedBox(height: 18),
+            _header(),
 
-            Padding(
-              padding:
-              const EdgeInsets.symmetric(
-                horizontal: 20,
-              ),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'Add location',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight:
-                        FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  if (widget.selectedLocation !=
-                      null)
-                    GestureDetector(
-                      onTap: _clear,
-                      child: const Text(
-                        'Clear',
-                        style: TextStyle(
-                          color:
-                          Color(0xffA855F7),
-                          fontSize: 13,
-                          fontWeight:
-                          FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
+            _searchField(),
 
-            const SizedBox(height: 16),
-
-            Padding(
-              padding:
-              const EdgeInsets.symmetric(
-                horizontal: 20,
-              ),
-              child: _searchField(),
-            ),
-
-            const SizedBox(height: 18),
+            const SizedBox(height: 8),
 
             Expanded(
-              child: ListView(
-                physics:
-                const BouncingScrollPhysics(),
-                padding:
-                const EdgeInsets.symmetric(
-                  horizontal: 20,
-                ),
-                children: [
-                  _currentLocationButton(),
-
-                  const SizedBox(height: 22),
-
-                  if (_searchController.text
-                      .isEmpty)
-                    const _SectionTitle(
-                      title: 'Recent',
-                    ),
-
-                  if (_searchController.text
-                      .isEmpty)
-                    ..._recentLocations(),
-
-                  if (_searchController.text
-                      .isNotEmpty &&
-                      _filtered.isNotEmpty)
-                    const _SectionTitle(
-                      title: 'Results',
-                    ),
-
-                  if (_searchController.text
-                      .isNotEmpty)
-                    ..._filtered.map(
-                          (location) =>
-                          _locationTile(location),
-                    ),
-
-                  if (_filtered.isEmpty)
-                    _emptyState(),
-                ],
-              ),
+              child: _locationList(),
             ),
           ],
         ),
@@ -216,238 +92,9 @@ class _LocationPickerSheetState
     );
   }
 
-  Widget _searchField() {
-    return Container(
-      height: 48,
-      decoration: BoxDecoration(
-        color: const Color(0xff20202A),
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: TextField(
-        controller: _searchController,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 14,
-        ),
-        decoration: InputDecoration(
-          hintText: 'Search location',
-          hintStyle: const TextStyle(
-            color: Color(0xff666675),
-            fontSize: 14,
-          ),
-          prefixIcon: const Icon(
-            Icons.search_rounded,
-            color: Color(0xff777787),
-            size: 21,
-          ),
-          suffixIcon:
-          _searchController.text.isNotEmpty
-              ? IconButton(
-            onPressed: () {
-              _searchController.clear();
-            },
-            icon: const Icon(
-              Icons.close_rounded,
-              color:
-              Color(0xff777787),
-              size: 18,
-            ),
-          )
-              : null,
-          border: InputBorder.none,
-          contentPadding:
-          const EdgeInsets.symmetric(
-            vertical: 14,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _currentLocationButton() {
-    return Material(
-      color: const Color(0xff191923),
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: () {
-          _select('Current location');
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: const Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 13,
-          ),
-          child: Row(
-            children: [
-              _IconCircle(
-                icon:
-                Icons.my_location_rounded,
-                highlighted: true,
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Use current location',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight:
-                        FontWeight.w600,
-                      ),
-                    ),
-                    SizedBox(height: 3),
-                    Text(
-                      'Find places near you',
-                      style: TextStyle(
-                        color:
-                        Color(0xff777787),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: Color(0xff5F5F6D),
-                size: 21,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  List<Widget> _recentLocations() {
-    return _locations
-        .take(3)
-        .map(
-          (location) =>
-          _locationTile(location),
-    )
-        .toList();
-  }
-
-  Widget _locationTile(
-      _LocationItem location,
-      ) {
-    final selected =
-        widget.selectedLocation ==
-            location.name;
-
-    return Padding(
-      padding: const EdgeInsets.only(
-        bottom: 6,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius:
-        BorderRadius.circular(14),
-        child: InkWell(
-          onTap: () {
-            _select(location.name);
-          },
-          borderRadius:
-          BorderRadius.circular(14),
-          child: Padding(
-            padding:
-            const EdgeInsets.symmetric(
-              horizontal: 8,
-              vertical: 11,
-            ),
-            child: Row(
-              children: [
-                _IconCircle(
-                  icon: location.icon,
-                  highlighted: selected,
-                ),
-
-                const SizedBox(width: 12),
-
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        location.name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight:
-                          FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        location.subtitle,
-                        style: const TextStyle(
-                          color:
-                          Color(0xff777787),
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                if (selected)
-                  const Icon(
-                    Icons.check_circle_rounded,
-                    color:
-                    Color(0xffA855F7),
-                    size: 20,
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _emptyState() {
-    return Padding(
-      padding: const EdgeInsets.only(
-        top: 70,
-      ),
-      child: Column(
-        children: [
-          const Icon(
-            Icons.location_off_outlined,
-            color: Colors.white24,
-            size: 42,
-          ),
-          const SizedBox(height: 14),
-          const Text(
-            'No locations found',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 5),
-          const Text(
-            'Try a different search.',
-            style: TextStyle(
-              color: Color(0xff666675),
-              fontSize: 13,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _handle() {
     return Container(
+      margin: const EdgeInsets.only(top: 11),
       width: 38,
       height: 4,
       decoration: BoxDecoration(
@@ -456,74 +103,212 @@ class _LocationPickerSheetState
       ),
     );
   }
-}
 
-class _SectionTitle extends StatelessWidget {
-  final String title;
-
-  const _SectionTitle({
-    required this.title,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _header() {
     return Padding(
-      padding: const EdgeInsets.only(
-        left: 2,
-        bottom: 10,
+      padding: const EdgeInsets.fromLTRB(
+        20,
+        18,
+        16,
+        14,
       ),
-      child: Text(
-        title,
-        style: const TextStyle(
-          color: Color(0xff777787),
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
+      child: Row(
+        children: [
+          const Expanded(
+            child: Text(
+              'Add location',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            icon: const Icon(
+              Icons.close_rounded,
+              color: Color(0xff888896),
+              size: 21,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _searchField() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+      ),
+      child: Container(
+        height: 46,
+        decoration: BoxDecoration(
+          color: const Color(0xff20202A),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: TextField(
+          controller: _searchController,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+          ),
+          decoration: InputDecoration(
+            prefixIcon: const Icon(
+              Icons.search_rounded,
+              color: Color(0xff777787),
+              size: 20,
+            ),
+            suffixIcon: _query.isNotEmpty
+                ? IconButton(
+              onPressed: () {
+                _searchController.clear();
+              },
+              icon: const Icon(
+                Icons.close_rounded,
+                color: Color(0xff777787),
+                size: 17,
+              ),
+            )
+                : null,
+            hintText: 'Search location',
+            hintStyle: const TextStyle(
+              color: Color(0xff666675),
+              fontSize: 14,
+            ),
+            border: InputBorder.none,
+          ),
         ),
       ),
     );
   }
-}
 
-class _IconCircle extends StatelessWidget {
-  final IconData icon;
-  final bool highlighted;
+  Widget _locationList() {
+    final locations = _filteredLocations;
 
-  const _IconCircle({
-    required this.icon,
-    required this.highlighted,
-  });
+    if (locations.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.location_off_outlined,
+              color: Colors.white24,
+              size: 38,
+            ),
+            SizedBox(height: 12),
+            Text(
+              'No locations found',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: 5),
+            Text(
+              'Try a different search.',
+              style: TextStyle(
+                color: Color(0xff666675),
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 42,
-      height: 42,
-      decoration: BoxDecoration(
-        color: highlighted
-            ? const Color(0xffA855F7)
-            .withValues(alpha: .13)
-            : const Color(0xff20202A),
-        shape: BoxShape.circle,
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(
+        16,
+        8,
+        16,
+        20,
       ),
-      child: Icon(
-        icon,
-        color: highlighted
-            ? const Color(0xffA855F7)
-            : const Color(0xff9999A8),
-        size: 20,
+      physics: const BouncingScrollPhysics(),
+      itemCount: locations.length,
+      separatorBuilder: (_, __) => const SizedBox(
+        height: 4,
       ),
+      itemBuilder: (context, index) {
+        final location = locations[index];
+
+        final selected =
+            location == widget.selectedLocation;
+
+        final current =
+            location == 'Current location';
+
+        return Material(
+          color: selected
+              ? const Color(0xffA855F7)
+              .withValues(alpha: .10)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(15),
+          child: InkWell(
+            onTap: () {
+              widget.onSelected?.call(location);
+              Navigator.of(context).pop(location);
+            },
+            borderRadius: BorderRadius.circular(15),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 12,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: current
+                          ? const Color(0xffA855F7)
+                          .withValues(alpha: .12)
+                          : const Color(0xff20202A),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      current
+                          ? Icons.my_location_rounded
+                          : Icons.location_on_outlined,
+                      color: current
+                          ? const Color(0xffA855F7)
+                          : const Color(0xff9999A8),
+                      size: 19,
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  Expanded(
+                    child: Text(
+                      location,
+                      style: TextStyle(
+                        color: current
+                            ? const Color(0xffC084FC)
+                            : Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+
+                  if (selected)
+                    const Icon(
+                      Icons.check_circle_rounded,
+                      color: Color(0xffA855F7),
+                      size: 20,
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
-}
-
-class _LocationItem {
-  final String name;
-  final String subtitle;
-  final IconData icon;
-
-  const _LocationItem({
-    required this.name,
-    required this.subtitle,
-    required this.icon,
-  });
 }

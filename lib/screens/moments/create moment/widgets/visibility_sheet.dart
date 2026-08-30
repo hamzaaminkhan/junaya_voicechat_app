@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 
-enum MomentVisibilityOption {
+enum MomentVisibility {
   public,
-  friends,
+  followers,
   private,
 }
 
 class VisibilitySheet extends StatelessWidget {
-  final MomentVisibilityOption selected;
-  final ValueChanged<MomentVisibilityOption>? onSelected;
+  final MomentVisibility selected;
+  final ValueChanged<MomentVisibility>? onSelected;
 
   const VisibilitySheet({
     super.key,
-    this.selected = MomentVisibilityOption.public,
+    this.selected = MomentVisibility.public,
     this.onSelected,
   });
 
@@ -23,12 +23,12 @@ class VisibilitySheet extends StatelessWidget {
         20,
         10,
         20,
-        28,
+        24,
       ),
       decoration: const BoxDecoration(
         color: Color(0xff11111A),
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(26),
+          top: Radius.circular(28),
         ),
       ),
       child: SafeArea(
@@ -38,72 +38,115 @@ class VisibilitySheet extends StatelessWidget {
           children: [
             _handle(),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
 
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Who can see this moment?',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Who can see this?',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
-              ),
+                IconButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    color: Color(0xff777787),
+                    size: 21,
+                  ),
+                ),
+              ],
             ),
 
-            const SizedBox(height: 5),
+            const SizedBox(height: 8),
 
             const Align(
               alignment: Alignment.centerLeft,
               child: Text(
                 'Choose who can view your moment.',
                 style: TextStyle(
-                  color: Color(0xff777787),
+                  color: Color(0xff666675),
                   fontSize: 13,
                 ),
               ),
             ),
 
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
 
             _VisibilityOption(
-              value: MomentVisibilityOption.public,
-              selected: selected,
               icon: Icons.public_rounded,
+              color: const Color(0xff22C55E),
               title: 'Public',
               subtitle:
               'Anyone can see this moment',
-              onTap: onSelected,
+              selected:
+              selected == MomentVisibility.public,
+              onTap: () {
+                _select(
+                  context,
+                  MomentVisibility.public,
+                );
+              },
             ),
 
             const SizedBox(height: 8),
 
             _VisibilityOption(
-              value: MomentVisibilityOption.friends,
-              selected: selected,
               icon: Icons.people_outline_rounded,
-              title: 'Friends',
+              color: const Color(0xffA855F7),
+              title: 'Followers',
               subtitle:
-              'Only people you follow and who follow you',
-              onTap: onSelected,
+              'Only people who follow you',
+              selected:
+              selected ==
+                  MomentVisibility.followers,
+              onTap: () {
+                _select(
+                  context,
+                  MomentVisibility.followers,
+                );
+              },
             ),
 
             const SizedBox(height: 8),
 
             _VisibilityOption(
-              value: MomentVisibilityOption.private,
-              selected: selected,
               icon: Icons.lock_outline_rounded,
+              color: const Color(0xffF59E0B),
               title: 'Only me',
               subtitle:
-              'Only you can see this moment',
-              onTap: onSelected,
+              'Keep this moment private',
+              selected:
+              selected ==
+                  MomentVisibility.private,
+              onTap: () {
+                _select(
+                  context,
+                  MomentVisibility.private,
+                );
+              },
             ),
+
+            const SizedBox(height: 10),
           ],
         ),
       ),
     );
+  }
+
+  void _select(
+      BuildContext context,
+      MomentVisibility value,
+      ) {
+    onSelected?.call(value);
+    Navigator.of(context).pop(value);
   }
 
   Widget _handle() {
@@ -119,76 +162,49 @@ class VisibilitySheet extends StatelessWidget {
 }
 
 class _VisibilityOption extends StatelessWidget {
-  final MomentVisibilityOption value;
-  final MomentVisibilityOption selected;
   final IconData icon;
+  final Color color;
   final String title;
   final String subtitle;
-  final ValueChanged<MomentVisibilityOption>?
-  onTap;
+  final bool selected;
+  final VoidCallback onTap;
 
   const _VisibilityOption({
-    required this.value,
-    required this.selected,
     required this.icon,
+    required this.color,
     required this.title,
     required this.subtitle,
-    this.onTap,
+    required this.selected,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isSelected = value == selected;
-
     return Material(
-      color: isSelected
-          ? const Color(0xffA855F7)
-          .withOpacity(.08)
+      color: selected
+          ? color.withOpacity(.09)
           : const Color(0xff191923),
       borderRadius: BorderRadius.circular(17),
       child: InkWell(
-        onTap: () {
-          onTap?.call(value);
-
-          if (onTap != null) {
-            Navigator.of(context).pop(value);
-          }
-        },
+        onTap: onTap,
         borderRadius: BorderRadius.circular(17),
-        child: AnimatedContainer(
-          duration:
-          const Duration(milliseconds: 180),
+        child: Padding(
           padding: const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 14,
-          ),
-          decoration: BoxDecoration(
-            borderRadius:
-            BorderRadius.circular(17),
-            border: Border.all(
-              color: isSelected
-                  ? const Color(0xffA855F7)
-                  .withOpacity(.28)
-                  : Colors.transparent,
-            ),
+            horizontal: 13,
+            vertical: 13,
           ),
           child: Row(
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: 43,
+                height: 43,
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? const Color(0xffA855F7)
-                      .withOpacity(.13)
-                      : const Color(0xff20202A),
+                  color: color.withOpacity(.11),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   icon,
-                  color: isSelected
-                      ? const Color(0xffA855F7)
-                      : const Color(0xff9999A8),
+                  color: color,
                   size: 20,
                 ),
               ),
@@ -208,37 +224,43 @@ class _VisibilityOption extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-
                     const SizedBox(height: 3),
-
                     Text(
                       subtitle,
                       style: const TextStyle(
                         color: Color(0xff777787),
                         fontSize: 12,
-                        height: 1.25,
                       ),
                     ),
                   ],
                 ),
               ),
 
-              AnimatedSwitcher(
+              AnimatedContainer(
                 duration:
-                const Duration(milliseconds: 180),
-                child: isSelected
-                    ? const Icon(
-                  Icons.check_circle_rounded,
-                  key: ValueKey('selected'),
-                  color: Color(0xffA855F7),
-                  size: 21,
-                )
-                    : const Icon(
-                  Icons.radio_button_unchecked,
-                  key: ValueKey('unselected'),
-                  color: Color(0xff4B4B58),
-                  size: 21,
+                const Duration(milliseconds: 160),
+                width: 21,
+                height: 21,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: selected
+                        ? const Color(0xffA855F7)
+                        : const Color(0xff555563),
+                    width: 1.5,
+                  ),
                 ),
+                child: selected
+                    ? Container(
+                  margin:
+                  const EdgeInsets.all(4),
+                  decoration:
+                  const BoxDecoration(
+                    color: Color(0xffA855F7),
+                    shape: BoxShape.circle,
+                  ),
+                )
+                    : null,
               ),
             ],
           ),

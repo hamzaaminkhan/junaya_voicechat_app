@@ -2,21 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-enum VoiceRecordingState {
-  idle,
-  recording,
-  recorded,
-  playing,
-}
-
 class VoiceRecordingSheet extends StatefulWidget {
-  final String? existingPath;
-  final ValueChanged<String?>? onCompleted;
+  final String? existingDuration;
+  final ValueChanged<Duration>? onRecorded;
+  final VoidCallback? onCancel;
 
   const VoiceRecordingSheet({
     super.key,
-    this.existingPath,
-    this.onCompleted,
+    this.existingDuration,
+    this.onRecorded,
+    this.onCancel,
   });
 
   @override
@@ -26,24 +21,12 @@ class VoiceRecordingSheet extends StatefulWidget {
 
 class _VoiceRecordingSheetState
     extends State<VoiceRecordingSheet> {
-  VoiceRecordingState _state =
-      VoiceRecordingState.idle;
+  Timer? _timer;
 
   Duration _duration = Duration.zero;
 
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-
-    if (widget.existingPath != null &&
-        widget.existingPath!.isNotEmpty) {
-      _state = VoiceRecordingState.recorded;
-      _duration =
-      const Duration(seconds: 12);
-    }
-  }
+  bool _recording = false;
+  bool _recorded = false;
 
   @override
   void dispose() {
@@ -58,7 +41,7 @@ class _VoiceRecordingSheetState
         20,
         10,
         20,
-        28,
+        24,
       ),
       decoration: const BoxDecoration(
         color: Color(0xff11111A),
@@ -73,264 +56,26 @@ class _VoiceRecordingSheetState
           children: [
             _handle(),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
 
             _header(),
 
             const SizedBox(height: 24),
 
-            _waveform(),
-
-            const SizedBox(height: 14),
-
-            Text(
-              _formatDuration(),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            _timerDisplay(),
 
             const SizedBox(height: 24),
 
-            _controls(),
+            _waveform(),
 
-            if (_state == VoiceRecordingState.recorded ||
-                _state == VoiceRecordingState.playing)
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 18,
-                ),
-                child: _deleteButton(),
-              ),
+            const SizedBox(height: 28),
+
+            _recordButton(),
+
+            const SizedBox(height: 18),
+
+            _bottomActions(),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _header() {
-    String title;
-
-    String subtitle;
-
-    switch (_state) {
-      case VoiceRecordingState.recording:
-        title = 'Recording voice note';
-        subtitle = 'Tap stop when you’re done';
-        break;
-
-      case VoiceRecordingState.recorded:
-        title = 'Voice note ready';
-        subtitle = 'Preview your recording';
-        break;
-
-      case VoiceRecordingState.playing:
-        title = 'Playing voice note';
-        subtitle = 'Tap pause to stop playback';
-        break;
-
-      case VoiceRecordingState.idle:
-        title = 'Add voice note';
-        subtitle =
-        'Record a short voice message';
-        break;
-    }
-
-    return Column(
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 5),
-        Text(
-          subtitle,
-          style: const TextStyle(
-            color: Color(0xff777787),
-            fontSize: 13,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _waveform() {
-    final active =
-        _state == VoiceRecordingState.recording ||
-            _state == VoiceRecordingState.playing;
-
-    return SizedBox(
-      height: 70,
-      child: Row(
-        mainAxisAlignment:
-        MainAxisAlignment.center,
-        crossAxisAlignment:
-        CrossAxisAlignment.center,
-        children: List.generate(
-          42,
-              (index) {
-            final height =
-                10.0 +
-                    ((index * 17) % 42);
-
-            return AnimatedContainer(
-              duration:
-              const Duration(milliseconds: 180),
-              margin:
-              const EdgeInsets.symmetric(
-                horizontal: 2,
-              ),
-              width: 3,
-              height: height,
-              decoration: BoxDecoration(
-                color: active
-                    ? const Color(0xffA855F7)
-                    : Colors.white24,
-                borderRadius:
-                BorderRadius.circular(10),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _controls() {
-    switch (_state) {
-      case VoiceRecordingState.idle:
-        return _mainButton(
-          icon: Icons.mic_rounded,
-          label: 'Start recording',
-          onTap: _startRecording,
-        );
-
-      case VoiceRecordingState.recording:
-        return _mainButton(
-          icon: Icons.stop_rounded,
-          label: 'Stop recording',
-          danger: true,
-          onTap: _stopRecording,
-        );
-
-      case VoiceRecordingState.recorded:
-        return Row(
-          mainAxisAlignment:
-          MainAxisAlignment.center,
-          children: [
-            _roundButton(
-              icon: Icons.delete_outline_rounded,
-              onTap: _deleteRecording,
-              secondary: true,
-            ),
-            const SizedBox(width: 18),
-            _roundButton(
-              icon: Icons.play_arrow_rounded,
-              onTap: _playRecording,
-            ),
-            const SizedBox(width: 18),
-            _roundButton(
-              icon: Icons.check_rounded,
-              onTap: _useRecording,
-            ),
-          ],
-        );
-
-      case VoiceRecordingState.playing:
-        return _mainButton(
-          icon: Icons.pause_rounded,
-          label: 'Pause',
-          onTap: _pausePlayback,
-        );
-    }
-  }
-
-  Widget _mainButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    bool danger = false,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 52,
-        padding:
-        const EdgeInsets.symmetric(
-          horizontal: 22,
-        ),
-        decoration: BoxDecoration(
-          color: danger
-              ? const Color(0xffFF3B7A)
-              : const Color(0xffA855F7),
-          borderRadius:
-          BorderRadius.circular(17),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: Colors.white,
-              size: 21,
-            ),
-            const SizedBox(width: 9),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _roundButton({
-    required IconData icon,
-    required VoidCallback onTap,
-    bool secondary = false,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          color: secondary
-              ? const Color(0xff20202A)
-              : const Color(0xffA855F7),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(
-          icon,
-          color: secondary
-              ? const Color(0xff9999A8)
-              : Colors.white,
-          size: 22,
-        ),
-      ),
-    );
-  }
-
-  Widget _deleteButton() {
-    return GestureDetector(
-      onTap: _deleteRecording,
-      child: const Text(
-        'Delete recording',
-        style: TextStyle(
-          color: Color(0xffFF4D6D),
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -342,25 +87,259 @@ class _VoiceRecordingSheetState
       height: 4,
       decoration: BoxDecoration(
         color: Colors.white24,
-        borderRadius:
-        BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20),
       ),
     );
   }
 
-  void _startRecording() {
-    _timer?.cancel();
+  Widget _header() {
+    return Row(
+      children: [
+        const Expanded(
+          child: Column(
+            crossAxisAlignment:
+            CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Voice note',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              SizedBox(height: 5),
+              Text(
+                'Record a voice note for your moment.',
+                style: TextStyle(
+                  color: Color(0xff666675),
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+        ),
+        IconButton(
+          onPressed: () {
+            widget.onCancel?.call();
+            Navigator.of(context).pop();
+          },
+          icon: const Icon(
+            Icons.close_rounded,
+            color: Color(0xff777787),
+            size: 21,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _timerDisplay() {
+    return Column(
+      children: [
+        Text(
+          _formatDuration(_duration),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 36,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          _recording
+              ? 'Recording...'
+              : _recorded
+              ? 'Voice note ready'
+              : 'Tap the microphone to start',
+          style: TextStyle(
+            color: _recording
+                ? const Color(0xffFF4D6D)
+                : const Color(0xff777787),
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _waveform() {
+    return SizedBox(
+      height: 54,
+      width: double.infinity,
+      child: Row(
+        mainAxisAlignment:
+        MainAxisAlignment.center,
+        crossAxisAlignment:
+        CrossAxisAlignment.center,
+        children: List.generate(
+          32,
+              (index) {
+            final heights = [
+              12.0,
+              22.0,
+              15.0,
+              31.0,
+              19.0,
+              38.0,
+              25.0,
+              15.0,
+            ];
+
+            final height =
+            heights[index % heights.length];
+
+            return AnimatedContainer(
+              duration:
+              const Duration(milliseconds: 180),
+              width: 3,
+              height: _recording
+                  ? height
+                  : _recorded
+                  ? height * .8
+                  : 8,
+              margin:
+              const EdgeInsets.symmetric(
+                horizontal: 2,
+              ),
+              decoration: BoxDecoration(
+                color: _recording
+                    ? const Color(0xffA855F7)
+                    : _recorded
+                    ? const Color(0xff8B5CF6)
+                    : const Color(0xff3A3A48),
+                borderRadius:
+                BorderRadius.circular(10),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _recordButton() {
+    return GestureDetector(
+      onTap: _toggleRecording,
+      child: AnimatedContainer(
+        duration:
+        const Duration(milliseconds: 180),
+        width: 72,
+        height: 72,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: _recording
+              ? const Color(0xffFF4D6D)
+              : const Color(0xffA855F7),
+          boxShadow: [
+            BoxShadow(
+              color: (_recording
+                  ? const Color(0xffFF4D6D)
+                  : const Color(0xffA855F7))
+                  .withOpacity(.22),
+              blurRadius: 24,
+              spreadRadius: 4,
+            ),
+          ],
+        ),
+        child: Icon(
+          _recording
+              ? Icons.stop_rounded
+              : Icons.mic_rounded,
+          color: Colors.white,
+          size: 30,
+        ),
+      ),
+    );
+  }
+
+  Widget _bottomActions() {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: () {
+              _reset();
+            },
+            style: OutlinedButton.styleFrom(
+              foregroundColor:
+              const Color(0xff9999A8),
+              side: BorderSide(
+                color:
+                Colors.white.withOpacity(.08),
+              ),
+              minimumSize:
+              const Size.fromHeight(46),
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                BorderRadius.circular(14),
+              ),
+            ),
+            child: const Text(
+              'Clear',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(width: 10),
+
+        Expanded(
+          flex: 2,
+          child: ElevatedButton(
+            onPressed: _recorded
+                ? _save
+                : null,
+            style: ElevatedButton.styleFrom(
+              elevation: 0,
+              backgroundColor:
+              const Color(0xff8B5CF6),
+              disabledBackgroundColor:
+              const Color(0xff252530),
+              foregroundColor: Colors.white,
+              minimumSize:
+              const Size.fromHeight(46),
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                BorderRadius.circular(14),
+              ),
+            ),
+            child: const Text(
+              'Use voice note',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _toggleRecording() {
+    if (_recording) {
+      _stopRecording();
+      return;
+    }
 
     setState(() {
-      _state =
-          VoiceRecordingState.recording;
+      _recording = true;
+      _recorded = false;
       _duration = Duration.zero;
     });
 
     _timer = Timer.periodic(
       const Duration(seconds: 1),
           (_) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
 
         setState(() {
           _duration +=
@@ -372,57 +351,38 @@ class _VoiceRecordingSheetState
 
   void _stopRecording() {
     _timer?.cancel();
+    _timer = null;
 
     setState(() {
-      _state =
-          VoiceRecordingState.recorded;
+      _recording = false;
+      _recorded = _duration > Duration.zero;
     });
   }
 
-  void _playRecording() {
-    setState(() {
-      _state =
-          VoiceRecordingState.playing;
-    });
-
-    // Real audio playback will be connected later.
-  }
-
-  void _pausePlayback() {
-    setState(() {
-      _state =
-          VoiceRecordingState.recorded;
-    });
-  }
-
-  void _deleteRecording() {
+  void _reset() {
     _timer?.cancel();
+    _timer = null;
 
     setState(() {
-      _state =
-          VoiceRecordingState.idle;
+      _recording = false;
+      _recorded = false;
       _duration = Duration.zero;
     });
-
-    widget.onCompleted?.call(null);
   }
 
-  void _useRecording() {
-    widget.onCompleted?.call(
-      widget.existingPath ?? 'voice_note',
-    );
-
-    Navigator.of(context).pop();
+  void _save() {
+    widget.onRecorded?.call(_duration);
+    Navigator.of(context).pop(_duration);
   }
 
-  String _formatDuration() {
-    final minutes =
-    _duration.inMinutes
+  String _formatDuration(Duration duration) {
+    final minutes = duration.inMinutes
+        .remainder(60)
         .toString()
         .padLeft(2, '0');
 
-    final seconds =
-    (_duration.inSeconds % 60)
+    final seconds = duration.inSeconds
+        .remainder(60)
         .toString()
         .padLeft(2, '0');
 

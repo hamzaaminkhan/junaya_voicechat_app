@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+
 import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 import 'package:junaya_voicechat_app/screens/moments/widgets/comments_bottom_sheet.dart';
 import 'package:junaya_voicechat_app/screens/moments/widgets/moment_header.dart';
 import 'package:junaya_voicechat_app/screens/moments/widgets/moment_media.dart';
+import 'package:junaya_voicechat_app/screens/moments/widgets/moment_reaction_sheet.dart';
 import 'package:junaya_voicechat_app/screens/moments/widgets/reaction_bar.dart';
 import 'package:junaya_voicechat_app/screens/moments/widgets/reaction_summary.dart';
 
@@ -17,35 +19,83 @@ class MomentDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xff09090F),
-      appBar: AppBar(
-        backgroundColor: const Color(0xff09090F),
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            size: 20,
-          ),
-        ),
-        title: const Text(
-          'Moment',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        centerTitle: true,
-      ),
+      backgroundColor: const Color(0xff07070D),
+      appBar: _buildAppBar(context),
       body: ListView(
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.only(
+          top: 4,
           bottom: 40,
         ),
+        children: [
+          _buildCard(context),
+        ],
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(
+      BuildContext context,
+      ) {
+    return AppBar(
+      backgroundColor: const Color(0xff07070D),
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      centerTitle: true,
+      leading: IconButton(
+        onPressed: () {
+          Navigator.of(context).pop();
+        },
+        icon: const Icon(
+          Icons.arrow_back_rounded,
+          color: Colors.white,
+          size: 23,
+        ),
+      ),
+      title: const Text(
+        'Moment',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      actions: [
+        IconButton(
+          onPressed: () {},
+          icon: const Icon(
+            Icons.more_horiz_rounded,
+            color: Color(0xffA7A7B5),
+            size: 23,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCard(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xff0D0D14),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: .04),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: .28),
+            blurRadius: 22,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment:
+        CrossAxisAlignment.start,
         children: [
           MomentHeader(
             moment: moment,
@@ -53,109 +103,118 @@ class MomentDetailScreen extends StatelessWidget {
               Navigator.of(context).pop();
             },
           ),
+
           if (moment.caption.trim().isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 16,
                 4,
                 16,
-                16,
+                14,
               ),
               child: Text(
                 moment.caption,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Color(0xffF2F2F5),
                   fontSize: 16,
                   height: 1.45,
                 ),
               ),
             ),
+
           if (moment.media.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 10,
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(22),
+                borderRadius:
+                BorderRadius.circular(18),
                 child: MomentMediaWidget(
                   media: moment.media.toList(),
                 ),
               ),
             ),
+
+          const SizedBox(height: 8),
+
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              16,
-              16,
-              16,
-              4,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
             ),
             child: ReactionBar(
               moment: moment,
-            ),
-          ),
-          ReactionSummary(
-            reactions: moment.reactions.toList(),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              16,
-              18,
-              16,
-              0,
-            ),
-            child: GestureDetector(
-              onTap: () {
-                _openComments(context);
+              onLike: () {},
+              onComment: () {
+                _showComments(context);
               },
-              behavior: HitTestBehavior.opaque,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 13,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xff151522),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: .05),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.chat_bubble_outline_rounded,
-                      size: 19,
-                      color: Color(0xffA7A7B8),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        moment.stats.comments == 0
-                            ? 'Add a comment...'
-                            : '${moment.stats.comments} comments',
-                        style: const TextStyle(
-                          color: Color(0xffA7A7B8),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    const Icon(
-                      Icons.chevron_right_rounded,
-                      size: 20,
-                      color: Color(0xff666676),
-                    ),
-                  ],
-                ),
-              ),
+              onShare: () {},
+              onSave: () {},
             ),
           ),
+
+          if (moment.reactions.isNotEmpty)
+            ReactionSummary(
+              reactions:
+              moment.reactions.toList(),
+            ),
+
+          _buildCommentsButton(context),
+
+          const SizedBox(height: 8),
         ],
       ),
     );
   }
 
-  void _openComments(BuildContext context) {
+  Widget _buildCommentsButton(
+      BuildContext context,
+      ) {
+    final count = moment.stats.comments;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        16,
+        8,
+        16,
+        6,
+      ),
+      child: GestureDetector(
+        onTap: () {
+          _showComments(context);
+        },
+        behavior: HitTestBehavior.opaque,
+        child: Row(
+          children: [
+            const Icon(
+              Icons.chat_bubble_outline_rounded,
+              color: Color(0xff777787),
+              size: 17,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              count == 0
+                  ? 'View comments'
+                  : 'View all $count comments',
+              style: const TextStyle(
+                color: Color(0xff9999A8),
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const Spacer(),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: Color(0xff555563),
+              size: 19,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showComments(BuildContext context) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -167,5 +226,29 @@ class MomentDetailScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  void _showReactions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) {
+        return MomentReactionSheet(
+          reactionCounts: _reactionCounts(),
+        );
+      },
+    );
+  }
+
+  Map<String, int> _reactionCounts() {
+    final counts = <String, int>{};
+
+    for (final reaction in moment.reactions) {
+      counts[reaction.emoji] =
+          (counts[reaction.emoji] ?? 0) + 1;
+    }
+
+    return counts;
   }
 }

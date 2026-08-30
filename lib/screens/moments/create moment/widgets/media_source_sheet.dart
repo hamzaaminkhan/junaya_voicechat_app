@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 
-enum MomentMediaSource {
+enum MediaSource {
+  camera,
   gallery,
   video,
-  camera,
 }
 
 class MediaSourceSheet extends StatelessWidget {
+  final ValueChanged<MediaSource>? onSelected;
+
   const MediaSourceSheet({
     super.key,
     this.onSelected,
   });
-
-  final ValueChanged<MomentMediaSource>? onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -21,12 +21,12 @@ class MediaSourceSheet extends StatelessWidget {
         20,
         10,
         20,
-        28,
+        24,
       ),
       decoration: const BoxDecoration(
         color: Color(0xff11111A),
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(26),
+          top: Radius.circular(28),
         ),
       ),
       child: SafeArea(
@@ -36,18 +36,31 @@ class MediaSourceSheet extends StatelessWidget {
           children: [
             _handle(),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
 
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Add media',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Add media',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
-              ),
+                IconButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    color: Color(0xff777787),
+                    size: 21,
+                  ),
+                ),
+              ],
             ),
 
             const SizedBox(height: 5),
@@ -55,9 +68,9 @@ class MediaSourceSheet extends StatelessWidget {
             const Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Choose how you want to add media.',
+                'Choose how you want to add to your moment.',
                 style: TextStyle(
-                  color: Color(0xff777787),
+                  color: Color(0xff666675),
                   fontSize: 13,
                 ),
               ),
@@ -66,41 +79,46 @@ class MediaSourceSheet extends StatelessWidget {
             const SizedBox(height: 18),
 
             _SourceTile(
-              icon: Icons.photo_library_outlined,
-              title: 'Photo library',
-              subtitle:
-              'Choose photos from your device',
-              onTap: () => _select(
-                context,
-                MomentMediaSource.gallery,
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            _SourceTile(
-              icon: Icons.video_library_outlined,
-              title: 'Video',
-              subtitle:
-              'Choose a video from your device',
-              onTap: () => _select(
-                context,
-                MomentMediaSource.video,
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            _SourceTile(
               icon: Icons.camera_alt_outlined,
               title: 'Camera',
-              subtitle:
-              'Take a new photo',
-              onTap: () => _select(
-                context,
-                MomentMediaSource.camera,
-              ),
+              subtitle: 'Take a photo',
+              onTap: () {
+                _select(
+                  context,
+                  MediaSource.camera,
+                );
+              },
             ),
+
+            const SizedBox(height: 9),
+
+            _SourceTile(
+              icon: Icons.photo_library_outlined,
+              title: 'Photo library',
+              subtitle: 'Choose photos from your device',
+              onTap: () {
+                _select(
+                  context,
+                  MediaSource.gallery,
+                );
+              },
+            ),
+
+            const SizedBox(height: 9),
+
+            _SourceTile(
+              icon: Icons.videocam_outlined,
+              title: 'Video',
+              subtitle: 'Record or choose a video',
+              onTap: () {
+                _select(
+                  context,
+                  MediaSource.video,
+                );
+              },
+            ),
+
+            const SizedBox(height: 8),
           ],
         ),
       ),
@@ -109,7 +127,7 @@ class MediaSourceSheet extends StatelessWidget {
 
   void _select(
       BuildContext context,
-      MomentMediaSource source,
+      MediaSource source,
       ) {
     onSelected?.call(source);
     Navigator.of(context).pop(source);
@@ -144,10 +162,10 @@ class _SourceTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: const Color(0xff191923),
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(17),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(17),
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: 14,
@@ -156,17 +174,17 @@ class _SourceTile extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
                   color: const Color(0xffA855F7)
-                      .withValues(alpha: .12),
+                      .withOpacity(.10),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   icon,
                   color: const Color(0xffA855F7),
-                  size: 20,
+                  size: 21,
                 ),
               ),
 
@@ -185,9 +203,7 @@ class _SourceTile extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-
                     const SizedBox(height: 3),
-
                     Text(
                       subtitle,
                       style: const TextStyle(
@@ -201,7 +217,7 @@ class _SourceTile extends StatelessWidget {
 
               const Icon(
                 Icons.chevron_right_rounded,
-                color: Color(0xff5F5F6D),
+                color: Color(0xff555563),
                 size: 21,
               ),
             ],
