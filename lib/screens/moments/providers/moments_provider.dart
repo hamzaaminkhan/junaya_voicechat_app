@@ -106,28 +106,29 @@ class MomentsNotifier extends AsyncNotifier<List<Moment>> {
     state = AsyncLoading<List<Moment>>()
         .copyWithPrevious(state);
 
-    final result = await AsyncValue.guard<Moment>(() async {
-      return _repository.createMoment(
+    try {
+      final created =
+      await _repository.createMoment(
         moment: moment,
         mediaPaths: mediaPaths,
       );
-    });
 
-    if (result.hasError) {
+      final moments =
+      await _repository.getMoments();
+
+      state = AsyncData(moments);
+
+      return created;
+    } catch (error, stack) {
       state = AsyncData(previous);
+
+      state = AsyncError(
+        error,
+        stack,
+      );
+
       return null;
     }
-
-    final created = result.value!;
-
-    state = AsyncData([
-      created,
-      ...previous.where(
-            (item) => item.id != created.id,
-      ),
-    ]);
-
-    return created;
   }
 
 

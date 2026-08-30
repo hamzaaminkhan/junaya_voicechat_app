@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:junaya_voicechat_app/screens/moments/data/moment_draft_model.dart';
+
+
 
 class DraftCard extends StatelessWidget {
-  final String? thumbnail;
-  final String caption;
-  final String date;
-  final int mediaCount;
+  final MomentDraft draft;
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
 
   const DraftCard({
     super.key,
-    this.thumbnail,
-    this.caption = '',
-    this.date = '',
-    this.mediaCount = 0,
+    required this.draft,
     this.onTap,
     this.onDelete,
   });
@@ -22,17 +19,17 @@ class DraftCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: const Color(0xff11111A),
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(20),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              _thumbnail(),
+              _buildThumbnail(),
 
-              const SizedBox(width: 12),
+              const SizedBox(width: 13),
 
               Expanded(
                 child: Column(
@@ -40,16 +37,16 @@ class DraftCard extends StatelessWidget {
                   CrossAxisAlignment.start,
                   children: [
                     Text(
-                      caption.trim().isEmpty
+                      draft.caption.trim().isEmpty
                           ? 'Untitled moment'
-                          : caption.trim(),
+                          : draft.caption.trim(),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
-                        height: 1.3,
                         fontWeight: FontWeight.w600,
+                        height: 1.3,
                       ),
                     ),
 
@@ -57,97 +54,52 @@ class DraftCard extends StatelessWidget {
 
                     Row(
                       children: [
-                        if (date.isNotEmpty)
+                        const Icon(
+                          Icons.access_time_rounded,
+                          size: 13,
+                          color: Color(0xff666675),
+                        ),
+
+                        const SizedBox(width: 4),
+
+                        Text(
+                          _formatDate(draft.updatedAt),
+                          style: const TextStyle(
+                            color: Color(0xff666675),
+                            fontSize: 11.5,
+                          ),
+                        ),
+
+                        if (draft.mediaPaths.isNotEmpty) ...[
+                          const SizedBox(width: 10),
+                          const Icon(
+                            Icons.photo_library_outlined,
+                            size: 13,
+                            color: Color(0xff666675),
+                          ),
+                          const SizedBox(width: 4),
                           Text(
-                            date,
+                            '${draft.mediaPaths.length}',
                             style: const TextStyle(
-                              color: Color(0xff777787),
-                              fontSize: 12,
+                              color: Color(0xff666675),
+                              fontSize: 11.5,
                             ),
                           ),
-
-                        if (date.isNotEmpty &&
-                            mediaCount > 0)
-                          const Padding(
-                            padding:
-                            EdgeInsets.symmetric(
-                              horizontal: 7,
-                            ),
-                            child: Text(
-                              '•',
-                              style: TextStyle(
-                                color:
-                                Color(0xff555563),
-                              ),
-                            ),
-                          ),
-
-                        if (mediaCount > 0)
-                          Row(
-                            mainAxisSize:
-                            MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.photo_outlined,
-                                size: 13,
-                                color:
-                                Color(0xff777787),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '$mediaCount',
-                                style:
-                                const TextStyle(
-                                  color:
-                                  Color(0xff777787),
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
+                        ],
                       ],
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(width: 8),
-
-              PopupMenuButton<String>(
-                color: const Color(0xff20202A),
+              IconButton(
+                onPressed: onDelete,
+                splashRadius: 20,
                 icon: const Icon(
                   Icons.more_vert_rounded,
                   color: Color(0xff777787),
                   size: 21,
                 ),
-                onSelected: (value) {
-                  if (value == 'delete') {
-                    onDelete?.call();
-                  }
-                },
-                itemBuilder: (_) {
-                  return const [
-                    PopupMenuItem<String>(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.delete_outline_rounded,
-                            color: Color(0xffFF4D6D),
-                            size: 19,
-                          ),
-                          SizedBox(width: 10),
-                          Text(
-                            'Delete draft',
-                            style: TextStyle(
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ];
-                },
               ),
             ],
           ),
@@ -156,60 +108,90 @@ class DraftCard extends StatelessWidget {
     );
   }
 
-  Widget _thumbnail() {
-    if (thumbnail == null ||
-        thumbnail!.trim().isEmpty) {
-      return Container(
-        width: 76,
-        height: 76,
-        decoration: BoxDecoration(
-          color: const Color(0xff20202A),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: const Icon(
-          Icons.edit_note_rounded,
-          color: Colors.white24,
-          size: 30,
-        ),
-      );
-    }
+  Widget _buildThumbnail() {
+    final hasMedia =
+        draft.mediaPaths.isNotEmpty;
 
-    final isNetwork =
-        thumbnail!.startsWith('http://') ||
-            thumbnail!.startsWith('https://');
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(14),
-      child: isNetwork
-          ? Image.network(
-        thumbnail!,
-        width: 76,
-        height: 76,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) =>
-            _thumbnailPlaceholder(),
+    return Container(
+      width: 68,
+      height: 68,
+      decoration: BoxDecoration(
+        color: const Color(0xff191923),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: hasMedia
+          ? _buildImage(
+        draft.mediaPaths.first,
       )
-          : Image.asset(
-        thumbnail!,
-        width: 76,
-        height: 76,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) =>
-            _thumbnailPlaceholder(),
+          : const Icon(
+        Icons.auto_awesome_rounded,
+        color: Color(0xff8B5CF6),
+        size: 25,
       ),
     );
   }
 
-  Widget _thumbnailPlaceholder() {
-    return Container(
-      width: 76,
-      height: 76,
-      color: const Color(0xff20202A),
-      child: const Icon(
-        Icons.image_outlined,
-        color: Colors.white24,
-        size: 28,
+  Widget _buildImage(String path) {
+    if (path.startsWith('http://') ||
+        path.startsWith('https://')) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: Image.network(
+          path,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) {
+            return const Icon(
+              Icons.image_outlined,
+              color: Color(0xff777787),
+            );
+          },
+        ),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: Image.asset(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) {
+          return const Icon(
+            Icons.image_outlined,
+            color: Color(0xff777787),
+          );
+        },
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    }
+
+    if (difference.inHours < 1) {
+      return '${difference.inMinutes}m ago';
+    }
+
+    if (difference.inDays < 1) {
+      return '${difference.inHours}h ago';
+    }
+
+    if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    }
+
+    final month = date.month
+        .toString()
+        .padLeft(2, '0');
+
+    final day = date.day
+        .toString()
+        .padLeft(2, '0');
+
+    return '$day/$month/${date.year}';
   }
 }

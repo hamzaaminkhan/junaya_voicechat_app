@@ -33,6 +33,10 @@
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>UISupportedInterfaceOrientations</key>
+	<key>NSCameraUsageDescription</key>
+<string>Junaya needs camera access so you can add photos and videos to your moments.</string>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>Junaya needs photo library access so you can add media to your moments.</string>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>

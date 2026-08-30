@@ -8,12 +8,10 @@ enum MomentVisibility {
 
 class VisibilitySheet extends StatelessWidget {
   final MomentVisibility selected;
-  final ValueChanged<MomentVisibility>? onSelected;
 
   const VisibilitySheet({
     super.key,
     this.selected = MomentVisibility.public,
-    this.onSelected,
   });
 
   @override
@@ -36,7 +34,7 @@ class VisibilitySheet extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _handle(),
+            _buildHandle(),
 
             const SizedBox(height: 18),
 
@@ -56,6 +54,7 @@ class VisibilitySheet extends StatelessWidget {
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
+                  splashRadius: 20,
                   icon: const Icon(
                     Icons.close_rounded,
                     color: Color(0xff777787),
@@ -65,7 +64,7 @@ class VisibilitySheet extends StatelessWidget {
               ],
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
 
             const Align(
               alignment: Alignment.centerLeft,
@@ -78,19 +77,17 @@ class VisibilitySheet extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
             _VisibilityOption(
               icon: Icons.public_rounded,
               color: const Color(0xff22C55E),
               title: 'Public',
-              subtitle:
-              'Anyone can see this moment',
+              subtitle: 'Anyone can see this moment.',
               selected:
               selected == MomentVisibility.public,
               onTap: () {
-                _select(
-                  context,
+                Navigator.of(context).pop(
                   MomentVisibility.public,
                 );
               },
@@ -103,13 +100,12 @@ class VisibilitySheet extends StatelessWidget {
               color: const Color(0xffA855F7),
               title: 'Followers',
               subtitle:
-              'Only people who follow you',
+              'Only people who follow you can see it.',
               selected:
               selected ==
                   MomentVisibility.followers,
               onTap: () {
-                _select(
-                  context,
+                Navigator.of(context).pop(
                   MomentVisibility.followers,
                 );
               },
@@ -122,13 +118,12 @@ class VisibilitySheet extends StatelessWidget {
               color: const Color(0xffF59E0B),
               title: 'Only me',
               subtitle:
-              'Keep this moment private',
+              'Keep this moment private.',
               selected:
               selected ==
                   MomentVisibility.private,
               onTap: () {
-                _select(
-                  context,
+                Navigator.of(context).pop(
                   MomentVisibility.private,
                 );
               },
@@ -141,15 +136,7 @@ class VisibilitySheet extends StatelessWidget {
     );
   }
 
-  void _select(
-      BuildContext context,
-      MomentVisibility value,
-      ) {
-    onSelected?.call(value);
-    Navigator.of(context).pop(value);
-  }
-
-  Widget _handle() {
+  Widget _buildHandle() {
     return Container(
       width: 38,
       height: 4,
@@ -180,89 +167,99 @@ class _VisibilityOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: selected
-          ? color.withOpacity(.09)
-          : const Color(0xff191923),
-      borderRadius: BorderRadius.circular(17),
-      child: InkWell(
-        onTap: onTap,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 160),
+      decoration: BoxDecoration(
+        color: selected
+            ? color.withOpacity(.09)
+            : const Color(0xff191923),
         borderRadius: BorderRadius.circular(17),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 13,
-            vertical: 13,
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 43,
-                height: 43,
-                decoration: BoxDecoration(
-                  color: color.withOpacity(.11),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 20,
-                ),
-              ),
-
-              const SizedBox(width: 12),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        color: Color(0xff777787),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              AnimatedContainer(
-                duration:
-                const Duration(milliseconds: 160),
-                width: 21,
-                height: 21,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: selected
-                        ? const Color(0xffA855F7)
-                        : const Color(0xff555563),
-                    width: 1.5,
-                  ),
-                ),
-                child: selected
-                    ? Container(
-                  margin:
-                  const EdgeInsets.all(4),
-                  decoration:
-                  const BoxDecoration(
-                    color: Color(0xffA855F7),
+        border: Border.all(
+          color: selected
+              ? color.withOpacity(.22)
+              : Colors.transparent,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(17),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 13,
+              vertical: 13,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 43,
+                  height: 43,
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(.11),
                     shape: BoxShape.circle,
                   ),
-                )
-                    : null,
-              ),
-            ],
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 20,
+                  ),
+                ),
+
+                const SizedBox(width: 12),
+
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment:
+                    CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          color: Color(0xff777787),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                AnimatedContainer(
+                  duration:
+                  const Duration(milliseconds: 160),
+                  width: 21,
+                  height: 21,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: selected
+                          ? color
+                          : const Color(0xff555563),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: selected
+                      ? Container(
+                    margin:
+                    const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                    ),
+                  )
+                      : null,
+                ),
+              ],
+            ),
           ),
         ),
       ),

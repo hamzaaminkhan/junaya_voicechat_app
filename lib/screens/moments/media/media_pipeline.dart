@@ -14,7 +14,7 @@ class MediaPipeline {
   final MediaDuplicateChecker duplicateChecker;
   final UploadQueue uploadQueue;
 
-  MediaPipeline({
+  const MediaPipeline({
     required this.storage,
     required this.compressor,
     required this.thumbnail,
@@ -26,70 +26,137 @@ class MediaPipeline {
     required String momentId,
     required List<String> files,
   }) async {
+    if (files.isEmpty) {
+      return const [];
+    }
+
     final result = <MomentMedia>[];
 
-    for(int index = 0; index < files.length; index++){
-      try{
-        final original = files[index];
+    for (var index = 0;
+    index < files.length;
+    index++) {
+      final original =
+      files[index].trim();
 
-        if(original.trim().isEmpty){
-          continue;
-        }
-
-        final compressed = await compressor.compress(original);
-
-        if(compressed.trim().isEmpty){
-          continue;
-        }
-
-        final duplicate = await duplicateChecker.exists(compressed);
-
-        if(duplicate){
-          continue;
-        }
-
-        final saved = await storage.saveMedia(
-          momentId: momentId,
-          paths: [compressed],
-        );
-
-        if(saved.isEmpty){
-          continue;
-        }
-
-        var media = saved.first;
-
-        String? thumbnailPath;
-
-        try{
-          thumbnailPath = await thumbnail.generate(
-            media.localPath,
-          );
-        }catch(_){
-          thumbnailPath = null;
-        }
-
-        media = media.copyWith(
-          thumbnail: thumbnailPath,
-          processing: false,
-          uploaded: false,
-          uploadProgress: 0,
-        );
-
-        await uploadQueue.add(
-          UploadTask.create(
-            id: media.id,
-            filePath: media.localPath,
-            momentId: momentId,
-          ),
-        );
-
-        result.add(media);
-      }catch(_){
+      if (original.isEmpty) {
         continue;
+      }
+
+      final media =
+      await _processSingle(
+        momentId: momentId,
+        originalPath: original,
+        order: index,
+      );
+
+      if (media != null) {
+        result.add(media);
       }
     }
 
     return result;
+  }
+
+  Future<MomentMedia?> _processSingle({
+    required String momentId,
+    required String originalPath,
+    required int order,
+  }) async {
+    String compressedPath = '';
+
+    try {
+      compressedPath =
+      await compressor.compress(
+        originalPath,
+      );
+
+      if (compressedPath.trim().isEmpty) {
+        throw MediaPipelineException(
+          'Compression returned an empty path.',
+        );
+      }
+
+      final duplicate =
+      await duplicateChecker.exists(
+        compressedPath,
+      );
+
+      if (duplicate) {
+        return null;
+      }
+
+      final saved =
+      await storage.saveMedia(
+        momentId: momentId,
+        paths: [
+          compressedPath,
+        ],
+      );
+
+      if (saved.isEmpty) {
+        throw MediaPipelineException(
+          'Media storage returned no saved media.',
+        );
+      }
+
+      var media = saved.first;
+
+      String? thumbnailPath;
+
+      try {
+        thumbnailPath =
+        await thumbnail.generate(
+          media.localPath,
+        );
+      } catch (_) {
+        // Thumbnail failure should not
+        // prevent the actual media from
+        // being published.
+        thumbnailPath = null;
+      }
+
+      media = media.copyWith(
+        thumbnail: thumbnailPath,
+        processing: false,
+        uploaded: false,
+        failed: false,
+        uploadProgress: 0,
+      );
+
+      await uploadQueue.add(
+        UploadTask.create(
+          id: media.id,
+          filePath: media.localPath,
+          momentId: momentId,
+        ),
+      );
+
+      return media;
+    } catch (error) {
+      throw MediaPipelineException(
+        'Failed to process media: $originalPath',
+        cause: error,
+      );
+    }
+  }
+}
+
+class MediaPipelineException
+    implements Exception {
+  final String message;
+  final Object? cause;
+
+  const MediaPipelineException(
+      this.message, {
+        this.cause,
+      });
+
+  @override
+  String toString() {
+    if (cause == null) {
+      return message;
+    }
+
+    return '$message Cause: $cause';
   }
 }
