@@ -275,7 +275,7 @@ class _CommentsBottomSheetState
   }
 }
 
-class _CommentTile extends StatelessWidget {
+class _CommentTile extends ConsumerWidget {
   final Comment comment;
 
   const _CommentTile({
@@ -283,7 +283,10 @@ class _CommentTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+      BuildContext context,
+      WidgetRef ref,
+      ) {
     return Row(
       crossAxisAlignment:
       CrossAxisAlignment.start,
@@ -316,6 +319,7 @@ class _CommentTile extends StatelessWidget {
                       ),
                     ),
                   ),
+
                   if (comment.author.verified)
                     const Padding(
                       padding: EdgeInsets.only(
@@ -362,7 +366,9 @@ class _CommentTile extends StatelessWidget {
                       fontSize: 11,
                     ),
                   ),
+
                   const SizedBox(width: 14),
+
                   const Text(
                     'Reply',
                     style: TextStyle(
@@ -371,7 +377,9 @@ class _CommentTile extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
+
                   const Spacer(),
+
                   if (comment.likesCount > 0)
                     Text(
                       '${comment.likesCount}',
@@ -380,15 +388,32 @@ class _CommentTile extends StatelessWidget {
                         fontSize: 11,
                       ),
                     ),
+
                   const SizedBox(width: 5),
-                  Icon(
-                    comment.isLiked
-                        ? Icons.favorite_rounded
-                        : Icons.favorite_border_rounded,
-                    size: 16,
-                    color: comment.isLiked
-                        ? const Color(0xffFF3B7A)
-                        : const Color(0xff666675),
+
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () async {
+                      await ref
+                          .read(
+                        commentsProvider(
+                          comment.momentId,
+                        ).notifier,
+                      )
+                          .toggleLike(comment);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Icon(
+                        comment.isLiked
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                        size: 16,
+                        color: comment.isLiked
+                            ? const Color(0xffFF3B7A)
+                            : const Color(0xff666675),
+                      ),
+                    ),
                   ),
                 ],
               ),

@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:junaya_voicechat_app/screens/moments/create%20moment/widgets/moment_share_sheet.dart';
+
+
 
 import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 import 'package:junaya_voicechat_app/screens/moments/providers/moments_provider.dart';
@@ -20,7 +25,26 @@ class MomentsScreen extends ConsumerStatefulWidget {
 
 class _MomentsScreenState
     extends ConsumerState<MomentsScreen> {
+
   int _selectedTab = 1;
+
+  void _showMessage(String message) {
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(
+            seconds: 2,
+          ),
+        ),
+      );
+  }
 
   Future<void> _refresh() async {
     await ref
@@ -427,10 +451,137 @@ class _MomentsScreenState
     // Final integration pass.
   }
 
-  void _shareMoment(Moment moment) {
-    // Final integration pass.
+  Future<void> _shareMoment(
+      Moment moment,
+      ) async {
+    final action =
+    await showModalBottomSheet<MomentShareAction>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) {
+        return MomentShareSheet(
+          momentId: moment.id,
+        );
+      },
+    );
+
+    if (!mounted || action == null) {
+      return;
+    }
+
+    switch (action) {
+      case MomentShareAction.friends:
+        _showMessage(
+          'Friends sharing is coming next.',
+        );
+        break;
+
+      case MomentShareAction.copyLink:
+        await _copyMomentLink(moment);
+        break;
+
+      case MomentShareAction.systemShare:
+        await _systemShareMoment(moment);
+        break;
+    }
   }
-}
+
+  Future<void> _systemShareMoment(
+      Moment moment,
+      ) async {
+    final link =
+        'junaya://moment/${moment.id}';
+
+    final text = [
+      if (moment.caption.trim().isNotEmpty)
+        moment.caption.trim(),
+      '',
+      link,
+    ].join('\n');
+
+    try {
+      final result =
+      await SharePlus.instance.share(
+        ShareParams(
+          text: text,
+          title: 'Share moment',
+        ),
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      if (result.status ==
+          ShareResultStatus.success) {
+        await ref
+            .read(
+          momentsProvider.notifier,
+        )
+            .incrementShares(
+          moment.id,
+        );
+
+        _showMessage(
+          'Moment shared.',
+        );
+      }
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      _showMessage(
+        'Unable to share this moment.',
+      );
+    }
+  }
+
+
+  Future<void> _copyMomentLink(
+      Moment moment,
+      ) async {
+    final link =
+        'junaya://moment/${moment.id}';
+
+    try {
+      await Clipboard.setData(
+        ClipboardData(
+          text: link,
+        ),
+      );
+
+      await ref
+          .read(momentsProvider.notifier)
+          .incrementShares(
+        moment.id,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      _showMessage(
+        'Moment link copied.',
+      );
+    } catch (error) {
+      debugPrint(
+        'Copy moment link failed: $error',
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      _showMessage(
+        'Unable to copy moment link.',
+      );
+    }
+  }
+
+ }
 
 class _HeaderButton extends StatelessWidget {
   final IconData icon;
