@@ -5,6 +5,8 @@ import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 import 'package:junaya_voicechat_app/screens/moments/providers/moments_provider.dart';
 import 'package:junaya_voicechat_app/screens/moments/widgets/moment_card.dart';
 import 'package:junaya_voicechat_app/screens/moments/widgets/moments_tab_header.dart';
+import 'package:junaya_voicechat_app/screens/moments/create%20moment/create_moment_screen.dart';
+import 'package:junaya_voicechat_app/screens/moments/widgets/comments_bottom_sheet.dart';
 
 class MomentsScreen extends ConsumerStatefulWidget {
   const MomentsScreen({
@@ -79,6 +81,13 @@ class _MomentsScreenState
           ),
 
           _HeaderButton(
+            icon: Icons.add_rounded,
+            onTap: _openCreateMoment,
+          ),
+
+          const SizedBox(width: 7),
+
+          _HeaderButton(
             icon: Icons.search_rounded,
             onTap: () {},
           ),
@@ -90,6 +99,14 @@ class _MomentsScreenState
             onTap: () {},
           ),
         ],
+      ),
+    );
+  }
+
+  void _openCreateMoment() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const CreateMomentScreen(),
       ),
     );
   }
@@ -166,16 +183,23 @@ class _MomentsScreenState
       },
       child: MomentCard(
         moment: moment,
+
         onDelete: () {
           _deleteMoment(moment);
         },
+
         onLike: () {
           _toggleLike(moment);
         },
-        onComment: () {},
+
+        onComment: () {
+          _openComments(moment);
+        },
+
         onShare: () {
           _shareMoment(moment);
         },
+
         onSave: () {
           _toggleSave(moment);
         },
@@ -242,7 +266,14 @@ class _MomentsScreenState
 
         Center(
           child: _CreateButton(
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) =>
+                  const CreateMomentScreen(),
+                ),
+              );
+            },
           ),
         ),
       ],
@@ -345,8 +376,51 @@ class _MomentsScreenState
     // Final integration pass.
   }
 
-  void _toggleLike(Moment moment) {
-    // Final integration pass.
+  Future<void> _toggleLike(
+      Moment moment,
+      ) async {
+    try {
+      await ref
+          .read(momentsProvider.notifier)
+          .toggleLike(moment);
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Toggle like failed: $error',
+      );
+
+      debugPrint(
+        stackTrace.toString(),
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Unable to update like.',
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _openComments(
+      Moment moment,
+      ) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) {
+        return CommentsBottomSheet(
+          momentId: moment.id,
+        );
+      },
+    );
   }
 
   void _toggleSave(Moment moment) {

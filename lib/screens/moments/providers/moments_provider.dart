@@ -97,7 +97,7 @@ class MomentsNotifier extends AsyncNotifier<List<Moment>> {
   }
 
 
-  Future<Moment?> createMoment({
+  Future<Moment> createMoment({
     required Moment moment,
     required List<String> mediaPaths,
   }) async {
@@ -119,18 +119,15 @@ class MomentsNotifier extends AsyncNotifier<List<Moment>> {
       state = AsyncData(moments);
 
       return created;
-    } catch (error, stack) {
+    } catch (error, stackTrace) {
       state = AsyncData(previous);
 
-      state = AsyncError(
+      Error.throwWithStackTrace(
         error,
-        stack,
+        stackTrace,
       );
-
-      return null;
     }
   }
-
 
 
 

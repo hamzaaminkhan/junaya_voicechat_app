@@ -11,8 +11,6 @@ import 'package:junaya_voicechat_app/screens/moments/providers/drafts_provider.d
 import 'package:junaya_voicechat_app/screens/moments/data/moment_publisher.dart';
 import 'package:junaya_voicechat_app/screens/moments/providers/moments_provider.dart';
 import 'package:junaya_voicechat_app/screens/moments/services/moment_media_service.dart';
-import 'package:junaya_voicechat_app/screens/moments/create%20moment/widgets/voice_recording_sheet.dart';
-import 'package:junaya_voicechat_app/screens/moments/services/moment_voice_recorder_service.dart';
 
 class CreateMomentScreen
     extends ConsumerStatefulWidget {
@@ -912,29 +910,6 @@ class _CreateMomentScreenState
     });
   }
 
-  Future<void> _recordVoice() async {
-    final result =
-    await showModalBottomSheet<VoiceRecordingResult>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      isDismissible: false,
-      enableDrag: false,
-      builder: (_) {
-        return const VoiceRecordingSheet();
-      },
-    );
-
-    if (!mounted || result == null) {
-      return;
-    }
-
-    setState(() {
-      _voicePath = result.path;
-      _voiceDuration = result.duration;
-    });
-  }
-
   Future<bool> _showRestoreDraftDialog() async {
     final result =
     await showDialog<bool>(
@@ -1202,6 +1177,10 @@ class _CreateMomentScreenState
   }
 
   Future<void> _onSharePressed() async {
+    if (_isSavingDraft) {
+      return;
+    }
+
     FocusScope.of(context).unfocus();
 
     final caption =
@@ -1222,54 +1201,34 @@ class _CreateMomentScreenState
     final moment =
     _publisher.build(
       caption: caption,
-      visibility:
-      _visibility.name,
+      visibility: _visibility.name,
       location: _location,
       mediaPaths:
-      List.unmodifiable(
-        _mediaPaths,
-      ),
-      voicePath:
-      _voicePath,
-      voiceDuration:
-      _voiceDuration,
+      List.unmodifiable(_mediaPaths),
+      voicePath: _voicePath,
+      voiceDuration: _voiceDuration,
     );
+
+    setState(() {
+      _isSavingDraft = true;
+    });
 
     try {
       await ref
-          .read(
-        momentsProvider.notifier,
-      )
+          .read(momentsProvider.notifier)
           .createMoment(
         moment: moment,
         mediaPaths:
-        List.unmodifiable(
-          _mediaPaths,
-        ),
+        List.unmodifiable(_mediaPaths),
       );
 
       if (!mounted) {
         return;
       }
 
-      final currentState =
-      ref.read(
-        momentsProvider,
-      );
-
-      if (currentState.hasError) {
-        _showMessage(
-          'Unable to publish your Moment.',
-        );
-        return;
-      }
-
-      // Only remove the draft after
-      // publishing succeeded.
       await ref
           .read(
-        momentDraftProvider
-            .notifier,
+        momentDraftProvider.notifier,
       )
           .clear();
 
@@ -1279,6 +1238,8 @@ class _CreateMomentScreenState
 
       setState(() {
         _hasChanges = false;
+        _draftId = null;
+        _draftCreatedAt = null;
       });
 
       _showMessage(
@@ -1286,9 +1247,7 @@ class _CreateMomentScreenState
       );
 
       await Future<void>.delayed(
-        const Duration(
-          milliseconds: 350,
-        ),
+        const Duration(milliseconds: 350),
       );
 
       if (!mounted) {
@@ -1296,7 +1255,15 @@ class _CreateMomentScreenState
       }
 
       Navigator.of(context).pop(true);
-    } catch (error) {
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Publish Moment error: $error',
+      );
+
+      debugPrint(
+        stackTrace.toString(),
+      );
+
       if (!mounted) {
         return;
       }
@@ -1304,6 +1271,12 @@ class _CreateMomentScreenState
       _showMessage(
         'Unable to publish your Moment.',
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSavingDraft = false;
+        });
+      }
     }
   }
 

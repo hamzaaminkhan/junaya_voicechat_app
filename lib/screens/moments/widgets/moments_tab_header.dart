@@ -29,7 +29,7 @@ class MomentsTabHeader extends StatelessWidget {
           ),
           const SizedBox(width: 32),
           _TabItem(
-            title: "Moments",
+            title: " Feed",
             active: selectedIndex == 1,
             onTap: () => onChanged(1),
           ),
