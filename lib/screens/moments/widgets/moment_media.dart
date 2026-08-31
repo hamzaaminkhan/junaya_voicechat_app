@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
 import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
 import 'package:junaya_voicechat_app/screens/moments/widgets/fullscreen_media_viewer.dart';
 
@@ -200,6 +202,44 @@ class _MomentMediaWidgetState
     final isRemote =
         source.startsWith('http://') ||
             source.startsWith('https://');
+
+    final isBlob =
+    source.startsWith('blob:');
+
+    // --------------------------------------------------
+    // WEB
+    // --------------------------------------------------
+    //
+    // Image.file() is not supported on Flutter Web.
+    //
+    if (kIsWeb) {
+      if (isRemote || isBlob) {
+        return Image.network(
+          source,
+          fit: BoxFit.cover,
+          loadingBuilder: (
+              context,
+              child,
+              progress,
+              ) {
+            if (progress == null) {
+              return child;
+            }
+
+            return _mediaLoading();
+          },
+          errorBuilder: (_, __, ___) {
+            return _mediaError();
+          },
+        );
+      }
+
+      return _mediaError();
+    }
+
+    // --------------------------------------------------
+    // ANDROID / IOS
+    // --------------------------------------------------
 
     if (isRemote) {
       return Image.network(

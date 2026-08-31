@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class MomentMediaPicker extends StatelessWidget {
@@ -221,6 +222,16 @@ class _MediaItem extends StatelessWidget {
           }
 
           return _loading();
+        },
+      );
+    }
+
+    if (kIsWeb) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) {
+          return _placeholder();
         },
       );
     }
