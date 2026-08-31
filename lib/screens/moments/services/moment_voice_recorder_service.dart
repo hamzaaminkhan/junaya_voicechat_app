@@ -18,8 +18,7 @@ class MomentVoiceRecorderService {
 
   /// Starts recording and returns the temporary file path.
   Future<String> start() async {
-    final permission =
-    await hasPermission();
+    final permission = await hasPermission();
 
     if (!permission) {
       throw const VoiceRecorderException(
@@ -36,38 +35,59 @@ class MomentVoiceRecorderService {
     final path =
         '${directory.path}/moment_voice_$timestamp.m4a';
 
-    await _recorder.start(
-      const RecordConfig(
-        encoder: AudioEncoder.aacLc,
-        sampleRate: 44100,
-        numChannels: 1,
-        bitRate: 128000,
+    final config = RecordConfig(
+      encoder: AudioEncoder.aacLc,
+
+      // Standard high-quality voice recording.
+      sampleRate: 44100,
+      numChannels: 1,
+      bitRate: 128000,
+
+      // Android-specific microphone configuration.
+      androidConfig: const AndroidRecordConfig(
+        audioSource: AndroidAudioSource.mic,
+        audioManagerMode:
+        AudioManagerMode.modeNormal,
+        manageBluetooth: true,
+        speakerphone: false,
+        muteAudio: false,
       ),
-      path: path,
+
+      // Improve voice capture when supported.
+      autoGain: true,
+      noiseSuppress: true,
+      echoCancel: true,
     );
+
+    try {
+      await _recorder.start(
+        config,
+        path: path,
+      );
+    } catch (error) {
+      throw VoiceRecorderException(
+        'Unable to start voice recording: $error',
+      );
+    }
 
     return path;
   }
 
   /// Stops recording and returns the recorded file path.
   Future<String?> stop() async {
-    final path =
-    await _recorder.stop();
+    final path = await _recorder.stop();
 
-    if (path == null ||
-        path.isEmpty) {
+    if (path == null || path.isEmpty) {
       return null;
     }
 
-    final file =
-    File(path);
+    final file = File(path);
 
     if (!await file.exists()) {
       return null;
     }
 
-    final size =
-    await file.length();
+    final size = await file.length();
 
     if (size <= 0) {
       await deleteFile(path);
@@ -79,8 +99,7 @@ class MomentVoiceRecorderService {
 
   /// Pauses an active recording.
   Future<void> pause() async {
-    final recording =
-    await isRecording;
+    final recording = await isRecording;
 
     if (!recording) {
       return;
@@ -96,11 +115,9 @@ class MomentVoiceRecorderService {
 
   /// Stops and deletes the current recording.
   Future<void> cancel() async {
-    final path =
-    await _recorder.stop();
+    final path = await _recorder.stop();
 
-    if (path == null ||
-        path.isEmpty) {
+    if (path == null || path.isEmpty) {
       return;
     }
 
@@ -108,34 +125,28 @@ class MomentVoiceRecorderService {
   }
 
   /// Deletes a recording file.
-  Future<void> deleteFile(
-      String path,
-      ) async {
+  Future<void> deleteFile(String path) async {
     if (path.isEmpty) {
       return;
     }
 
-    final file =
-    File(path);
+    final file = File(path);
 
     if (await file.exists()) {
       await file.delete();
     }
   }
 
-  /// Releases the recorder resources.
+  /// Releases recorder resources.
   Future<void> dispose() async {
     await _recorder.dispose();
   }
 }
 
-class VoiceRecorderException
-    implements Exception {
+class VoiceRecorderException implements Exception {
   final String message;
 
-  const VoiceRecorderException(
-      this.message,
-      );
+  const VoiceRecorderException(this.message);
 
   @override
   String toString() {

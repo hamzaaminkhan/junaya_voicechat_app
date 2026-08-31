@@ -1,8 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/material.dart';
 
 class VoiceNotePlayer extends StatefulWidget {
   final String path;
@@ -21,10 +20,11 @@ class VoiceNotePlayer extends StatefulWidget {
 
 class _VoiceNotePlayerState
     extends State<VoiceNotePlayer> {
-  final AudioPlayer _player = AudioPlayer();
+  late final AudioPlayer _player;
 
   StreamSubscription<PlayerState>? _stateSubscription;
   StreamSubscription<Duration>? _positionSubscription;
+  StreamSubscription<void>? _completeSubscription;
 
   PlayerState _playerState =
       PlayerState.stopped;
@@ -34,6 +34,31 @@ class _VoiceNotePlayerState
   @override
   void initState() {
     super.initState();
+
+    _player = AudioPlayer();
+
+    _setupPlayer();
+  }
+
+  Future<void> _setupPlayer() async {
+    await _player.setVolume(1.0);
+
+    await _player.setAudioContext(
+      AudioContext(
+        android: AudioContextAndroid(
+          isSpeakerphoneOn: true,
+          audioMode: AndroidAudioMode.normal,
+          stayAwake: false,
+          contentType: AndroidContentType.music,
+          usageType: AndroidUsageType.media,
+          audioFocus: AndroidAudioFocus.gain,
+        ),
+      ),
+    );
+
+    await _player.setReleaseMode(
+      ReleaseMode.stop,
+    );
 
     _stateSubscription =
         _player.onPlayerStateChanged.listen(
@@ -60,19 +85,40 @@ class _VoiceNotePlayerState
             });
           },
         );
+
+    _completeSubscription =
+        _player.onPlayerComplete.listen(
+              (_) {
+            if (!mounted) {
+              return;
+            }
+
+            setState(() {
+              _playerState =
+                  PlayerState.stopped;
+
+              _position =
+                  widget.duration;
+            });
+          },
+        );
   }
 
   @override
   void dispose() {
     _stateSubscription?.cancel();
     _positionSubscription?.cancel();
+    _completeSubscription?.cancel();
+
     _player.dispose();
 
     super.dispose();
   }
 
   Future<void> _togglePlayback() async {
-    if (widget.path.isEmpty) {
+    final path = widget.path.trim();
+
+    if (path.isEmpty) {
       return;
     }
 
@@ -86,9 +132,44 @@ class _VoiceNotePlayerState
       return;
     }
 
-    await _player.play(
-      DeviceFileSource(widget.path),
-    );
+    try {
+      // Always make sure volume is restored.
+      await _player.setVolume(1.0);
+
+      // Start from the beginning.
+      await _player.seek(Duration.zero);
+
+      await _player.play(
+        DeviceFileSource(
+          path,
+          mimeType: 'audio/mp4',
+        ),
+        volume: 1.0,
+      );
+
+    } catch (error) {
+      debugPrint(
+        'VoiceNotePlayer playback error: $error',
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _playerState =
+            PlayerState.stopped;
+      });
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Unable to play this voice note.',
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _stop() async {
@@ -99,7 +180,11 @@ class _VoiceNotePlayerState
     }
 
     setState(() {
-      _position = Duration.zero;
+      _playerState =
+          PlayerState.stopped;
+
+      _position =
+          Duration.zero;
     });
   }
 
@@ -117,31 +202,43 @@ class _VoiceNotePlayerState
         .clamp(0.0, 1.0);
 
     final playing =
-        _playerState == PlayerState.playing;
+        _playerState ==
+            PlayerState.playing;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding:
+      const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: const Color(0xff191923),
         borderRadius:
         BorderRadius.circular(18),
         border: Border.all(
-          color: Colors.white.withOpacity(.05),
+          color:
+          Colors.white.withValues(alpha: .05),
         ),
       ),
       child: Row(
         children: [
           GestureDetector(
             onTap: _togglePlayback,
+            behavior:
+            HitTestBehavior.opaque,
             child: AnimatedContainer(
               duration:
-              const Duration(milliseconds: 180),
+              const Duration(
+                milliseconds: 180,
+              ),
               width: 42,
               height: 42,
-              decoration: BoxDecoration(
+              decoration:
+              BoxDecoration(
                 color: playing
-                    ? const Color(0xffFF3B7A)
-                    : const Color(0xffA855F7),
+                    ? const Color(
+                  0xffFF3B7A,
+                )
+                    : const Color(
+                  0xffA855F7,
+                ),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -165,7 +262,11 @@ class _VoiceNotePlayerState
                     crossAxisAlignment:
                     CrossAxisAlignment.center,
                     children: [
-                      for (int i = 0; i < 26; i++)
+                      for (
+                      int i = 0;
+                      i < 26;
+                      i++
+                      )
                         Expanded(
                           child: Padding(
                             padding:
@@ -173,24 +274,28 @@ class _VoiceNotePlayerState
                                 .symmetric(
                               horizontal: 1.5,
                             ),
-                            child: AnimatedContainer(
+                            child:
+                            AnimatedContainer(
                               duration:
                               const Duration(
                                 milliseconds: 160,
                               ),
                               height:
                               7 +
-                                  ((i % 5) * 4),
+                                  ((i % 5) *
+                                      4),
                               decoration:
                               BoxDecoration(
-                                color: i <
+                                color:
+                                i <
                                     (26 *
                                         progress)
                                         .floor()
                                     ? const Color(
                                   0xffA855F7,
                                 )
-                                    : Colors.white24,
+                                    : Colors
+                                    .white24,
                                 borderRadius:
                                 BorderRadius
                                     .circular(
@@ -208,12 +313,17 @@ class _VoiceNotePlayerState
 
                 Row(
                   mainAxisAlignment:
-                  MainAxisAlignment.spaceBetween,
+                  MainAxisAlignment
+                      .spaceBetween,
                   children: [
                     Text(
-                      _formatDuration(_position),
-                      style: const TextStyle(
-                        color: Color(0xff777787),
+                      _formatDuration(
+                        _position,
+                      ),
+                      style:
+                      const TextStyle(
+                        color:
+                        Color(0xff777787),
                         fontSize: 10.5,
                       ),
                     ),
@@ -221,8 +331,10 @@ class _VoiceNotePlayerState
                       _formatDuration(
                         widget.duration,
                       ),
-                      style: const TextStyle(
-                        color: Color(0xff777787),
+                      style:
+                      const TextStyle(
+                        color:
+                        Color(0xff777787),
                         fontSize: 10.5,
                       ),
                     ),
@@ -248,7 +360,9 @@ class _VoiceNotePlayerState
     );
   }
 
-  String _formatDuration(Duration value) {
+  String _formatDuration(
+      Duration value,
+      ) {
     final minutes = value.inMinutes
         .remainder(60)
         .toString()

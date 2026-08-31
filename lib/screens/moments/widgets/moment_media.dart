@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:junaya_voicechat_app/screens/moments/data/moment_model.dart';
@@ -191,40 +191,68 @@ class _MomentMediaWidgetState
   }
 
   Widget _buildMedia(MomentMedia item) {
-    return Image.network(
-      item.url,
-      fit: BoxFit.cover,
-      loadingBuilder:
-          (context, child, progress) {
-        if (progress == null) {
-          return child;
-        }
+    final source = item.url;
 
-        return Container(
-          color:
-          const Color(0xff151522),
-          child: const Center(
-            child:
-            CircularProgressIndicator(
-              strokeWidth: 2,
-              color:
-              Color(0xffA855F7),
-            ),
-          ),
-        );
-      },
+    if (source.isEmpty) {
+      return _mediaError();
+    }
+
+    final isRemote =
+        source.startsWith('http://') ||
+            source.startsWith('https://');
+
+    if (isRemote) {
+      return Image.network(
+        source,
+        fit: BoxFit.cover,
+        loadingBuilder: (
+            context,
+            child,
+            progress,
+            ) {
+          if (progress == null) {
+            return child;
+          }
+
+          return _mediaLoading();
+        },
+        errorBuilder: (_, __, ___) {
+          return _mediaError();
+        },
+      );
+    }
+
+    return Image.file(
+      File(source),
+      fit: BoxFit.cover,
       errorBuilder: (_, __, ___) {
-        return Container(
-          color:
-          const Color(0xff151522),
-          child: const Icon(
-            Icons.broken_image_outlined,
-            size: 42,
-            color:
-            Colors.white38,
-          ),
-        );
+        return _mediaError();
       },
+    );
+  }
+
+  Widget _mediaLoading() {
+    return Container(
+      color: const Color(0xff151522),
+      child: const Center(
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: Color(0xffA855F7),
+        ),
+      ),
+    );
+  }
+
+  Widget _mediaError() {
+    return Container(
+      color: const Color(0xff151522),
+      child: const Center(
+        child: Icon(
+          Icons.broken_image_outlined,
+          size: 42,
+          color: Colors.white38,
+        ),
+      ),
     );
   }
 }

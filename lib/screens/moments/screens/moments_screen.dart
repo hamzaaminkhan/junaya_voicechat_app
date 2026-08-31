@@ -396,8 +396,34 @@ class _MomentsScreenState
     );
   }
 
-  void _deleteMoment(Moment moment) {
-    // Final integration pass.
+  Future<void> _deleteMoment(Moment moment) async {
+    try {
+      await ref
+          .read(momentsProvider.notifier)
+          .deleteMoment(moment.id);
+
+      if (!mounted) {
+        return;
+      }
+
+      _showMessage('Moment deleted.');
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Delete moment failed: $error',
+      );
+
+      debugPrint(
+        stackTrace.toString(),
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      _showMessage(
+        'Unable to delete this moment.',
+      );
+    }
   }
 
   Future<void> _toggleLike(

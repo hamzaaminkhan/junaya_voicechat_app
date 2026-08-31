@@ -262,6 +262,9 @@ class _MomentVoicePlayerState
 
     _player = AudioPlayer();
 
+    AudioLogger.logLevel =
+        AudioLogLevel.info;
+
     _duration = Duration(
       seconds: widget.voice.duration,
     );
@@ -331,8 +334,7 @@ class _MomentVoicePlayerState
 
 
   Future<void> _togglePlayback() async {
-    final path =
-    widget.voice.url.trim();
+    final path = widget.voice.url.trim();
 
     if (path.isEmpty) {
       _showError(
@@ -342,41 +344,83 @@ class _MomentVoicePlayerState
     }
 
     try {
+      debugPrint(
+        'VOICE PLAYBACK PATH: $path',
+      );
+
       if (_isPlaying) {
         await _player.pause();
         return;
       }
 
-      if (_position > Duration.zero &&
-          _position < _duration) {
-        await _player.resume();
-        return;
-      }
-
-      await _player.stop();
+      // Make sure Android uses the normal
+      // media speaker/audio output.
+      await _player.setAudioContext(
+        AudioContext(
+          android: AudioContextAndroid(
+            isSpeakerphoneOn: true,
+            audioMode: AndroidAudioMode.normal,
+            contentType: AndroidContentType.music,
+            usageType: AndroidUsageType.media,
+            audioFocus: AndroidAudioFocus.gain,
+          ),
+        ),
+      );
 
       if (path.startsWith('http://') ||
           path.startsWith('https://')) {
+        debugPrint(
+          'VOICE PLAYBACK: remote source',
+        );
+
         await _player.play(
           UrlSource(path),
         );
       } else {
         final file = File(path);
 
-        if (!await file.exists()) {
+        final exists = await file.exists();
+
+        debugPrint(
+          'VOICE FILE EXISTS: $exists',
+        );
+
+        if (!exists) {
           _showError(
             'Voice recording file was not found.',
           );
           return;
         }
 
+        final length =
+        await file.length();
+
+        debugPrint(
+          'VOICE FILE SIZE: $length bytes',
+        );
+
+        if (length == 0) {
+          _showError(
+            'Voice recording file is empty.',
+          );
+          return;
+        }
+
+        debugPrint(
+          'VOICE PLAYBACK: local file',
+        );
+
         await _player.play(
           DeviceFileSource(path),
         );
       }
-    } catch (error) {
+    } catch (error, stackTrace) {
       debugPrint(
-        'Voice playback failed: $error',
+        'VOICE PLAYBACK ERROR: $error',
+      );
+
+      debugPrint(
+        'VOICE PLAYBACK STACK: $stackTrace',
       );
 
       if (!mounted) {
