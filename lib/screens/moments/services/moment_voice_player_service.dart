@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:audioplayers/audioplayers.dart';
 
 class MomentVoicePlayerService {
@@ -8,17 +10,41 @@ class MomentVoicePlayerService {
   bool get isPlaying =>
       _player.state == PlayerState.playing;
 
-  Future<void> play(
-      String path,
-      ) async {
-    if (path.isEmpty) {
+  Future<void> play(String path) async {
+    final source = path.trim();
+
+    if (source.isEmpty) {
       return;
     }
 
     await _player.stop();
 
+    if (source.startsWith('http://') ||
+        source.startsWith('https://')) {
+      await _player.play(
+        UrlSource(source),
+      );
+      return;
+    }
+
+    final file = File(source);
+
+    if (!await file.exists()) {
+      throw Exception(
+        'Voice file does not exist: $source',
+      );
+    }
+
+    final size = await file.length();
+
+    if (size <= 0) {
+      throw Exception(
+        'Voice file is empty: $source',
+      );
+    }
+
     await _player.play(
-      DeviceFileSource(path),
+      DeviceFileSource(source),
     );
   }
 

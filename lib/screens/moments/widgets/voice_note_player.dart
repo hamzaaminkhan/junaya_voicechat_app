@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
@@ -20,45 +21,26 @@ class VoiceNotePlayer extends StatefulWidget {
 
 class _VoiceNotePlayerState
     extends State<VoiceNotePlayer> {
-  late final AudioPlayer _player;
+  final AudioPlayer _player = AudioPlayer();
 
-  StreamSubscription<PlayerState>? _stateSubscription;
-  StreamSubscription<Duration>? _positionSubscription;
-  StreamSubscription<void>? _completeSubscription;
+  StreamSubscription<PlayerState>?
+  _stateSubscription;
+
+  StreamSubscription<Duration>?
+  _positionSubscription;
+
+  StreamSubscription<void>?
+  _completeSubscription;
 
   PlayerState _playerState =
       PlayerState.stopped;
 
-  Duration _position = Duration.zero;
+  Duration _position =
+      Duration.zero;
 
   @override
   void initState() {
     super.initState();
-
-    _player = AudioPlayer();
-
-    _setupPlayer();
-  }
-
-  Future<void> _setupPlayer() async {
-    await _player.setVolume(1.0);
-
-    await _player.setAudioContext(
-      AudioContext(
-        android: AudioContextAndroid(
-          isSpeakerphoneOn: true,
-          audioMode: AndroidAudioMode.normal,
-          stayAwake: false,
-          contentType: AndroidContentType.music,
-          usageType: AndroidUsageType.media,
-          audioFocus: AndroidAudioFocus.gain,
-        ),
-      ),
-    );
-
-    await _player.setReleaseMode(
-      ReleaseMode.stop,
-    );
 
     _stateSubscription =
         _player.onPlayerStateChanged.listen(
@@ -66,6 +48,10 @@ class _VoiceNotePlayerState
             if (!mounted) {
               return;
             }
+
+            debugPrint(
+              'Voice player state: $state',
+            );
 
             setState(() {
               _playerState = state;
@@ -80,8 +66,17 @@ class _VoiceNotePlayerState
               return;
             }
 
+            final total =
+                widget.duration;
+
+            final clamped =
+            total > Duration.zero &&
+                position > total
+                ? total
+                : position;
+
             setState(() {
-              _position = position;
+              _position = clamped;
             });
           },
         );
@@ -93,15 +88,35 @@ class _VoiceNotePlayerState
               return;
             }
 
+            debugPrint(
+              'Voice playback completed',
+            );
+
             setState(() {
               _playerState =
-                  PlayerState.stopped;
+                  PlayerState.completed;
 
               _position =
                   widget.duration;
             });
           },
         );
+
+    _configurePlayer();
+  }
+
+  Future<void> _configurePlayer() async {
+    try {
+      await _player.setVolume(1.0);
+
+      await _player.setReleaseMode(
+        ReleaseMode.stop,
+      );
+    } catch (error) {
+      debugPrint(
+        'Voice player configuration error: $error',
+      );
+    }
   }
 
   @override
@@ -116,40 +131,128 @@ class _VoiceNotePlayerState
   }
 
   Future<void> _togglePlayback() async {
-    final path = widget.path.trim();
+    final source =
+    widget.path.trim();
 
-    if (path.isEmpty) {
+    if (source.isEmpty) {
+      debugPrint(
+        'Voice player: empty source',
+      );
       return;
     }
 
-    if (_playerState == PlayerState.playing) {
-      await _player.pause();
+    // --------------------------------------------------
+    // PAUSE
+    // --------------------------------------------------
+
+    if (_playerState ==
+        PlayerState.playing) {
+      try {
+        await _player.pause();
+      } catch (error) {
+        debugPrint(
+          'Voice pause error: $error',
+        );
+      }
+
       return;
     }
 
-    if (_playerState == PlayerState.paused) {
-      await _player.resume();
+    // --------------------------------------------------
+    // RESUME
+    // --------------------------------------------------
+
+    if (_playerState ==
+        PlayerState.paused) {
+      try {
+        await _player.resume();
+      } catch (error) {
+        debugPrint(
+          'Voice resume error: $error',
+        );
+      }
+
       return;
     }
+
+    // --------------------------------------------------
+    // PLAY
+    // --------------------------------------------------
 
     try {
-      // Always make sure volume is restored.
-      await _player.setVolume(1.0);
-
-      // Start from the beginning.
-      await _player.seek(Duration.zero);
-
-      await _player.play(
-        DeviceFileSource(
-          path,
-          mimeType: 'audio/mp4',
-        ),
-        volume: 1.0,
+      debugPrint(
+        'Voice player source: $source',
       );
 
-    } catch (error) {
+      await _player.stop();
+
+      if (source.startsWith('http://') ||
+          source.startsWith('https://')) {
+        debugPrint(
+          'Voice player: using network source',
+        );
+
+        await _player.play(
+          UrlSource(source),
+          volume: 1.0,
+        );
+      } else {
+        final file =
+        File(source);
+
+        final exists =
+        await file.exists();
+
+        debugPrint(
+          'Voice player local file exists: $exists',
+        );
+
+        if (!exists) {
+          debugPrint(
+            'Voice player: file not found: $source',
+          );
+          return;
+        }
+
+        final size =
+        await file.length();
+
+        debugPrint(
+          'Voice player file size: $size bytes',
+        );
+
+        if (size <= 0) {
+          debugPrint(
+            'Voice player: file is empty',
+          );
+          return;
+        }
+
+        debugPrint(
+          'Voice player: using local source',
+        );
+
+        await _player.play(
+          DeviceFileSource(source),
+          volume: 1.0,
+        );
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _position =
+            Duration.zero;
+      });
+    } catch (error, stackTrace) {
       debugPrint(
-        'VoiceNotePlayer playback error: $error',
+        'Voice playback error: $error',
+      );
+
+      debugPrint(
+        '$stackTrace',
       );
 
       if (!mounted) {
@@ -159,21 +262,21 @@ class _VoiceNotePlayerState
       setState(() {
         _playerState =
             PlayerState.stopped;
-      });
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Unable to play this voice note.',
-          ),
-        ),
-      );
+        _position =
+            Duration.zero;
+      });
     }
   }
 
   Future<void> _stop() async {
-    await _player.stop();
+    try {
+      await _player.stop();
+    } catch (error) {
+      debugPrint(
+        'Voice stop error: $error',
+      );
+    }
 
     if (!mounted) {
       return;
@@ -196,7 +299,8 @@ class _VoiceNotePlayerState
     final positionMs =
         _position.inMilliseconds;
 
-    final progress = totalMs <= 0
+    final progress =
+    totalMs <= 0
         ? 0.0
         : (positionMs / totalMs)
         .clamp(0.0, 1.0);
@@ -208,26 +312,24 @@ class _VoiceNotePlayerState
     return Container(
       padding:
       const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xff191923),
+      decoration:
+      BoxDecoration(
+        color:
+        const Color(0xff191923),
         borderRadius:
         BorderRadius.circular(18),
-        border: Border.all(
+        border:
+        Border.all(
           color:
-          Colors.white.withValues(alpha: .05),
+          Colors.white.withOpacity(.05),
         ),
       ),
       child: Row(
         children: [
           GestureDetector(
-            onTap: _togglePlayback,
-            behavior:
-            HitTestBehavior.opaque,
-            child: AnimatedContainer(
-              duration:
-              const Duration(
-                milliseconds: 180,
-              ),
+            onTap:
+            _togglePlayback,
+            child: Container(
               width: 42,
               height: 42,
               decoration:
@@ -239,19 +341,24 @@ class _VoiceNotePlayerState
                     : const Color(
                   0xffA855F7,
                 ),
-                shape: BoxShape.circle,
+                shape:
+                BoxShape.circle,
               ),
-              child: Icon(
+              child:
+              Icon(
                 playing
                     ? Icons.pause_rounded
                     : Icons.play_arrow_rounded,
-                color: Colors.white,
+                color:
+                Colors.white,
                 size: 22,
               ),
             ),
           ),
 
-          const SizedBox(width: 12),
+          const SizedBox(
+            width: 12,
+          ),
 
           Expanded(
             child: Column(
@@ -260,7 +367,8 @@ class _VoiceNotePlayerState
                   height: 30,
                   child: Row(
                     crossAxisAlignment:
-                    CrossAxisAlignment.center,
+                    CrossAxisAlignment
+                        .center,
                     children: [
                       for (
                       int i = 0;
@@ -268,21 +376,25 @@ class _VoiceNotePlayerState
                       i++
                       )
                         Expanded(
-                          child: Padding(
+                          child:
+                          Padding(
                             padding:
                             const EdgeInsets
                                 .symmetric(
-                              horizontal: 1.5,
+                              horizontal:
+                              1.5,
                             ),
                             child:
                             AnimatedContainer(
                               duration:
                               const Duration(
-                                milliseconds: 160,
+                                milliseconds:
+                                160,
                               ),
                               height:
                               7 +
-                                  ((i % 5) *
+                                  ((i %
+                                      5) *
                                       4),
                               decoration:
                               BoxDecoration(
@@ -309,7 +421,9 @@ class _VoiceNotePlayerState
                   ),
                 ),
 
-                const SizedBox(height: 4),
+                const SizedBox(
+                  height: 4,
+                ),
 
                 Row(
                   mainAxisAlignment:
@@ -324,7 +438,8 @@ class _VoiceNotePlayerState
                       const TextStyle(
                         color:
                         Color(0xff777787),
-                        fontSize: 10.5,
+                        fontSize:
+                        10.5,
                       ),
                     ),
                     Text(
@@ -335,7 +450,8 @@ class _VoiceNotePlayerState
                       const TextStyle(
                         color:
                         Color(0xff777787),
-                        fontSize: 10.5,
+                        fontSize:
+                        10.5,
                       ),
                     ),
                   ],
@@ -344,14 +460,18 @@ class _VoiceNotePlayerState
             ),
           ),
 
-          const SizedBox(width: 8),
+          const SizedBox(
+            width: 8,
+          ),
 
           IconButton(
-            onPressed: _stop,
-            splashRadius: 20,
-            icon: const Icon(
+            onPressed:
+            _stop,
+            icon:
+            const Icon(
               Icons.stop_rounded,
-              color: Color(0xff666675),
+              color:
+              Color(0xff666675),
               size: 20,
             ),
           ),
@@ -363,12 +483,14 @@ class _VoiceNotePlayerState
   String _formatDuration(
       Duration value,
       ) {
-    final minutes = value.inMinutes
+    final minutes =
+    value.inMinutes
         .remainder(60)
         .toString()
         .padLeft(2, '0');
 
-    final seconds = value.inSeconds
+    final seconds =
+    value.inSeconds
         .remainder(60)
         .toString()
         .padLeft(2, '0');

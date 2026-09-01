@@ -39,11 +39,14 @@ class _VoiceNoteSheetState
 
   String? _recordedPath;
 
-  Duration _recordedDuration =
-      Duration.zero;
+  Duration _recordedDuration = Duration.zero;
+  Duration _elapsed = Duration.zero;
+  Duration _playbackPosition = Duration.zero;
 
-  Duration _elapsed =
-      Duration.zero;
+  DateTime? _recordingStartedAt;
+  DateTime? _pausedAt;
+
+  Duration _pausedDuration = Duration.zero;
 
   bool _isRecording = false;
   bool _isPaused = false;
@@ -67,17 +70,26 @@ class _VoiceNoteSheetState
         widget.existingDuration ??
             Duration.zero;
 
-    _player.onPlayerComplete.listen(
-          (_) {
-        if (!mounted) {
-          return;
-        }
+    _player.onPositionChanged.listen((position) {
+      if (!mounted) {
+        return;
+      }
 
-        setState(() {
-          _isPlaying = false;
-        });
-      },
-    );
+      setState(() {
+        _playbackPosition = position;
+      });
+    });
+
+    _player.onPlayerComplete.listen((_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isPlaying = false;
+        _playbackPosition = Duration.zero;
+      });
+    });
   }
 
   @override
@@ -216,18 +228,10 @@ class _VoiceNoteSheetState
         const SizedBox(height: 18),
 
         Text(
-          _formatDuration(
-            _isRecording
-                ? _elapsed
-                : Duration.zero,
-          ),
+          '${_formatDuration(_playbackPosition)} / ${_formatDuration(_recordedDuration)}',
           style: const TextStyle(
-            color: Colors.white,
-            fontSize: 28,
-            fontWeight: FontWeight.w700,
-            fontFeatures: [
-              FontFeature.tabularFigures(),
-            ],
+            color: Color(0xff777787),
+            fontSize: 12,
           ),
         ),
 
@@ -480,24 +484,16 @@ class _VoiceNoteSheetState
     });
 
     try {
-      /*
-       * If there is an old recording from
-       * this sheet, remove it before creating
-       * a replacement.
-       */
       final oldPath = _recordedPath;
 
       if (oldPath != null &&
           oldPath != widget.existingPath) {
-        await _recorder.deleteFile(
-          oldPath,
-        );
+        await _recorder.deleteFile(oldPath);
       }
 
       await _player.stop();
 
-      final path =
-      await _recorder.start();
+      final path = await _recorder.start();
 
       if (!mounted) {
         await _recorder.cancel();
@@ -506,10 +502,14 @@ class _VoiceNoteSheetState
 
       setState(() {
         _recordedPath = path;
-        _recordedDuration =
-            Duration.zero;
-        _elapsed =
-            Duration.zero;
+        _recordedDuration = Duration.zero;
+        _elapsed = Duration.zero;
+        _playbackPosition = Duration.zero;
+
+        _recordingStartedAt = DateTime.now();
+        _pausedAt = null;
+        _pausedDuration = Duration.zero;
+
         _isRecording = true;
         _isPaused = false;
         _isPlaying = false;
@@ -517,6 +517,7 @@ class _VoiceNoteSheetState
       });
 
       _startTimer();
+
     } catch (error) {
       if (!mounted) {
         return;
@@ -534,21 +535,28 @@ class _VoiceNoteSheetState
     }
   }
 
+
+
   void _startTimer() {
     _timer?.cancel();
 
     _timer = Timer.periodic(
-      const Duration(seconds: 1),
+      const Duration(milliseconds: 200),
           (_) {
         if (!mounted ||
             !_isRecording ||
-            _isPaused) {
+            _isPaused ||
+            _recordingStartedAt == null) {
           return;
         }
 
+        final elapsed =
+            DateTime.now()
+                .difference(_recordingStartedAt!) -
+                _pausedDuration;
+
         setState(() {
-          _elapsed +=
-          const Duration(seconds: 1);
+          _elapsed = elapsed;
         });
       },
     );
@@ -567,9 +575,17 @@ class _VoiceNoteSheetState
           return;
         }
 
+        if (_pausedAt != null) {
+          _pausedDuration +=
+              DateTime.now().difference(_pausedAt!);
+        }
+
         setState(() {
           _isPaused = false;
+          _pausedAt = null;
         });
+
+        _startTimer();
       } else {
         await _recorder.pause();
 
@@ -577,14 +593,20 @@ class _VoiceNoteSheetState
           return;
         }
 
+        _pausedAt = DateTime.now();
+
+        _timer?.cancel();
+
         setState(() {
           _isPaused = true;
         });
       }
     } catch (_) {
-      _showMessage(
-        'Unable to change recording state.',
-      );
+      if (mounted) {
+        _showMessage(
+          'Unable to change recording state.',
+        );
+      }
     }
   }
 
@@ -659,7 +681,6 @@ class _VoiceNoteSheetState
     }
 
     _timer?.cancel();
-
     try {
       await _recorder.cancel();
     } catch (_) {}
@@ -761,10 +782,18 @@ class _VoiceNoteSheetState
 
       await _player.stop();
 
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _playbackPosition = Duration.zero;
+      });
+
       await _player.play(
         DeviceFileSource(path),
+        volume: 1.0,
       );
-
       if (!mounted) {
         return;
       }
