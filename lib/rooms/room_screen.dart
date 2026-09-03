@@ -1,16 +1,22 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:junaya_voicechat_app/core/config/app_config.dart';
-import 'package:junaya_voicechat_app/controllers/room_controller.dart';
+
 import 'package:junaya_voicechat_app/core/storage/token_storage.dart';
-import 'package:junaya_voicechat_app/models/voice_room_model.dart';
+import 'package:junaya_voicechat_app/rooms/models/voice_room_model.dart';
+import 'package:junaya_voicechat_app/rooms/room_controller.dart';
+import 'package:junaya_voicechat_app/rooms/room_socket_service.dart';
+import 'package:junaya_voicechat_app/rooms/services/livekit_voice_service.dart';
+import 'package:junaya_voicechat_app/rooms/widgets/room_seat_grid.dart';
+
 import 'package:junaya_voicechat_app/routes/app_routes.dart';
-import 'package:junaya_voicechat_app/screens/home/rooms/room_socket_service.dart';
-import 'package:junaya_voicechat_app/screens/home/rooms/widgets/room_seat_grid.dart';
+
 import 'package:junaya_voicechat_app/services/backend_auth_service.dart';
-import 'package:junaya_voicechat_app/services/livekit_voice_service.dart';
+
 import 'room_profile_screen.dart';
 import 'widgets/room_bottom_controls.dart';
 import 'widgets/room_chat_panel.dart';
@@ -1446,7 +1452,7 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
 
     if (_roomController.isOnMic) {
       _showMessage(
-        'You are already sitting on Mic ${_roomController.mySeatIndex! + 1}.',
+        'You are already sitting on Mic ${_roomController}.',
       );
       return;
     }

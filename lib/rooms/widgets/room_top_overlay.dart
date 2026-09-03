@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:junaya_voicechat_app/rooms/models/voice_room_model.dart';
 
-import '../../../../../models/voice_room_model.dart';
+
+
 
 /// Reference-sized header designed for a 738 x 1600 room canvas.
 /// The parent room canvas scales this widget uniformly for the device.

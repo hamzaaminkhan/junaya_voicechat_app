@@ -1,4 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:junaya_voicechat_app/profile/profile_screen.dart';
+import 'package:junaya_voicechat_app/profile/sections/cp_zone_screen.dart';
+import 'package:junaya_voicechat_app/profile/sections/help_center_screen.dart';
+import 'package:junaya_voicechat_app/profile/sections/join_agency_screen.dart';
+import 'package:junaya_voicechat_app/profile/sections/language_screen.dart';
+import 'package:junaya_voicechat_app/profile/sections/level_screen.dart';
+import 'package:junaya_voicechat_app/profile/sections/medal_screen.dart';
+import 'package:junaya_voicechat_app/rooms/room_screen.dart';
 import 'package:junaya_voicechat_app/widgets/auth_guard.dart';
 
 import '../screens/auth/email_verification.dart';
@@ -10,14 +18,7 @@ import '../screens/auth/signup_screen.dart';
 import '../screens/chat/chat_list_screen.dart';
 import '../screens/friends/friends_screen.dart';
 import '../screens/gifts/gifts_screen.dart';
-import '../screens/home/profile/profile_screen.dart';
-import '../screens/home/profile/sections/cp_zone_screen.dart';
-import '../screens/home/profile/sections/help_center_screen.dart';
-import '../screens/home/profile/sections/join_agency_screen.dart';
-import '../screens/home/profile/sections/language_screen.dart';
-import '../screens/home/profile/sections/level_screen.dart';
-import '../screens/home/profile/sections/medal_screen.dart';
-import '../screens/home/rooms/room_screen.dart';
+
 import '../screens/home/wallet_screen.dart';
 import '../screens/main/main_screen.dart';
 import '../screens/settings/settings_screen.dart';

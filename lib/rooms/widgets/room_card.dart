@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../screens/home/rooms/room_screen.dart';
+import '../room_screen.dart';
 
 class JunayaRoomCard extends StatelessWidget {
   final String flag;

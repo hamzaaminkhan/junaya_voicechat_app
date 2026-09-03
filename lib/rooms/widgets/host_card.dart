@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:junaya_voicechat_app/models/host_model.dart';
 
-import '../models/host_model.dart';
 
 class HostCard extends StatelessWidget {
   final HostModel host;

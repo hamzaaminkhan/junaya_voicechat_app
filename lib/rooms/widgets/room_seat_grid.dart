@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:junaya_voicechat_app/models/voice_room_model.dart';
+import 'package:junaya_voicechat_app/rooms/models/voice_room_model.dart';
+
 
 /// 5 x 5 production room seat grid sized against the 738 x 1600 reference.
 class RoomSeatGrid extends StatelessWidget {

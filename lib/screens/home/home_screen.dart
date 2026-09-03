@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:junaya_voicechat_app/rooms/widgets/room_card.dart';
 
-import '../../widgets/room_card.dart';
+
 import '../../widgets/space_background.dart';
 import '../../widgets/home_top_tabs.dart';
 import '../../widgets/country_chip.dart';

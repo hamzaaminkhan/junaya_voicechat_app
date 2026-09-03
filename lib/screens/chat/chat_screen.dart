@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:junaya_voicechat_app/models/message_model.dart';
+import 'package:junaya_voicechat_app/screens/chat/message_bubble.dart';
+import 'package:junaya_voicechat_app/screens/chat/message_input.dart';
+
+
 import 'package:junaya_voicechat_app/services/chat_service.dart';
-import 'package:junaya_voicechat_app/widgets/message_bubble.dart';
-import 'package:junaya_voicechat_app/widgets/message_input.dart';
+
+
 
 class ChatScreen extends StatefulWidget {
   final String currentUserId;

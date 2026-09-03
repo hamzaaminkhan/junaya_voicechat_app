@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:junaya_voicechat_app/widgets/room/unread_badge.dart';
+import 'package:junaya_voicechat_app/screens/chat/unread_badge.dart';
 import '../models/chat_model.dart';
 import 'online_indicator.dart';
 

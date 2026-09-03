@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:junaya_voicechat_app/profile/edit_profile_details_screen.dart';
+import 'package:junaya_voicechat_app/profile/sections/vip_purchase_screen.dart';
 
 import 'package:junaya_voicechat_app/routes/app_routes.dart';
-import 'package:junaya_voicechat_app/screens/home/profile/edit_profile_details_screen.dart';
-import 'package:junaya_voicechat_app/screens/home/profile/sections/vip_purchase_screen.dart';
+
 import 'package:junaya_voicechat_app/services/backend_auth_service.dart';
 import 'package:junaya_voicechat_app/widgets/space_background.dart';
 

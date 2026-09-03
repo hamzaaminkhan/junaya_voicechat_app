@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:junaya_voicechat_app/profile/profile_screen.dart';
+import 'package:junaya_voicechat_app/rooms/room_screen.dart';
+import 'package:junaya_voicechat_app/screens/chat/chat_details_screen.dart';
+import 'package:junaya_voicechat_app/screens/home/home_screen.dart';
+import 'package:junaya_voicechat_app/screens/moments/screens/moments_screen.dart';
+import 'package:junaya_voicechat_app/widgets/space_background.dart';
 
-import '../chat/chat_list_screen.dart';
-import '../home/home_screen.dart';
-import '../home/profile/profile_screen.dart';
-import '../home/rooms/room_screen.dart';
-import '../moments/screens/moments_screen.dart';
-import '../../widgets/space_background.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});

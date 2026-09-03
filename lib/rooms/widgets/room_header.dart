@@ -1,5 +1,8 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
-import 'package:junaya_voicechat_app/screens/home/rooms/widgets/room_top_users.dart';
+import 'package:junaya_voicechat_app/rooms/widgets/room_top_users.dart';
+
 import 'package:junaya_voicechat_app/theme/app_colors.dart';
 
 class RoomHeader extends StatelessWidget {

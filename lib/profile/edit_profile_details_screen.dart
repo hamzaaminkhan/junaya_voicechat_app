@@ -3,9 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:junaya_voicechat_app/services/backend_auth_service.dart';
+import 'package:junaya_voicechat_app/widgets/space_background.dart';
 
-import '../../../services/backend_auth_service.dart';
-import '../../../widgets/space_background.dart';
+
 
 class EditProfileDetailsScreen extends StatefulWidget {
   final String? backgroundAsset;

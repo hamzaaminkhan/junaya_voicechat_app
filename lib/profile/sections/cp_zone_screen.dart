@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:junaya_voicechat_app/widgets/profile_section_shell.dart';
 
-import '../../../../widgets/profile_section_shell.dart';
+
 
 class CpZoneScreen extends StatelessWidget {
   const CpZoneScreen({super.key});

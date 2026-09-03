@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:junaya_voicechat_app/screens/home/rooms/room_socket_service.dart';
+import 'package:junaya_voicechat_app/rooms/room_socket_service.dart';
 
 import 'room_settings_screen.dart';
 

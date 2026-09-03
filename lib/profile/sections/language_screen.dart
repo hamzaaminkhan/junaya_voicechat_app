@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:junaya_voicechat_app/widgets/profile_section_shell.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../../widgets/profile_section_shell.dart';
+
 
 class LanguageScreen extends StatefulWidget {
   const LanguageScreen({super.key});

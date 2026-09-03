@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:junaya_voicechat_app/widgets/room/bottom_controls.dart';
-import 'package:junaya_voicechat_app/widgets/room/live_chat.dart';
-import 'package:junaya_voicechat_app/widgets/room/room_header.dart';
-import 'package:junaya_voicechat_app/widgets/room/speaker_stage.dart';
-import 'package:junaya_voicechat_app/widgets/room/room_statistics.dart';
-import 'package:junaya_voicechat_app/widgets/room/gift_overlay.dart';
-import 'package:junaya_voicechat_app/widgets/room/gift_animation.dart';
+import 'package:junaya_voicechat_app/rooms/widgets/bottom_controls.dart';
+import 'package:junaya_voicechat_app/rooms/widgets/gift_animation.dart';
+import 'package:junaya_voicechat_app/rooms/widgets/gift_overlay.dart';
+import 'package:junaya_voicechat_app/rooms/widgets/live_chat.dart';
+import 'package:junaya_voicechat_app/rooms/widgets/room_header.dart';
+import 'package:junaya_voicechat_app/rooms/widgets/room_statistics.dart';
+import 'package:junaya_voicechat_app/rooms/widgets/speaker_stage.dart';
+
 
 class RoomDetailsScreen extends StatelessWidget {
   const RoomDetailsScreen({super.key});
