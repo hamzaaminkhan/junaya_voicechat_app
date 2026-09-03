@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import 'package:junaya_voicechat_app/rooms/models/voice_room_model.dart';
 
 
-/// Reference-sized header designed for a 738 x 1600 room canvas.
+/// Top section of the room.
+
+/// - Room name
+/// - Room ID
+/// - VIP level
+/// - Header strip
+/// - Close button
+/// - Maximum 4 top users
+/// - Remaining user count
+/// - Online count
+/// - Ranking frames for levels 1, 2 and 3
 class RoomTopOverlay extends StatelessWidget {
   final VoiceRoom room;
 
@@ -42,40 +53,27 @@ class RoomTopOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ownerName =
-    (owner?.name.trim().isNotEmpty ?? false)
+    owner?.name.trim().isNotEmpty == true
         ? owner!.name.trim()
         : room.name;
 
     final publicId =
     ownerPublicId?.trim().isNotEmpty == true
         ? ownerPublicId!.trim()
-        : (owner?.junayaId?.trim().isNotEmpty == true
+        : owner?.junayaId?.trim().isNotEmpty == true
         ? owner!.junayaId!.trim()
-        : room.id);
+        : room.id;
 
     final vipLevel =
         ownerVipLevel ??
             owner?.vipLevel ??
             0;
 
-    /*
-     * ------------------------------------------------------------
-     * TOP USERS
-     * ------------------------------------------------------------
-     *
-     * Requirement:
-     *
-     * Cross کے نیچے صرف 4 User Profiles
-     * باقی Users کی Total Counting
-     *
-     * Owner is included in the four.
-     */
+    // ------------------------------------------------------------
+    // TOP USERS
+    // ------------------------------------------------------------
 
-    final allMembers = <RoomUser>[];
-
-    if (owner != null) {
-      allMembers.add(owner!);
-    }
+    final topUsers = <RoomUser>[];
 
     for (final member in room.members) {
       if (owner != null &&
@@ -83,17 +81,19 @@ class RoomTopOverlay extends StatelessWidget {
         continue;
       }
 
-      allMembers.add(member);
+      topUsers.add(member);
+
+      if (topUsers.length == 4) {
+        break;
+      }
     }
 
-    final visibleMembers =
-    allMembers.take(4).toList();
+    final totalMembers =
+        room.members.length;
 
-    final hiddenMemberCount =
-    allMembers.length >
-        visibleMembers.length
-        ? allMembers.length -
-        visibleMembers.length
+    final hiddenCount =
+    totalMembers > topUsers.length
+        ? totalMembers - topUsers.length
         : 0;
 
     return SizedBox(
@@ -101,12 +101,11 @@ class RoomTopOverlay extends StatelessWidget {
 
       child: Stack(
         clipBehavior: Clip.none,
-
         children: [
 
-          // ============================================================
+          // ==========================================================
           // OWNER
-          // ============================================================
+          // ==========================================================
 
           Positioned(
             left: 4,
@@ -124,10 +123,9 @@ class RoomTopOverlay extends StatelessWidget {
             ),
           ),
 
-
-          // ============================================================
+          // ==========================================================
           // ROOM NAME
-          // ============================================================
+          // ==========================================================
 
           Positioned(
             left: 132,
@@ -135,69 +133,46 @@ class RoomTopOverlay extends StatelessWidget {
             right: 220,
 
             child: Text(
-              ownerName.toUpperCase(),
+              ownerName,
 
               maxLines: 1,
-
-              overflow:
-              TextOverflow.ellipsis,
+              overflow: TextOverflow.ellipsis,
 
               style: GoogleFonts.poppins(
                 color: Colors.white,
-
-                // Slightly smaller.
-                fontSize: 21,
-
+                fontSize: 18,
                 height: 1.05,
-
-                fontWeight:
-                FontWeight.w600,
-
-                letterSpacing: .1,
+                fontWeight: FontWeight.w600,
 
                 shadows: const [
                   Shadow(
                     color: Colors.black,
                     blurRadius: 7,
                   ),
-                  Shadow(
-                    color: Colors.black54,
-                    offset: Offset(0, 1),
-                  ),
                 ],
               ),
             ),
           ),
 
-
-          // ============================================================
-          // ID
-          // ============================================================
+          // ==========================================================
+          // ROOM ID
+          // ==========================================================
 
           Positioned(
             left: 132,
-            top: 72,
+            top: 68,
 
             child: Text(
               'ID: $publicId',
 
               maxLines: 1,
-
-              overflow:
-              TextOverflow.ellipsis,
+              overflow: TextOverflow.ellipsis,
 
               style: GoogleFonts.poppins(
-                color:
-                Colors.white.withValues(
-                  alpha: .88,
-                ),
-
-                fontSize: 14,
-
+                color: Colors.white70,
+                fontSize: 11.5,
                 height: 1,
-
-                fontWeight:
-                FontWeight.w400,
+                fontWeight: FontWeight.w400,
 
                 shadows: const [
                   Shadow(
@@ -209,40 +184,38 @@ class RoomTopOverlay extends StatelessWidget {
             ),
           ),
 
-
-          // ============================================================
+          // ==========================================================
           // VIP LEVEL
-          // ============================================================
+          // ==========================================================
 
           Positioned(
             left: 255,
-            top: 65,
+            top: 61,
 
             child: _VipBadge(
               level: vipLevel,
             ),
           ),
 
-
-          // ============================================================
-          // DECORATIVE RECTANGLE / STRIP
-          // ============================================================
+          // ==========================================================
+          // RECTANGULAR STRIP
+          // ==========================================================
 
           Positioned(
             left: 132,
-            top: 105,
+            top: 94,
+
             child: _HeaderStrip(
               rank: room.roomRank,
             ),
           ),
 
-
-          // ============================================================
+          // ==========================================================
           // CLOSE
-          // ============================================================
+          // ==========================================================
 
           Positioned(
-            top: 8,
+            top: 5,
             right: 4,
 
             child: Tooltip(
@@ -251,41 +224,35 @@ class RoomTopOverlay extends StatelessWidget {
               child: IconButton(
                 onPressed: onCloseTap,
 
-                padding:
-                EdgeInsets.zero,
+                padding: EdgeInsets.zero,
 
                 constraints:
-                const BoxConstraints
-                    .tightFor(
-                  width: 50,
-                  height: 50,
+                const BoxConstraints.tightFor(
+                  width: 46,
+                  height: 46,
                 ),
 
                 icon: const Icon(
                   Icons.close_rounded,
-
                   color: Colors.white,
-
-                  size: 38,
+                  size: 34,
                 ),
               ),
             ),
           ),
 
-
-          // ============================================================
+          // ==========================================================
           // TOP 4 USERS
-          // ============================================================
+          // ==========================================================
 
           Positioned(
             top: 67,
-            right: 12,
+            right: 8,
 
             child: GestureDetector(
               onTap: onMembersTap,
 
-              behavior:
-              HitTestBehavior.opaque,
+              behavior: HitTestBehavior.opaque,
 
               child: Column(
                 crossAxisAlignment:
@@ -299,15 +266,14 @@ class RoomTopOverlay extends StatelessWidget {
 
                     children: [
 
-                      if (visibleMembers
-                          .isNotEmpty)
+                      if (topUsers.isNotEmpty)
                         SizedBox(
                           width:
                           _avatarRowWidth(
-                            visibleMembers.length,
+                            topUsers.length,
                           ),
 
-                          height: 48,
+                          height: 50,
 
                           child: Stack(
                             clipBehavior:
@@ -315,18 +281,27 @@ class RoomTopOverlay extends StatelessWidget {
 
                             children:
                             List.generate(
-                              visibleMembers.length,
+                              topUsers.length,
                                   (index) {
+                                final user =
+                                topUsers[index];
+
+                                // For now the member
+                                // ordering represents
+                                // the top-user ranking.
+                                final rank =
+                                _rankingLevel(
+                                  index,
+                                );
+
                                 return Positioned(
                                   left:
-                                  index * 37,
+                                  index * 36,
 
                                   child:
                                   _MiniAvatar(
-                                    user:
-                                    visibleMembers[
-                                    index],
-
+                                    user: user,
+                                    rank: rank,
                                     mediaBaseUrl:
                                     mediaBaseUrl,
                                   ),
@@ -336,67 +311,23 @@ class RoomTopOverlay extends StatelessWidget {
                           ),
                         ),
 
-
-                      if (hiddenMemberCount >
-                          0) ...[
+                      if (hiddenCount > 0) ...[
                         const SizedBox(
-                          width: 5,
+                          width: 6,
                         ),
 
-                        Container(
-                          width: 48,
-                          height: 48,
-
-                          alignment:
-                          Alignment.center,
-
-                          decoration:
-                          BoxDecoration(
-                            color: Colors.black
-                                .withValues(
-                              alpha: .55,
-                            ),
-
-                            shape:
-                            BoxShape.circle,
-
-                            border:
-                            Border.all(
-                              color:
-                              Colors.white54,
-
-                              width: 1,
-                            ),
-                          ),
-
-                          child: Text(
-                            '+$hiddenMemberCount',
-
-                            style:
-                            GoogleFonts.poppins(
-                              color:
-                              Colors.white,
-
-                              fontSize: 14,
-
-                              fontWeight:
-                              FontWeight.w600,
-                            ),
-                          ),
+                        _MoreUsers(
+                          count: hiddenCount,
                         ),
                       ],
                     ],
                   ),
 
+                  const SizedBox(height: 6),
 
-                  const SizedBox(
-                    height: 6,
-                  ),
-
-
-                  // ======================================================
+                  // ====================================================
                   // ONLINE
-                  // ======================================================
+                  // ====================================================
 
                   Row(
                     mainAxisSize:
@@ -404,68 +335,28 @@ class RoomTopOverlay extends StatelessWidget {
 
                     children: [
 
-                      Container(
-                        width: 10,
-                        height: 10,
-
-                        decoration:
-                        BoxDecoration(
-                          shape:
-                          BoxShape.circle,
-
-                          color: socketConnected &&
-                              voiceConnected
-                              ? const Color(
-                            0xFF00E977,
-                          )
-                              : const Color(
-                            0xFFFFC94A,
-                          ),
-
-                          boxShadow: [
-                            BoxShadow(
-                              color:
-                              (socketConnected &&
-                                  voiceConnected
-                                  ? const Color(
-                                0xFF00E977,
-                              )
-                                  : const Color(
-                                0xFFFFC94A,
-                              ))
-                                  .withValues(
-                                alpha: .5,
-                              ),
-
-                              blurRadius: 7,
-                            ),
-                          ],
-                        ),
+                      _OnlineIndicator(
+                        connected:
+                        socketConnected &&
+                            voiceConnected,
                       ),
 
-                      const SizedBox(
-                        width: 7,
-                      ),
+                      const SizedBox(width: 7),
 
                       Text(
                         'Online: ${room.onlineUsers}',
 
                         style:
                         GoogleFonts.poppins(
-                          color:
-                          Colors.white,
-
-                          fontSize: 14,
-
+                          color: Colors.white,
+                          fontSize: 12.5,
                           height: 1,
-
                           fontWeight:
                           FontWeight.w400,
 
                           shadows: const [
                             Shadow(
-                              color:
-                              Colors.black,
+                              color: Colors.black,
                               blurRadius: 5,
                             ),
                           ],
@@ -482,16 +373,117 @@ class RoomTopOverlay extends StatelessWidget {
     );
   }
 
+  // ------------------------------------------------------------
+  // RANKING LEVEL
+  // ------------------------------------------------------------
 
-  double _avatarRowWidth(
-      int count,
-      ) {
+  int _rankingLevel(int index) {
+    if (index == 0) {
+      return 1;
+    }
+
+    if (index == 1) {
+      return 2;
+    }
+
+    return 3;
+  }
+
+  // ------------------------------------------------------------
+  // AVATAR ROW WIDTH
+  // ------------------------------------------------------------
+
+  double _avatarRowWidth(int count) {
     if (count <= 0) {
       return 0;
     }
 
-    return 48 +
-        ((count - 1) * 37);
+    return 48 + ((count - 1) * 36);
+  }
+}
+
+
+// ============================================================================
+// MORE USERS
+// ============================================================================
+
+class _MoreUsers extends StatelessWidget {
+  final int count;
+
+  const _MoreUsers({
+    required this.count,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 48,
+      height: 48,
+
+      alignment: Alignment.center,
+
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(
+          alpha: .52,
+        ),
+
+        shape: BoxShape.circle,
+
+        border: Border.all(
+          color: Colors.white38,
+          width: 1,
+        ),
+      ),
+
+      child: Text(
+        '+$count',
+
+        style: GoogleFonts.poppins(
+          color: Colors.white,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+
+// ============================================================================
+// ONLINE INDICATOR
+// ============================================================================
+
+class _OnlineIndicator extends StatelessWidget {
+  final bool connected;
+
+  const _OnlineIndicator({
+    required this.connected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = connected
+        ? const Color(0xFF00E977)
+        : const Color(0xFFFFC94A);
+
+    return Container(
+      width: 9,
+      height: 9,
+
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(
+              alpha: .5,
+            ),
+            blurRadius: 7,
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -510,7 +502,7 @@ class _HeaderStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 34,
+      height: 32,
 
       constraints:
       const BoxConstraints(
@@ -522,20 +514,17 @@ class _HeaderStrip extends StatelessWidget {
         horizontal: 11,
       ),
 
-      decoration:
-      BoxDecoration(
-        borderRadius:
-        BorderRadius.circular(9),
-
-        color: Colors.black
-            .withValues(
-          alpha: .32,
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(
+          alpha: .28,
         ),
 
+        borderRadius:
+        BorderRadius.circular(7),
+
         border: Border.all(
-          color: Colors.white
-              .withValues(
-            alpha: .16,
+          color: Colors.white.withValues(
+            alpha: .18,
           ),
 
           width: .8,
@@ -543,15 +532,16 @@ class _HeaderStrip extends StatelessWidget {
 
         boxShadow: [
           BoxShadow(
-            color: Colors.black
-                .withValues(
+            color: Colors.black.withValues(
               alpha: .18,
             ),
 
             blurRadius: 8,
 
-            offset:
-            const Offset(0, 3),
+            offset: const Offset(
+              0,
+              3,
+            ),
           ),
         ],
       ),
@@ -564,54 +554,36 @@ class _HeaderStrip extends StatelessWidget {
 
           const Icon(
             Icons.emoji_events_rounded,
-
-            color:
-            Color(0xFFFFC13D),
-
-            size: 18,
+            color: Color(0xFFFFC13D),
+            size: 17,
           ),
 
-          const SizedBox(
-            width: 6,
-          ),
+          const SizedBox(width: 6),
 
           Text(
             _compactNumber(rank),
 
-            style:
-            GoogleFonts.poppins(
+            style: GoogleFonts.poppins(
               color:
-              const Color(
-                0xFFFFD261,
-              ),
-
-              fontSize: 14,
-
-              fontWeight:
-              FontWeight.w600,
+              const Color(0xFFFFD261),
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
             ),
           ),
 
-          const SizedBox(
-            width: 4,
-          ),
+          const SizedBox(width: 4),
 
           const Icon(
             Icons.chevron_right_rounded,
-
-            color:
-            Colors.white70,
-
-            size: 18,
+            color: Colors.white70,
+            size: 17,
           ),
         ],
       ),
     );
   }
 
-  String _compactNumber(
-      int value,
-      ) {
+  String _compactNumber(int value) {
     if (value >= 1000000) {
       return '${(value / 1000000).toStringAsFixed(
         value >= 10000000 ? 0 : 1,
@@ -643,34 +615,27 @@ class _VipBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 30,
+      height: 28,
 
       padding:
       const EdgeInsets.symmetric(
-        horizontal: 9,
+        horizontal: 8,
       ),
 
-      alignment:
-      Alignment.center,
+      alignment: Alignment.center,
 
-      decoration:
-      BoxDecoration(
-        color: const Color(
-          0xFF160B24,
-        ).withValues(
-          alpha: .78,
-        ),
+      decoration: BoxDecoration(
+        color:
+        const Color(0xFF160B24)
+            .withValues(alpha: .78),
 
         borderRadius:
         BorderRadius.circular(7),
 
         border: Border.all(
           color:
-          const Color(
-            0xFF8B38D0,
-          ).withValues(
-            alpha: .8,
-          ),
+          const Color(0xFF8B38D0)
+              .withValues(alpha: .8),
 
           width: 1,
         ),
@@ -684,31 +649,20 @@ class _VipBadge extends StatelessWidget {
 
           const Icon(
             Icons.diamond_outlined,
-
-            color:
-            Color(0xFFB84BFF),
-
-            size: 15,
+            color: Color(0xFFB84BFF),
+            size: 14,
           ),
 
-          const SizedBox(
-            width: 5,
-          ),
+          const SizedBox(width: 5),
 
           Text(
             'Lv. $level',
 
-            style:
-            GoogleFonts.poppins(
-              color:
-              Colors.white,
-
-              fontSize: 12,
-
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontSize: 11,
               height: 1,
-
-              fontWeight:
-              FontWeight.w600,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -745,11 +699,8 @@ class _OwnerFrame extends StatelessWidget {
       height: size + 16,
 
       child: Stack(
-        clipBehavior:
-        Clip.none,
-
-        alignment:
-        Alignment.center,
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
 
         children: [
 
@@ -760,8 +711,7 @@ class _OwnerFrame extends StatelessWidget {
             padding:
             const EdgeInsets.all(4),
 
-            decoration:
-            BoxDecoration(
+            decoration: BoxDecoration(
               borderRadius:
               BorderRadius.circular(27),
 
@@ -777,16 +727,12 @@ class _OwnerFrame extends StatelessWidget {
 
               boxShadow: const [
                 BoxShadow(
-                  color:
-                  Color(0x66FF9D2E),
-
+                  color: Color(0x66FF9D2E),
                   blurRadius: 14,
                 ),
 
                 BoxShadow(
-                  color:
-                  Color(0x449F4CFF),
-
+                  color: Color(0x449F4CFF),
                   blurRadius: 18,
                 ),
               ],
@@ -796,23 +742,16 @@ class _OwnerFrame extends StatelessWidget {
               padding:
               const EdgeInsets.all(3),
 
-              decoration:
-              BoxDecoration(
+              decoration: BoxDecoration(
                 color:
-                const Color(
-                  0xFF08040B,
-                ),
+                const Color(0xFF08040B),
 
                 borderRadius:
                 BorderRadius.circular(23),
 
-                border:
-                Border.all(
+                border: Border.all(
                   color:
-                  const Color(
-                    0xFFFFD977,
-                  ),
-
+                  const Color(0xFFFFD977),
                   width: 1,
                 ),
               ),
@@ -823,17 +762,14 @@ class _OwnerFrame extends StatelessWidget {
 
                 child: _RoomImage(
                   source: avatar,
-
                   mediaBaseUrl:
                   mediaBaseUrl,
-
                   fallbackName:
                   name,
                 ),
               ),
             ),
           ),
-
 
           // Crown
           Positioned(
@@ -845,24 +781,17 @@ class _OwnerFrame extends StatelessWidget {
 
               decoration:
               const BoxDecoration(
-                color:
-                Color(0xFF4C225E),
-
-                shape:
-                BoxShape.circle,
+                color: Color(0xFF4C225E),
+                shape: BoxShape.circle,
               ),
 
               child: const Icon(
                 Icons.workspace_premium_rounded,
-
-                color:
-                Color(0xFFFFD25A),
-
+                color: Color(0xFFFFD25A),
                 size: 22,
               ),
             ),
           ),
-
 
           // Bottom diamond
           Positioned(
@@ -875,8 +804,7 @@ class _OwnerFrame extends StatelessWidget {
                 width: 32,
                 height: 32,
 
-                decoration:
-                BoxDecoration(
+                decoration: BoxDecoration(
                   gradient:
                   const LinearGradient(
                     colors: [
@@ -885,13 +813,9 @@ class _OwnerFrame extends StatelessWidget {
                     ],
                   ),
 
-                  border:
-                  Border.all(
+                  border: Border.all(
                     color:
-                    const Color(
-                      0xFFFFD15D,
-                    ),
-
+                    const Color(0xFFFFD15D),
                     width: 1.5,
                   ),
                 ),
@@ -901,10 +825,7 @@ class _OwnerFrame extends StatelessWidget {
 
                   child: const Icon(
                     Icons.diamond_rounded,
-
-                    color:
-                    Colors.white,
-
+                    color: Colors.white,
                     size: 18,
                   ),
                 ),
@@ -919,61 +840,253 @@ class _OwnerFrame extends StatelessWidget {
 
 
 // ============================================================================
-// MINI AVATAR
+// MINI AVATAR + RANKING
 // ============================================================================
 
 class _MiniAvatar extends StatelessWidget {
   final RoomUser user;
 
+  final int rank;
+
   final String mediaBaseUrl;
 
   const _MiniAvatar({
     required this.user,
+    required this.rank,
     required this.mediaBaseUrl,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 48,
-      height: 48,
+    final ranking = _RankingStyle.fromLevel(
+      rank,
+    );
 
-      padding:
-      const EdgeInsets.all(2),
+    return SizedBox(
+      width: 58,
+      height: 58,
 
-      decoration:
-      BoxDecoration(
-        shape:
-        BoxShape.circle,
+      child: Stack(
+        clipBehavior: Clip.none,
 
-        gradient:
-        const LinearGradient(
-          colors: [
-            Color(0xFFFFC34B),
-            Color(0xFF9D5FFF),
-          ],
-        ),
+        children: [
 
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black54,
-            blurRadius: 6,
+          // ----------------------------------------------------------
+          // RANK CIRCLE
+          // ----------------------------------------------------------
+
+          Positioned(
+            left: 5,
+            top: 5,
+
+            child: Container(
+              width: 48,
+              height: 48,
+
+              padding:
+              const EdgeInsets.all(2.5),
+
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+
+                gradient:
+                LinearGradient(
+                  colors: ranking.circleColors,
+                ),
+
+                boxShadow: [
+                  BoxShadow(
+                    color: ranking.glowColor
+                        .withValues(
+                      alpha: .38,
+                    ),
+
+                    blurRadius: 8,
+                  ),
+                ],
+              ),
+
+              child: Container(
+                padding:
+                const EdgeInsets.all(1.5),
+
+                decoration: BoxDecoration(
+                  color:
+                  const Color(0xFF09050D),
+
+                  shape: BoxShape.circle,
+
+                  border: Border.all(
+                    color:
+                    ranking.innerBorder,
+                    width: 1,
+                  ),
+                ),
+
+                child: ClipOval(
+                  child: _RoomImage(
+                    source: user.avatar,
+                    mediaBaseUrl:
+                    mediaBaseUrl,
+                    fallbackName:
+                    user.name,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // ----------------------------------------------------------
+          // CROWN
+          // ----------------------------------------------------------
+
+          Positioned(
+            top: -5,
+            right: -2,
+
+            child: Container(
+              width: 23,
+              height: 23,
+
+              alignment: Alignment.center,
+
+              decoration: BoxDecoration(
+                color:
+                ranking.crownBackground,
+
+                shape: BoxShape.circle,
+
+                border: Border.all(
+                  color:
+                  ranking.crownColor
+                      .withValues(
+                    alpha: .65,
+                  ),
+
+                  width: .8,
+                ),
+              ),
+
+              child: Icon(
+                Icons.workspace_premium_rounded,
+
+                color:
+                ranking.crownColor,
+
+                size: 16,
+              ),
+            ),
           ),
         ],
       ),
-
-      child: ClipOval(
-        child: _RoomImage(
-          source: user.avatar,
-
-          mediaBaseUrl:
-          mediaBaseUrl,
-
-          fallbackName:
-          user.name,
-        ),
-      ),
     );
+  }
+}
+
+
+// ============================================================================
+// RANKING STYLE
+// ============================================================================
+
+class _RankingStyle {
+  final List<Color> circleColors;
+
+  final Color innerBorder;
+
+  final Color crownColor;
+
+  final Color crownBackground;
+
+  final Color glowColor;
+
+  const _RankingStyle({
+    required this.circleColors,
+    required this.innerBorder,
+    required this.crownColor,
+    required this.crownBackground,
+    required this.glowColor,
+  });
+
+  factory _RankingStyle.fromLevel(
+      int level,
+      ) {
+    switch (level) {
+
+    // --------------------------------------------------------------
+    // LEVEL 1 — GOLD
+    // --------------------------------------------------------------
+
+      case 1:
+        return const _RankingStyle(
+          circleColors: [
+            Color(0xFFFFF09A),
+            Color(0xFFFFC22E),
+            Color(0xFFE88700),
+          ],
+
+          innerBorder:
+          Color(0xFFFFE78A),
+
+          crownColor:
+          Color(0xFFFFD83D),
+
+          crownBackground:
+          Color(0xFF6B4510),
+
+          glowColor:
+          Color(0xFFFFC83D),
+        );
+
+    // --------------------------------------------------------------
+    // LEVEL 2 — METAL
+    // --------------------------------------------------------------
+
+      case 2:
+        return const _RankingStyle(
+          circleColors: [
+            Color(0xFFE4E7EC),
+            Color(0xFF8E96A3),
+            Color(0xFF535B68),
+          ],
+
+          innerBorder:
+          Color(0xFFD4D8DF),
+
+          crownColor:
+          Color(0xFFD6DAE2),
+
+          crownBackground:
+          Color(0xFF414751),
+
+          glowColor:
+          Color(0xFFB9C0CC),
+        );
+
+    // --------------------------------------------------------------
+    // LEVEL 3 — SILVER
+    // --------------------------------------------------------------
+
+      default:
+        return const _RankingStyle(
+          circleColors: [
+            Color(0xFFF5F5F5),
+            Color(0xFFC4C7CC),
+            Color(0xFF8C9198),
+          ],
+
+          innerBorder:
+          Color(0xFFE4E5E7),
+
+          crownColor:
+          Color(0xFFE8E9EC),
+
+          crownBackground:
+          Color(0xFF5B5E64),
+
+          glowColor:
+          Color(0xFFD5D7DB),
+        );
+    }
   }
 }
 
@@ -1004,18 +1117,11 @@ class _RoomImage extends StatelessWidget {
       return _fallback();
     }
 
-    if (value.startsWith(
-      'http://',
-    ) ||
-        value.startsWith(
-          'https://',
-        )) {
+    if (value.startsWith('http://') ||
+        value.startsWith('https://')) {
       return Image.network(
         value,
-
-        fit:
-        BoxFit.cover,
-
+        fit: BoxFit.cover,
         filterQuality:
         FilterQuality.medium,
 
@@ -1035,10 +1141,7 @@ class _RoomImage extends StatelessWidget {
 
       return Image.network(
         '$base$value',
-
-        fit:
-        BoxFit.cover,
-
+        fit: BoxFit.cover,
         filterQuality:
         FilterQuality.medium,
 
@@ -1049,10 +1152,7 @@ class _RoomImage extends StatelessWidget {
 
     return Image.asset(
       value,
-
-      fit:
-      BoxFit.cover,
-
+      fit: BoxFit.cover,
       filterQuality:
       FilterQuality.medium,
 
@@ -1074,9 +1174,7 @@ class _RoomImage extends StatelessWidget {
 
     return Container(
       color:
-      const Color(
-        0xFF4A1B52,
-      ),
+      const Color(0xFF4A1B52),
 
       alignment:
       Alignment.center,
@@ -1086,11 +1184,8 @@ class _RoomImage extends StatelessWidget {
 
         style:
         GoogleFonts.playfairDisplay(
-          color:
-          Colors.white,
-
-          fontSize: 42,
-
+          color: Colors.white,
+          fontSize: 28,
           fontWeight:
           FontWeight.w600,
         ),

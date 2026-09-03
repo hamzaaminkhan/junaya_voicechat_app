@@ -156,16 +156,12 @@ class RoomSeatGrid extends StatelessWidget {
             mediaBaseUrl: mediaBaseUrl,
 
             onTap: () {
-              // IMPORTANT:
-              // Send actual seat number, NOT grid index.
-              onSeatTap(seat.number);
+              onSeatTap(index);
             },
 
             onLongPress: isRoomOwner
                 ? () {
-              // IMPORTANT:
-              // Send actual seat number.
-              onSeatLongPress(seat.number);
+              onSeatLongPress(index);
             }
                 : null,
           );
