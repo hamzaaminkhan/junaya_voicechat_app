@@ -25,15 +25,23 @@ class RoomSeatGrid extends StatelessWidget {
   final ValueChanged<int> onSeatTap;
   final ValueChanged<int> onSeatLongPress;
 
+  final int seatCount;
+
   const RoomSeatGrid({
     super.key,
     required this.seats,
+    required this.seatCount,
     required this.currentUserId,
     required this.mediaBaseUrl,
     required this.isRoomOwner,
     required this.onSeatTap,
     required this.onSeatLongPress,
   });
+
+  int get columns {
+    if (seatCount <= 5) return seatCount;
+    return 5;
+  }
 
   @override
   Widget build(BuildContext context) {

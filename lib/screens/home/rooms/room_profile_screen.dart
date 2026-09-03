@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:junaya_voicechat_app/screens/home/rooms/room_socket_service.dart';
 
 import 'room_settings_screen.dart';
 
@@ -514,7 +515,14 @@ class _RoomProfileScreenState extends State<RoomProfileScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const RoomSettingsScreen(),
+                      builder: (_) => RoomSettingsScreen(
+                        roomId: '',
+                        currentMicCount: 5,
+                        socketService: RoomSocketService(),
+                        onMicCountChanged: (count) {
+                          setState(() {});
+                        },
+                      ),
                     ),
                   );
                 },

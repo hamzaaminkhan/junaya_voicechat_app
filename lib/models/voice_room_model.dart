@@ -158,6 +158,8 @@ class VoiceRoom {
     this.members = const [],
   });
 
+  int get seatCount => seats.length;
+
   VoiceRoom copyWith({
     String? id,
     String? name,
@@ -179,6 +181,7 @@ class VoiceRoom {
       members: members ?? this.members,
     );
   }
+
 
   factory VoiceRoom.fromJson(Map<String, dynamic> json) {
     return VoiceRoom(

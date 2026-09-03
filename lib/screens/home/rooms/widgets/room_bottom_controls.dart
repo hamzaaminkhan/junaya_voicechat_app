@@ -132,15 +132,15 @@ class RoomBottomControls extends StatelessWidget {
 }
 
 class RoomSideActionRail extends StatelessWidget {
-  final VoidCallback onLucky;
+  final VoidCallback onPk;
   final VoidCallback onVip;
-  final VoidCallback onRewards;
+  final VoidCallback onRocket;
 
   const RoomSideActionRail({
     super.key,
-    required this.onLucky,
+    required this.onPk,
     required this.onVip,
-    required this.onRewards,
+    required this.onRocket,
   });
 
   @override
@@ -149,11 +149,14 @@ class RoomSideActionRail extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _RailAction(
-          onTap: onLucky,
-          icon: Icons.workspace_premium_rounded,
-          label: 'Lucky',
-          colors: const [Color(0xFF985B18), Color(0xFF3A1E05)],
-          accent: const Color(0xFFFFD054),
+          onTap: onPk,
+          icon: Icons.sports_rounded,
+          label: 'PK',
+          colors: const [
+            Color(0xFF8E2DE2),
+            Color(0xFF4A00E0),
+          ],
+          accent: const Color(0xFFFFD54F),
         ),
         const SizedBox(height: 6),
         _RailAction(
@@ -168,32 +171,14 @@ class RoomSideActionRail extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             _RailAction(
-              onTap: onRewards,
-              icon: Icons.monetization_on_rounded,
-              label: 'Bonus',
-              colors: const [Color(0xFFFFB728), Color(0xFFB45C05)],
+              onTap: onRocket,
+              icon: Icons.rocket_launch_rounded,
+              label: 'Rocket',
+              colors: const [
+                Color(0xFFFF512F),
+                Color(0xFFF09819),
+              ],
               accent: const Color(0xFFFFF1A6),
-            ),
-            Positioned(
-              right: -5,
-              top: -6,
-              child: Container(
-                width: 31,
-                height: 31,
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFF445C),
-                  shape: BoxShape.circle,
-                ),
-                child: const Text(
-                  '3',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
             ),
           ],
         ),

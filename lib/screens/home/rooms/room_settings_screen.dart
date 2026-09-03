@@ -1,12 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:junaya_voicechat_app/screens/home/rooms/room_socket_service.dart';
 
 class RoomSettingsScreen extends StatefulWidget {
-  const RoomSettingsScreen({super.key});
+
+  final String roomId;
+  final int currentMicCount;
+  final RoomSocketService socketService;
+
+  final ValueChanged<int>? onMicCountChanged;
+
+  const RoomSettingsScreen({
+    super.key,
+    required this.roomId,
+    required this.currentMicCount,
+    required this.socketService,
+    this.onMicCountChanged,
+  });
 
   @override
   State<RoomSettingsScreen> createState() => _RoomSettingsScreenState();
 }
+
+
 
 class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
   static const Color _pageBg = Color(0xFF090020);
@@ -17,11 +33,18 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
 
   String roomName = '87012534';
   String announcement = 'Welcome to join my party!';
-  int micCount = 15;
+  late int micCount;
   int diceCount = 1;
   bool sendEmojis = false;
   bool adminsOpenGames = false;
   bool followersTakeMic = true;
+
+  @override
+  void initState() {
+    super.initState();
+
+    micCount = widget.currentMicCount;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,10 +103,29 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
                             value: '$micCount',
                             onTap: () => _pickNumber(
                               title: 'Number of Mic',
-                              values: const [5, 10, 15, 20],
+                              values: List.generate(25, (index) => index + 1),
                               selected: micCount,
                               onSelected: (value) {
-                                setState(() => micCount = value);
+                                setState(() {
+                                  micCount = value;
+                                });
+
+                                widget.socketService.updateRoomSettings(
+                                  roomId: widget.roomId,
+                                  seatCount: value,
+                                  onResult: (ok, error) {
+
+                                    if (!ok) {
+                                      _message(
+                                        error ?? 'Failed to update room seats',
+                                      );
+                                    }
+
+                                  },
+                                );
+
+
+                                widget.onMicCountChanged?.call(value);
                               },
                             ),
                           ),
@@ -189,7 +231,12 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
             child: Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: () => Navigator.maybePop(context),
+                onTap: () {
+                  Navigator.pop(
+                    context,
+                    micCount,
+                  );
+                },
                 customBorder: const CircleBorder(),
                 child: Container(
                   width: 42,
@@ -546,6 +593,7 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
         ),
       ),
     );
+
 
     if (result != null) {
       onSelected(result);

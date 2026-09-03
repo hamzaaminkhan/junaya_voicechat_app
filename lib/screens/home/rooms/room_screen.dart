@@ -7,14 +7,14 @@ import 'package:junaya_voicechat_app/controllers/room_controller.dart';
 import 'package:junaya_voicechat_app/core/storage/token_storage.dart';
 import 'package:junaya_voicechat_app/models/voice_room_model.dart';
 import 'package:junaya_voicechat_app/routes/app_routes.dart';
+import 'package:junaya_voicechat_app/screens/home/rooms/room_socket_service.dart';
+import 'package:junaya_voicechat_app/screens/home/rooms/widgets/room_seat_grid.dart';
 import 'package:junaya_voicechat_app/services/backend_auth_service.dart';
 import 'package:junaya_voicechat_app/services/livekit_voice_service.dart';
-
 import 'room_profile_screen.dart';
-import 'room_socket_service.dart';
 import 'widgets/room_bottom_controls.dart';
 import 'widgets/room_chat_panel.dart';
-import 'widgets/room_seat_grid.dart';
+import 'room_settings_screen.dart';
 import 'widgets/room_top_overlay.dart';
 
 class RoomScreen extends StatefulWidget {
@@ -1175,7 +1175,7 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
         canPop: false,
         onPopInvokedWithResult: (didPop, result) {
           if (!didPop) {
-            _showExitRoomSheet();
+            _showExitDialog();
           }
         },
         child: Scaffold(
@@ -1241,7 +1241,7 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          _showExitRoomSheet();
+          _showExitDialog();
         }
       },
       child: Scaffold(
@@ -1345,8 +1345,9 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
                             right: 0,
                             top: 260,
                             bottom: 360,
-                            child: RoomSeatGrid(
+                            child:RoomSeatGrid(
                               seats: currentRoom.seats,
+                              seatCount: currentRoom.seats.length,
                               currentUserId: _roomController.currentUserId,
                               mediaBaseUrl: AppConfig.apiBaseUrl,
                               isRoomOwner: _roomController.isRoomOwner,
@@ -1369,9 +1370,17 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
                             right: 8,
                             top: 1218,
                             child: RoomSideActionRail(
-                              onLucky: () => _showMessage('Lucky Feedback'),
-                              onVip: () => _showMessage('VIP room features'),
-                              onRewards: () => _showMessage('Room rewards'),
+                              onPk: () {
+                                _showMessage('PK Battle');
+                              },
+
+                              onVip: () {
+                                _showMessage('VIP Store');
+                              },
+
+                              onRocket: () {
+                                _showMessage('Rocket Event');
+                              },
                             ),
                           ),
                           Positioned(
@@ -2050,7 +2059,7 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
     if (value.startsWith('http://') || value.startsWith('https://')) {
       return Image.network(
         value,
-        fit: BoxFit.cover,
+        fit: BoxFit.contain,
         errorBuilder: (_, _, _) => fallback(),
       );
     }
@@ -2138,11 +2147,11 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
                 shrinkWrap: true,
                 itemCount: gifts.length,
                 physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 4,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 7,
-                  childAspectRatio: .86,
+                  mainAxisExtent: 110,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
                 ),
                 itemBuilder: (_, index) {
                   final gift = gifts[index];
@@ -2272,9 +2281,26 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
                         _showJoinMicSheet(emptyIndex);
                       },
                     ),
-                    _moreAction(Icons.settings_outlined, 'Room', () {
+                    _moreAction(Icons.settings_outlined, 'Room', () async {
                       Navigator.pop(sheetContext);
-                      _showMessage('Room settings');
+
+                      final result = await Navigator.push<int>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => RoomSettingsScreen(
+                            roomId: _room.id,
+                            currentMicCount: _room.seats.length,
+                            socketService: _socketService,
+                            onMicCountChanged: (count) {
+                              _updateSeatCount(count);
+                            },
+                          )
+                        ),
+                      );
+
+                      if (result != null) {
+                        _updateSeatCount(result);
+                      }
                     }),
                     _moreAction(Icons.report_outlined, 'Report', () {
                       Navigator.pop(sheetContext);
@@ -2487,6 +2513,44 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
     );
   }
 
+  void _updateSeatCount(int count) {
 
+    if (!_socketConnected) {
+      _showMessage(
+        'Room connection required.',
+      );
+      return;
+    }
+
+
+    _socketService.updateRoomSettings(
+      roomId: widget.roomId,
+      seatCount: count,
+      onResult: (ok,error){
+
+
+        if(!mounted) return;
+
+
+        if(!ok){
+
+          _showMessage(
+            error ?? 'Unable to update seats',
+          );
+
+        }
+
+      },
+    );
+
+  }
+
+  void moveSeat({
+    required String roomId,
+    required int seatNumber,
+    void Function(bool ok,String? error)? onResult,
+  }) {
+
+  }
 
 }

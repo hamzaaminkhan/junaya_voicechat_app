@@ -366,6 +366,25 @@ class RoomSocketService {
     _socket?.disconnect();
   }
 
+  void updateRoomSettings({
+    required String roomId,
+    required int seatCount,
+    void Function(bool ok, String? error)? onResult,
+  }) {
+
+    _emitWithResult(
+      'room:update_settings',
+      {
+        'roomId': roomId,
+        'seatCount': seatCount,
+      },
+      onResult,
+    );
+
+  }
+
+
+
   void dispose() {
     final socket = _socket;
     _socket = null;
