@@ -237,6 +237,21 @@ class RoomSocketService {
     );
   }
 
+  void moveSeat({
+    required String roomId,
+    required int seatNumber,
+    void Function(bool ok, String? error)? onResult,
+  }) {
+    _emitWithResult(
+      'seat:move',
+      {
+        'roomId': roomId,
+        'seatNumber': seatNumber,
+      },
+      onResult,
+    );
+  }
+
   void requestLiveKitToken({
     required String roomId,
     required void Function(

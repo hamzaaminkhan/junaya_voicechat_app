@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:junaya_voicechat_app/screens/home/rooms/widgets/room_top_users.dart';
 import 'package:junaya_voicechat_app/theme/app_colors.dart';
 
 class RoomHeader extends StatelessWidget {
@@ -9,165 +10,264 @@ class RoomHeader extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
+
         Container(
-          height: 210,
+          height: 150,
+
           width: double.infinity,
+
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xff5B2EFF), Color(0xff7F39FB), Color(0xffC135FF)],
+              colors: [
+                Color(0xff5B2EFF),
+                Color(0xff7F39FB),
+                Color(0xffC135FF),
+              ],
             ),
+
             borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(35),
-              bottomRight: Radius.circular(35),
+              bottomLeft: Radius.circular(30),
+              bottomRight: Radius.circular(30),
             ),
           ),
 
+
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+              ),
+
               child: Column(
                 children: [
-                  /// Top Bar
+
                   Row(
+
                     children: [
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: const CircleAvatar(
-                          backgroundColor: Colors.white24,
-                          child: Icon(Icons.arrow_back, color: Colors.white),
+
+                      CircleAvatar(
+                        radius: 18,
+
+                        backgroundColor:
+                        Colors.white.withOpacity(.18),
+
+                        child: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                          size: 20,
                         ),
                       ),
 
-                      const SizedBox(width: 15),
 
-                      const Expanded(
+                      const SizedBox(width: 12),
+
+
+
+                      Expanded(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+
+                          crossAxisAlignment:
+                          CrossAxisAlignment.start,
+
                           children: [
+
                             Text(
                               "PK Battle",
-                              style: TextStyle(
+
+                              style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 17,
+                                fontWeight:
+                                FontWeight.w700,
                               ),
                             ),
 
-                            SizedBox(height: 3),
+
+                            const SizedBox(height: 2),
+
 
                             Text(
-                              "Room ID : 865214",
-                              style: TextStyle(color: Colors.white70),
+                              "Level 25  •  ID 865214",
+
+                              style: TextStyle(
+                                color:
+                                Colors.white.withOpacity(.7),
+
+                                fontSize: 12,
+                              ),
                             ),
+
+
+                            const SizedBox(height: 8),
+
+
+                            // Glass rectangle strip
+                            Container(
+
+                              height: 28,
+
+                              width: 160,
+
+                              decoration:
+                              BoxDecoration(
+
+                                color:
+                                Colors.white.withOpacity(.14),
+
+                                borderRadius:
+                                BorderRadius.circular(14),
+
+
+                                border: Border.all(
+                                  color:
+                                  Colors.white.withOpacity(.25),
+                                ),
+                              ),
+
+                              child: const Center(
+
+                                child: Text(
+                                  "Voice Room",
+
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ),
+
                           ],
                         ),
                       ),
 
-                      const Icon(Icons.notifications, color: Colors.white),
 
-                      const SizedBox(width: 15),
 
-                      const Icon(Icons.settings, color: Colors.white),
+                      const Icon(
+                        Icons.notifications_none,
+                        color: Colors.white,
+                      ),
 
-                      const SizedBox(width: 15),
+                      const SizedBox(width: 12),
 
-                      const Icon(Icons.more_vert, color: Colors.white),
+                      const Icon(
+                        Icons.settings_outlined,
+                        color: Colors.white,
+                      ),
+
                     ],
                   ),
-
-                  const Spacer(),
-
-                  /// Statistics
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      stat(Icons.people, "245"),
-
-                      stat(Icons.favorite, "12.4K"),
-
-                      stat(Icons.card_giftcard, "540"),
-                    ],
-                  ),
-
-                  const SizedBox(height: 25),
                 ],
               ),
             ),
           ),
         ),
 
-        /// Host Avatar
+
+
+
+
+        // Host profile
         Positioned(
-          bottom: -45,
+
+          bottom: -35,
+
           left: 0,
+
           right: 0,
+
           child: Column(
+
             children: [
+
               Container(
-                decoration: BoxDecoration(
+
+                padding:
+                const EdgeInsets.all(3),
+
+                decoration:
+                const BoxDecoration(
+
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.amber, width: 4),
+
+                  color: Colors.amber,
                 ),
+
                 child: const CircleAvatar(
-                  radius: 45,
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 55, color: AppColors.primary),
-                ),
-              ),
 
-              const SizedBox(height: 10),
+                  radius: 35,
 
-              const Text(
-                "Hamza",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
+                  backgroundColor:
+                  Colors.white,
 
-              const SizedBox(height: 5),
+                  child: Icon(
+                    Icons.person,
 
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 15,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  "LIVE",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                    size: 45,
+
+                    color:
+                    AppColors.primary,
                   ),
                 ),
               ),
+
+
+              const SizedBox(height: 8),
+
+
+              const Text(
+                "Hamza",
+
+                style: TextStyle(
+                  color: Colors.white,
+
+                  fontSize: 16,
+
+                  fontWeight:
+                  FontWeight.w700,
+                ),
+              ),
+
             ],
           ),
         ),
-      ],
-    );
-  }
 
-  Widget stat(IconData icon, String value) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.white, size: 20),
+        Positioned(
+          top: 65,
+          right: 18,
+          child: RoomTopUsers(
+            users: const [
 
-        const SizedBox(width: 6),
+              TopRoomUser(
+                name:'User1',
+                avatar:'',
+                rank:1,
+              ),
 
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+              TopRoomUser(
+                name:'User2',
+                avatar:'',
+                rank:2,
+              ),
+
+              TopRoomUser(
+                name:'User3',
+                avatar:'',
+                rank:3,
+              ),
+
+              TopRoomUser(
+                name:'User4',
+                avatar:'',
+                rank:1,
+              ),
+
+            ],
+
+            totalUsers: 128,
           ),
         ),
+
       ],
     );
   }

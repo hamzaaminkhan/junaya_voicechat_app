@@ -11,6 +11,8 @@ import 'package:junaya_voicechat_app/screens/moments/providers/drafts_provider.d
 import 'package:junaya_voicechat_app/screens/moments/data/moment_publisher.dart';
 import 'package:junaya_voicechat_app/screens/moments/providers/moments_provider.dart';
 import 'package:junaya_voicechat_app/screens/moments/services/moment_media_service.dart';
+import 'package:junaya_voicechat_app/services/backend_auth_service.dart';
+
 
 class CreateMomentScreen
     extends ConsumerStatefulWidget {
@@ -27,6 +29,7 @@ class CreateMomentScreen
 class _CreateMomentScreenState
     extends ConsumerState<CreateMomentScreen> {
 
+  Map<String, dynamic>? _profile;
   final MomentPublisher _publisher =
   const MomentPublisher();
 
@@ -67,22 +70,27 @@ class _CreateMomentScreenState
       _onCaptionChanged,
     );
 
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadProfile();
       _restoreDraft();
     });
   }
 
-  @override
-  void dispose() {
-    _captionController
-        .removeListener(
-      _onCaptionChanged,
-    );
+  Future<void> _loadProfile() async {
+    try {
+      final profile =
+      await BackendAuthService.instance.getProfile();
 
-    _captionController.dispose();
+      if (!mounted) return;
 
-    super.dispose();
+      setState(() {
+        _profile = profile;
+      });
+    } catch (error) {
+      debugPrint(
+        'Create Moment profile error: $error',
+      );
+    }
   }
 
   void _onCaptionChanged() {
@@ -96,8 +104,7 @@ class _CreateMomentScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-      const Color(0xff07070D),
+      backgroundColor: Colors.transparent,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Column(
@@ -229,66 +236,60 @@ class _CreateMomentScreenState
   }
 
   Widget _buildProfile() {
+    final username =
+    (_profile?['username']?.toString().trim().isNotEmpty ?? false)
+        ? _profile!['username'].toString().trim()
+        : 'Junaya User';
+
+    final avatarUrl =
+        _profile?['avatarUrl']?.toString().trim() ?? '';
+
     return Row(
       children: [
         Container(
           width: 48,
           height: 48,
-          padding:
-          const EdgeInsets.all(1.5),
-          decoration:
-          const BoxDecoration(
+          padding: const EdgeInsets.all(1.5),
+          decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            gradient:
-            LinearGradient(
-              begin:
-              Alignment.topLeft,
-              end:
-              Alignment.bottomRight,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
               colors: [
                 Color(0xffA855F7),
                 Color(0xffEC4899),
               ],
             ),
           ),
-          child:
-          const CircleAvatar(
-            backgroundColor:
-            Color(0xff20202A),
-            child: Icon(
+          child: CircleAvatar(
+            backgroundColor: const Color(0xff20202A),
+            backgroundImage: avatarUrl.isNotEmpty
+                ? NetworkImage(avatarUrl)
+                : const AssetImage(
+              'assets/users/profile.png',
+            ),
+            child: avatarUrl.isEmpty
+                ? const Icon(
               Icons.person_rounded,
               color: Colors.white54,
               size: 21,
-            ),
+            )
+                : null,
           ),
         ),
 
         const SizedBox(width: 11),
 
-        const Expanded(
-          child: Column(
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Junaya',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight:
-                  FontWeight.w700,
-                ),
-              ),
-              SizedBox(height: 3),
-              Text(
-                '@junaya',
-                style: TextStyle(
-                  color:
-                  Color(0xff858593),
-                  fontSize: 12.5,
-                ),
-              ),
-            ],
+        Expanded(
+          child: Text(
+            username,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
 

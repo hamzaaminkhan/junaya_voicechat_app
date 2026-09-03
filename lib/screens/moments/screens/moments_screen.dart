@@ -57,7 +57,7 @@ class _MomentsScreenState
     final momentsAsync = ref.watch(momentsProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xff07070D),
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         bottom: false,
         child: Column(

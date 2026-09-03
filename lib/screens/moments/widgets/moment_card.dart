@@ -64,15 +64,15 @@ class _MomentCardState
 
     return Container(
       margin: const EdgeInsets.fromLTRB(
-        12,
-        8,
-        12,
         10,
+        5,
+        10,
+        6,
       ),
       decoration: BoxDecoration(
         color: const Color(0xff0D0D14),
         borderRadius:
-        BorderRadius.circular(26),
+        BorderRadius.circular(22),
         border: Border.all(
           color:
           Colors.white.withValues(alpha: .05),
@@ -97,12 +97,11 @@ class _MomentCardState
 
           if (moment.caption.trim().isNotEmpty)
             Padding(
-              padding:
-              const EdgeInsets.fromLTRB(
-                16,
-                4,
-                16,
+              padding: const EdgeInsets.fromLTRB(
                 14,
+                3,
+                14,
+                9,
               ),
               child: Text(
                 moment.caption,
@@ -159,12 +158,11 @@ class _MomentCardState
 
           if (moment.voice != null)
             Padding(
-              padding:
-              const EdgeInsets.fromLTRB(
-                16,
-                4,
-                16,
-                4,
+              padding: const EdgeInsets.fromLTRB(
+                14,
+                3,
+                14,
+                3,
               ),
               child: _MomentVoicePlayer(
                 voice: moment.voice!,
@@ -172,12 +170,11 @@ class _MomentCardState
             ),
 
           Padding(
-            padding:
-            const EdgeInsets.fromLTRB(
-              16,
+            padding: const EdgeInsets.fromLTRB(
               14,
-              16,
-              4,
+              8,
+              14,
+              2,
             ),
             child: ReactionBar(
               moment: moment,
@@ -194,12 +191,11 @@ class _MomentCardState
           ),
 
           Padding(
-            padding:
-            const EdgeInsets.fromLTRB(
-              16,
+            padding: const EdgeInsets.fromLTRB(
+              14,
+              8,
+              14,
               12,
-              16,
-              18,
             ),
             child: GestureDetector(
               onTap: widget.onComment,
@@ -244,6 +240,17 @@ class _MomentVoicePlayerState
     extends State<_MomentVoicePlayer> {
 
   late final AudioPlayer _player;
+
+  final AudioContext _audioContext =  AudioContext(
+    android: AudioContextAndroid(
+      isSpeakerphoneOn: true,
+      stayAwake: true,
+      audioMode: AndroidAudioMode.normal,
+      contentType: AndroidContentType.music,
+      usageType: AndroidUsageType.media,
+      audioFocus: AndroidAudioFocus.gain,
+    ),
+  );
 
   StreamSubscription<PlayerState>? _stateSubscription;
 

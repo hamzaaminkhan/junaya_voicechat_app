@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-import '../../../../../models/voice_room_model.dart';
+import 'package:junaya_voicechat_app/models/voice_room_model.dart';
 
 /// 5 x 5 production room seat grid sized against the 738 x 1600 reference.
 class RoomSeatGrid extends StatelessWidget {
-  static const int columnCount = 5;
-  static const int rowCount = 5;
+  int _getColumnCount(int seatCount) {
+    if (seatCount <= 2) return 2;
+    if (seatCount <= 6) return 3;
+    if (seatCount <= 12) return 4;
+    return 5;
+  }
+
+  double _getSeatHeight(int seatCount) {
+    if (seatCount <= 4) return 150;
+    if (seatCount <= 9) return 130;
+    if (seatCount <= 16) return 115;
+    return 100;
+  }
 
   final List<RoomSeat> seats;
   final String currentUserId;
@@ -29,28 +39,33 @@ class RoomSeatGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     if (seats.isEmpty) return const SizedBox.shrink();
 
+    final columns = _getColumnCount(seats.length);
+    final seatHeight = _getSeatHeight(seats.length);
+
     return RepaintBoundary(
       child: GridView.builder(
         padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
-        physics: seats.length > columnCount * rowCount
-            ? const BouncingScrollPhysics()
-            : const NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         itemCount: seats.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: columnCount,
-          mainAxisExtent: 136,
-          mainAxisSpacing: 13,
-          crossAxisSpacing: 8,
+
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: columns,
+          mainAxisExtent: seatHeight,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 10,
         ),
+
         itemBuilder: (context, index) {
           final seat = seats[index];
+
           return _RoomSeatTile(
             key: ValueKey('room-seat-${seat.number}'),
             seat: seat,
             currentUserId: currentUserId,
             mediaBaseUrl: mediaBaseUrl,
             onTap: () => onSeatTap(index),
-            onLongPress: isRoomOwner ? () => onSeatLongPress(index) : null,
+            onLongPress:
+            isRoomOwner ? () => onSeatLongPress(index) : null,
           );
         },
       ),
@@ -104,6 +119,7 @@ class _RoomSeatTile extends StatelessWidget {
             alignment: Alignment.topCenter,
             clipBehavior: Clip.none,
             children: [
+              if (user == null)
               Positioned(
                 top: 2,
                 child: Transform.rotate(
@@ -115,7 +131,12 @@ class _RoomSeatTile extends StatelessWidget {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: const Color(0xE80B0A0C),
-                      border: Border.all(color: ringColor, width: 1.5),
+                      border: Border.all(
+                        color: ringColor.withValues(
+                          alpha: .65,
+                        ),
+                        width: 1.5,
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: ringColor.withValues(alpha: .22),
@@ -147,20 +168,31 @@ class _RoomSeatTile extends StatelessWidget {
                   padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.black.withValues(alpha: .52),
-                    border: Border.all(color: ringColor, width: 3),
+
+                    color: Colors.white.withValues(
+                      alpha: .10,
+                    ),
+
+                    border: Border.all(
+                      color: Colors.white.withValues(
+                        alpha: .35,
+                      ),
+                      width: 1.4,
+                    ),
+
                     boxShadow: [
                       BoxShadow(
                         color: ringColor.withValues(
-                          alpha: isSpeaking ? .68 : .35,
+                          alpha: isSpeaking ? .55 : .25,
                         ),
-                        blurRadius: isSpeaking ? 18 : 12,
-                        spreadRadius: isSpeaking ? 2.5 : .6,
+                        blurRadius: isSpeaking ? 18 : 10,
+                        spreadRadius: 1,
                       ),
+
                       const BoxShadow(
-                        color: Colors.black87,
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
+                        color: Colors.black38,
+                        blurRadius: 12,
+                        offset: Offset(0, 4),
                       ),
                     ],
                   ),
@@ -177,8 +209,10 @@ class _RoomSeatTile extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 6),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: .66),
-                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.white.withValues(
+                        alpha: .14,
+                      ),
+                      borderRadius: BorderRadius.circular(18),
                       border: Border.all(
                         color: isMe
                             ? const Color(0xFFFFD15B).withValues(alpha: .62)
@@ -196,7 +230,7 @@ class _RoomSeatTile extends StatelessWidget {
                           color: isMe
                               ? const Color(0xFFFFD15B)
                               : Colors.white,
-                          fontSize: 12.5,
+                          fontSize: 14,
                           height: 1,
                           fontWeight: FontWeight.w600,
                           shadows: const [
@@ -338,7 +372,7 @@ class _RoomAvatarImage extends StatelessWidget {
         style: GoogleFonts.poppins(
           color: Colors.white,
           fontSize: 28,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );

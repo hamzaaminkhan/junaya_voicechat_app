@@ -80,6 +80,26 @@ class _VoiceNoteSheetState
       });
     });
 
+    _player.onPlayerStateChanged.listen((state) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isPlaying = state == PlayerState.playing;
+      });
+    });
+
+    _player.onPositionChanged.listen((position) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _playbackPosition = position;
+      });
+    });
+
     _player.onPlayerComplete.listen((_) {
       if (!mounted) {
         return;
@@ -228,7 +248,10 @@ class _VoiceNoteSheetState
         const SizedBox(height: 18),
 
         Text(
-          '${_formatDuration(_playbackPosition)} / ${_formatDuration(_recordedDuration)}',
+          _isRecording
+              ? _formatDuration(_elapsed)
+              : '${_formatDuration(_playbackPosition)} / '
+              '${_formatDuration(_recordedDuration)}',
           style: const TextStyle(
             color: Color(0xff777787),
             fontSize: 12,
@@ -748,10 +771,9 @@ class _VoiceNoteSheetState
 
     setState(() {
       _recordedPath = null;
-      _recordedDuration =
-          Duration.zero;
-      _elapsed =
-          Duration.zero;
+      _recordedDuration = Duration.zero;
+      _elapsed = Duration.zero;
+      _playbackPosition = Duration.zero;
       _isPlaying = false;
     });
   }
@@ -768,40 +790,20 @@ class _VoiceNoteSheetState
     try {
       if (_isPlaying) {
         await _player.pause();
-
-        if (!mounted) {
-          return;
-        }
-
-        setState(() {
-          _isPlaying = false;
-        });
-
         return;
       }
 
       await _player.stop();
 
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _playbackPosition = Duration.zero;
-      });
-
       await _player.play(
         DeviceFileSource(path),
         volume: 1.0,
       );
-      if (!mounted) {
-        return;
-      }
+    } catch (error) {
+      debugPrint(
+        'Voice playback error: $error',
+      );
 
-      setState(() {
-        _isPlaying = true;
-      });
-    } catch (_) {
       if (!mounted) {
         return;
       }

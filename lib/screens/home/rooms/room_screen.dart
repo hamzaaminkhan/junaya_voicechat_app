@@ -1343,8 +1343,8 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
                           Positioned(
                             left: 0,
                             right: 0,
-                            top: 330,
-                            height: 820,
+                            top: 260,
+                            bottom: 360,
                             child: RoomSeatGrid(
                               seats: currentRoom.seats,
                               currentUserId: _roomController.currentUserId,
@@ -1725,45 +1725,171 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
             decoration: BoxDecoration(
               color: const Color(0xFF190837),
               borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: _pink.withValues(alpha: .25),
+              ),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+
                 Text(
-                  'Mic ${seat.number} Controls',
+                  'Mic ${seat.number}',
                   style: GoogleFonts.poppins(
                     color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 14),
-                ListTile(
-                  onTap: () {
-                    Navigator.pop(context);
 
-                    _setSeatLockRealtime(index, lock: !seat.isLocked);
-                  },
-                  leading: Icon(
-                    seat.isLocked
-                        ? Icons.lock_open_rounded
-                        : Icons.lock_rounded,
-                    color: _pink,
-                  ),
-                  title: Text(
-                    seat.isLocked ? 'Unlock Mic' : 'Lock Mic',
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 13,
+                const SizedBox(height: 15),
+
+
+                // LOCKED SEAT
+                if (seat.isLocked)
+
+                  ListTile(
+                    onTap: () {
+                      Navigator.pop(context);
+
+                      _setSeatLockRealtime(
+                        index,
+                        lock: false,
+                      );
+                    },
+
+                    leading: const Icon(
+                      Icons.lock_open_rounded,
+                      color: Colors.greenAccent,
+                    ),
+
+                    title: Text(
+                      'Open Seat',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                    ),
+                  )
+
+                else ...[
+
+
+                  // INVITE
+                  ListTile(
+                    onTap: () {
+                      Navigator.pop(context);
+
+                      _inviteUserToSeat(index);
+                    },
+
+                    leading: const Icon(
+                      Icons.person_add_alt_rounded,
+                      color: Color(0xFFFFD76A),
+                    ),
+
+                    title: Text(
+                      'Invite Seat',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
-                ),
+
+
+
+                  // MOVE
+                  ListTile(
+                    onTap: () {
+                      Navigator.pop(context);
+
+                      _moveToSeat(index);
+                    },
+
+                    leading: const Icon(
+                      Icons.swap_horizontal_circle_outlined,
+                      color: Color(0xFF8FD7FF),
+                    ),
+
+                    title: Text(
+                      'Move to This Seat',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+
+
+
+                  // LOCK
+                  ListTile(
+                    onTap: () {
+                      Navigator.pop(context);
+
+                      _setSeatLockRealtime(
+                        index,
+                        lock: true,
+                      );
+                    },
+
+                    leading: const Icon(
+                      Icons.lock_outline_rounded,
+                      color: Colors.redAccent,
+                    ),
+
+                    title: Text(
+                      'Lock Seat',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+
+                ],
+
               ],
             ),
           ),
         );
       },
     );
+  }
+
+  void _inviteUserToSeat(int index) {
+
+    _showMessage(
+      'Invite friend to Mic ${index + 1}',
+    );
+
+    // Next step:
+    // open friends list
+    // select friend
+    // emit socket invite event
+
+  }
+
+  void _moveToSeat(int index) {
+
+    _socketService.moveSeat(
+      roomId: widget.roomId,
+      seatNumber: index + 1,
+      onResult: (ok, error) {
+
+        if (!mounted) return;
+
+
+        if (!ok) {
+          _showMessage(
+            error ?? 'Unable to move seat',
+          );
+        }
+
+      },
+    );
+
   }
 
   void _showMemberSheet() {
@@ -2023,7 +2149,7 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
 
                   return GestureDetector(
                     onTap: () {
-                      Navigator.pop(context);
+                      _showExitDialog();
 
                       _addActivity('You sent ${gift[1]} ${gift[0]}');
 
@@ -2191,4 +2317,176 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
       ),
     );
   }
+
+  void _showExitDialog() {
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+
+      builder: (_) {
+
+        return Container(
+
+          padding: const EdgeInsets.all(20),
+
+          decoration: BoxDecoration(
+
+            color: const Color(0xff16052B),
+
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(28),
+            ),
+
+            border: Border.all(
+              color: Colors.white.withOpacity(.15),
+            ),
+          ),
+
+
+          child: Column(
+
+            mainAxisSize: MainAxisSize.min,
+
+            children: [
+
+
+              _exitOption(
+                icon: Icons.logout_rounded,
+                title: "Leave This Room",
+                color: Colors.redAccent,
+
+                onTap: () {
+
+                  Navigator.pop(context);
+
+                  _leaveRoom();
+
+                },
+              ),
+
+
+
+              _exitOption(
+                icon: Icons.picture_in_picture_alt_rounded,
+                title: "Minimize",
+                color: Colors.blueAccent,
+
+                onTap: () {
+
+                  Navigator.pop(context);
+
+                  _minimizeRoom();
+
+                },
+              ),
+
+
+
+              _exitOption(
+                icon: Icons.share_rounded,
+                title: "Share This Room",
+                color: Colors.greenAccent,
+
+                onTap: () {
+
+                  Navigator.pop(context);
+
+                  _openRoomShare();
+
+                },
+              ),
+
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _exitOption({
+
+    required IconData icon,
+
+    required String title,
+
+    required Color color,
+
+    required VoidCallback onTap,
+
+  }) {
+
+    return ListTile(
+
+      onTap: onTap,
+
+
+      leading: Container(
+
+        width: 42,
+        height: 42,
+
+        decoration: BoxDecoration(
+
+          color: color.withOpacity(.15),
+
+          shape: BoxShape.circle,
+        ),
+
+        child: Icon(
+          icon,
+          color: color,
+        ),
+      ),
+
+
+      title: Text(
+
+        title,
+
+        style: const TextStyle(
+
+          color: Colors.white,
+
+          fontSize: 16,
+
+          fontWeight: FontWeight.w600,
+
+        ),
+      ),
+    );
+  }
+
+  void _leaveRoom(){
+
+    _socketService.leaveRoom(
+      roomId: widget.roomId,
+    );
+
+
+    Navigator.pop(context);
+  }
+
+  void _minimizeRoom(){
+
+    // Later:
+    // create floating mini room widget
+
+    _showMessage(
+      "Room minimized",
+    );
+  }
+
+  void _openRoomShare(){
+
+    // Next step:
+    // open Friends List only
+
+    _showMessage(
+      "Select friends to share",
+    );
+  }
+
+
+
 }

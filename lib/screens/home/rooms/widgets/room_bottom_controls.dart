@@ -49,16 +49,16 @@ class RoomBottomControls extends StatelessWidget {
             child: Semantics(
               button: true,
               label: 'Type a room message',
-              child: InkWell(
-                onTap: onChat,
-                borderRadius: BorderRadius.circular(36),
-                child: Container(
-                  height: 62,
+              child: Container(
+                height: 62,
                   padding: const EdgeInsets.fromLTRB(13, 6, 7, 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF211B25).withValues(alpha: .96),
+                      color: Colors.white.withValues(alpha: .12),
                     borderRadius: BorderRadius.circular(32),
-                    border: Border.all(color: Colors.white12, width: 1.2),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: .25),
+                        width: 1,
+                      )
                   ),
                   child: Row(
                     children: [
@@ -71,14 +71,17 @@ class RoomBottomControls extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      const Expanded(
-                        child: Text(
-                          'Type…',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Colors.white38,
-                            fontSize: 20,
+                      Expanded(
+                        child: InkWell(
+                          onTap: onChat,
+                          child: const Text(
+                            'Type…',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.white38,
+                              fontSize: 20,
+                            ),
                           ),
                         ),
                       ),
@@ -99,7 +102,6 @@ class RoomBottomControls extends StatelessWidget {
                       ),
                     ],
                   ),
-                ),
               ),
             ),
           ),
