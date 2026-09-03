@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,8 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:junaya_voicechat_app/core/config/app_config.dart';
 
 import 'package:junaya_voicechat_app/core/storage/token_storage.dart';
+import 'package:junaya_voicechat_app/rooms/controllers/room_controller.dart';
 import 'package:junaya_voicechat_app/rooms/models/voice_room_model.dart';
-import 'package:junaya_voicechat_app/rooms/room_controller.dart';
+
 import 'package:junaya_voicechat_app/rooms/room_socket_service.dart';
 import 'package:junaya_voicechat_app/rooms/services/livekit_voice_service.dart';
 import 'package:junaya_voicechat_app/rooms/widgets/room_seat_grid.dart';
@@ -862,11 +861,18 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
 
   Future<void> _openRoomProfile() async {
     await _restoreSystemUi();
+
     if (!mounted) return;
 
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const RoomProfileScreen()),
+      MaterialPageRoute(
+        builder: (_) => RoomProfileScreen(
+          roomId: _room.id,
+          currentMicCount: _room.seatCount,
+          socketService: _socketService,
+        ),
+      ),
     );
 
     if (mounted && !_roomExitHandled) {
@@ -1137,11 +1143,22 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
     _showMessage(muted ? 'Microphone muted' : 'Microphone enabled');
   }
 
-  void _setSeatLockRealtime(int index, {required bool lock}) {
-    final seat = _room.seats[index];
+  void _setSeatLockRealtime(
+      int index, {
+        required bool lock,
+      }) {
+    final seats = _roomController.visibleSeats;
+
+    if (index < 0 || index >= seats.length) {
+      return;
+    }
+
+    final seat = seats[index];
 
     if (!_socketConnected) {
-      _showMessage('Room connection is required to change mic locks.');
+      _showMessage(
+        'Room connection is required to change mic locks.',
+      );
       return;
     }
 
@@ -1150,10 +1167,14 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
 
       if (ok) {
         _showMessage(
-          lock ? 'Mic ${seat.number} locked' : 'Mic ${seat.number} unlocked',
+          lock
+              ? 'Mic ${seat.number} locked'
+              : 'Mic ${seat.number} unlocked',
         );
       } else {
-        _showMessage(error ?? 'Unable to update seat');
+        _showMessage(
+          error ?? 'Unable to update seat',
+        );
       }
     }
 
@@ -1352,8 +1373,8 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
                             top: 260,
                             bottom: 360,
                             child:RoomSeatGrid(
-                              seats: currentRoom.seats,
-                              seatCount: currentRoom.seats.length,
+                              seats: _roomController.visibleSeats,
+                              seatCount: _roomController.seatCount,
                               currentUserId: _roomController.currentUserId,
                               mediaBaseUrl: AppConfig.apiBaseUrl,
                               isRoomOwner: _roomController.isRoomOwner,
@@ -1438,7 +1459,13 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
   }
 
   void _handleSeatTap(int index) {
-    final seat = _room.seats[index];
+    final seats = _roomController.visibleSeats;
+
+    if (index < 0 || index >= seats.length) {
+      return;
+    }
+
+    final seat = seats[index];
 
     if (seat.isLocked) {
       _showMessage('This mic seat is locked.');
@@ -1452,7 +1479,7 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
 
     if (_roomController.isOnMic) {
       _showMessage(
-        'You are already sitting on Mic ${_roomController}.',
+        'You are already sitting on Mic ${_roomController.mySeatNumber}.',
       );
       return;
     }
@@ -1461,7 +1488,13 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
   }
 
   void _showJoinMicSheet(int index) {
-    final seat = _room.seats[index];
+    final seats = _roomController.visibleSeats;
+
+    if (index < 0 || index >= seats.length) {
+      return;
+    }
+
+    final seat = seats[index];
 
     showModalBottomSheet(
       context: context,
@@ -1727,7 +1760,14 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
   }
 
   void _showOwnerSeatControls(int index) {
-    final seat = _room.seats[index];
+    final seats = _roomController.visibleSeats;
+
+    if (index < 0 || index >= seats.length) {
+      return;
+    }
+
+    final seat = seats[index];
+
 
     showModalBottomSheet(
       context: context,
@@ -2520,6 +2560,12 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
   }
 
   void _updateSeatCount(int count) {
+    if (count < 1 || count > 25) {
+      _showMessage(
+        'Seats must be between 1 and 25.',
+      );
+      return;
+    }
 
     if (!_socketConnected) {
       _showMessage(
@@ -2528,35 +2574,66 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
       return;
     }
 
-
     _socketService.updateRoomSettings(
       roomId: widget.roomId,
       seatCount: count,
-      onResult: (ok,error){
+      onResult: (ok, error) {
+        if (!mounted) return;
 
-
-        if(!mounted) return;
-
-
-        if(!ok){
-
+        if (!ok) {
           _showMessage(
-            error ?? 'Unable to update seats',
+            error ?? 'Unable to update seats.',
           );
-
+          return;
         }
 
+        final currentRoom = _roomController.room;
+
+        if (currentRoom != null) {
+          _roomController.replaceRoom(
+            currentRoom.copyWith(
+              seatCount: count,
+              seats: _buildSeatsForCount(
+                currentRoom.seats,
+                count,
+              ),
+            ),
+          );
+        }
+
+        _showMessage(
+          'Room now has $count mic seats.',
+        );
       },
     );
-
   }
 
-  void moveSeat({
-    required String roomId,
-    required int seatNumber,
-    void Function(bool ok,String? error)? onResult,
-  }) {
+  List<RoomSeat> _buildSeatsForCount(
+      List<RoomSeat> currentSeats,
+      int count,
+      ) {
+    final result = <RoomSeat>[];
 
+    for (int number = 1; number <= count; number++) {
+      RoomSeat? existingSeat;
+
+      for (final seat in currentSeats) {
+        if (seat.number == number) {
+          existingSeat = seat;
+          break;
+        }
+      }
+
+      result.add(
+        existingSeat ??
+            RoomSeat(
+              number: number,
+              status: RoomSeatStatus.empty,
+            ),
+      );
+    }
+
+    return result;
   }
 
 }

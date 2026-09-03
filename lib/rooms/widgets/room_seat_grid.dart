@@ -1,31 +1,26 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import 'package:junaya_voicechat_app/rooms/models/voice_room_model.dart';
 
-
-/// 5 x 5 production room seat grid sized against the 738 x 1600 reference.
 class RoomSeatGrid extends StatelessWidget {
-  int _getColumnCount(int seatCount) {
-    if (seatCount <= 2) return 2;
-    if (seatCount <= 6) return 3;
-    if (seatCount <= 12) return 4;
-    return 5;
-  }
-
-  double _getSeatHeight(int seatCount) {
-    if (seatCount <= 4) return 150;
-    if (seatCount <= 9) return 130;
-    if (seatCount <= 16) return 115;
-    return 100;
-  }
-
   final List<RoomSeat> seats;
+
   final String currentUserId;
+
   final String mediaBaseUrl;
+
   final bool isRoomOwner;
+
   final ValueChanged<int> onSeatTap;
+
   final ValueChanged<int> onSeatLongPress;
 
+  /// Configured number of seats in the room.
+  ///
+  /// Allowed range: 1 - 25.
   final int seatCount;
 
   const RoomSeatGrid({
@@ -39,42 +34,140 @@ class RoomSeatGrid extends StatelessWidget {
     required this.onSeatLongPress,
   });
 
-  int get columns {
-    if (seatCount <= 5) return seatCount;
+  // ------------------------------------------------------------
+  // GRID
+  // ------------------------------------------------------------
+
+  int _getColumnCount(int count) {
+    if (count <= 2) {
+      return 2;
+    }
+
+    if (count <= 6) {
+      return 3;
+    }
+
+    if (count <= 12) {
+      return 4;
+    }
+
+    // 13 - 25
     return 5;
+  }
+
+  double _getSeatHeight(int count) {
+    if (count <= 4) {
+      return 150;
+    }
+
+    if (count <= 9) {
+      return 130;
+    }
+
+    if (count <= 16) {
+      return 115;
+    }
+
+    return 105;
+  }
+
+  // ------------------------------------------------------------
+  // BUILD NORMALIZED SEATS
+  // ------------------------------------------------------------
+
+  List<RoomSeat> _buildVisibleSeats() {
+    final safeSeatCount = seatCount.clamp(1, 25);
+
+    final result = <RoomSeat>[];
+
+    for (int number = 1; number <= safeSeatCount; number++) {
+      RoomSeat? existingSeat;
+
+      for (final seat in seats) {
+        if (seat.number == number) {
+          existingSeat = seat;
+          break;
+        }
+      }
+
+      result.add(
+        existingSeat ??
+            RoomSeat(
+              number: number,
+              status: RoomSeatStatus.empty,
+            ),
+      );
+    }
+
+    return result;
   }
 
   @override
   Widget build(BuildContext context) {
-    if (seats.isEmpty) return const SizedBox.shrink();
+    final visibleSeats = _buildVisibleSeats();
 
-    final columns = _getColumnCount(seats.length);
-    final seatHeight = _getSeatHeight(seats.length);
+    if (visibleSeats.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final columns = _getColumnCount(
+      visibleSeats.length,
+    );
+
+    final seatHeight = _getSeatHeight(
+      visibleSeats.length,
+    );
 
     return RepaintBoundary(
       child: GridView.builder(
-        padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: seats.length,
+        padding: const EdgeInsets.fromLTRB(
+          18,
+          10,
+          18,
+          18,
+        ),
 
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        physics: const NeverScrollableScrollPhysics(),
+
+        shrinkWrap: true,
+
+        itemCount: visibleSeats.length,
+
+        gridDelegate:
+        SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: columns,
           mainAxisExtent: seatHeight,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 10,
+          mainAxisSpacing: 8,
+          crossAxisSpacing: 8,
         ),
 
         itemBuilder: (context, index) {
-          final seat = seats[index];
+          final seat = visibleSeats[index];
 
           return _RoomSeatTile(
-            key: ValueKey('room-seat-${seat.number}'),
+            key: ValueKey(
+              'room-seat-${seat.number}',
+            ),
+
             seat: seat,
+
             currentUserId: currentUserId,
+
             mediaBaseUrl: mediaBaseUrl,
-            onTap: () => onSeatTap(index),
-            onLongPress:
-            isRoomOwner ? () => onSeatLongPress(index) : null,
+
+            onTap: () {
+              // IMPORTANT:
+              // Send actual seat number, NOT grid index.
+              onSeatTap(seat.number);
+            },
+
+            onLongPress: isRoomOwner
+                ? () {
+              // IMPORTANT:
+              // Send actual seat number.
+              onSeatLongPress(seat.number);
+            }
+                : null,
           );
         },
       ),
@@ -82,11 +175,19 @@ class RoomSeatGrid extends StatelessWidget {
   }
 }
 
+// ============================================================================
+// ROOM SEAT TILE
+// ============================================================================
+
 class _RoomSeatTile extends StatelessWidget {
   final RoomSeat seat;
+
   final String currentUserId;
+
   final String mediaBaseUrl;
+
   final VoidCallback onTap;
+
   final VoidCallback? onLongPress;
 
   const _RoomSeatTile({
@@ -100,221 +201,355 @@ class _RoomSeatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = seat.user;
+    final user = seat.isOccupied
+        ? seat.user
+        : null;
+
     final isMe = user?.id == currentUserId;
-    final isSpeaking = user?.isSpeaking == true && user?.isMuted != true;
-    final ringColor = seat.isLocked
-        ? Colors.white54
-        : isSpeaking
-        ? const Color(0xFFFFCF4B)
-        : isMe
-        ? const Color(0xFFC971FF)
-        : Colors.white;
+
+    final isSpeaking =
+        user?.isSpeaking == true &&
+            user?.isMuted != true;
 
     return Semantics(
       button: true,
-      label: seat.isLocked
-          ? 'Mic ${seat.number}, locked'
-          : user == null
-          ? 'Mic ${seat.number}, empty'
-          : 'Mic ${seat.number}, ${user.name}',
+
+      label: _semanticLabel(user),
+
       child: Material(
         color: Colors.transparent,
+
         child: InkWell(
           onTap: onTap,
+
           onLongPress: onLongPress,
-          customBorder: const CircleBorder(),
-          child: Stack(
-            alignment: Alignment.topCenter,
-            clipBehavior: Clip.none,
-            children: [
-              if (user == null)
-              Positioned(
-                top: 2,
-                child: Transform.rotate(
-                  angle: .785,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 160),
-                    width: 28,
-                    height: 28,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: const Color(0xE80B0A0C),
-                      border: Border.all(
-                        color: ringColor.withValues(
-                          alpha: .65,
-                        ),
-                        width: 1.5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: ringColor.withValues(alpha: .22),
-                          blurRadius: 7,
-                        ),
-                      ],
-                    ),
-                    child: Transform.rotate(
-                      angle: -.785,
-                      child: Text(
-                        '${seat.number}',
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: 12.5,
-                          height: 1,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 24,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  width: 72,
-                  height: 72,
-                  padding: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
 
-                    color: Colors.white.withValues(
-                      alpha: .10,
-                    ),
+          borderRadius: BorderRadius.circular(50),
 
-                    border: Border.all(
-                      color: Colors.white.withValues(
-                        alpha: .35,
-                      ),
-                      width: 1.4,
-                    ),
+          child: SizedBox(
+            width: double.infinity,
+            height: double.infinity,
 
-                    boxShadow: [
-                      BoxShadow(
-                        color: ringColor.withValues(
-                          alpha: isSpeaking ? .55 : .25,
-                        ),
-                        blurRadius: isSpeaking ? 18 : 10,
-                        spreadRadius: 1,
-                      ),
+            child: Stack(
+              alignment: Alignment.topCenter,
 
-                      const BoxShadow(
-                        color: Colors.black38,
-                        blurRadius: 12,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: ClipOval(child: _seatBody(user)),
-                ),
-              ),
-              if (user != null)
+              clipBehavior: Clip.none,
+
+              children: [
+                // ----------------------------------------------------------
+                // GLASS MICROPHONE
+                // ----------------------------------------------------------
+
                 Positioned(
-                  left: 4,
-                  right: 4,
-                  bottom: 4,
-                  child: Container(
-                    height: 24,
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(
-                        alpha: .14,
-                      ),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: isMe
-                            ? const Color(0xFFFFD15B).withValues(alpha: .62)
-                            : Colors.white.withValues(alpha: .22),
-                        width: .8,
-                      ),
-                    ),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        user.name,
-                        maxLines: 1,
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
-                          color: isMe
-                              ? const Color(0xFFFFD15B)
-                              : Colors.white,
-                          fontSize: 14,
-                          height: 1,
-                          fontWeight: FontWeight.w600,
-                          shadows: const [
-                            Shadow(color: Colors.black, blurRadius: 5),
-                          ],
-                        ),
-                      ),
-                    ),
+                  top: 8,
+
+                  child: _GlassMicCircle(
+                    seat: seat,
+
+                    user: user,
+
+                    isMe: isMe,
+
+                    isSpeaking: isSpeaking,
+
+                    mediaBaseUrl: mediaBaseUrl,
                   ),
                 ),
-            ],
+
+                // ----------------------------------------------------------
+                // EMPTY / LOCKED SEAT NUMBER
+                // ----------------------------------------------------------
+
+                if (user == null)
+                  Positioned(
+                    top: 88,
+
+                    child: _SeatNumber(
+                      number: seat.number,
+
+                      locked: seat.isLocked,
+                    ),
+                  ),
+
+                // ----------------------------------------------------------
+                // USER NAME
+                // ----------------------------------------------------------
+
+                if (user != null)
+                  Positioned(
+                    left: 8,
+
+                    right: 8,
+
+                    bottom: 5,
+
+                    child: _GlassNameStrip(
+                      name: user.name,
+
+                      isMe: isMe,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _seatBody(RoomUser? user) {
+  String _semanticLabel(RoomUser? user) {
     if (seat.isLocked) {
-      return Container(
-        color: Colors.black.withValues(alpha: .78),
-        alignment: Alignment.center,
-        child: const Icon(
-          Icons.lock_rounded,
-          color: Colors.white70,
-          size: 36,
-        ),
-      );
+      return 'Mic ${seat.number}, locked';
     }
 
     if (user == null) {
+      return 'Mic ${seat.number}, empty';
+    }
+
+    return 'Mic ${seat.number}, ${user.name}';
+  }
+}
+
+// ============================================================================
+// GLASS MIC CIRCLE
+// ============================================================================
+
+class _GlassMicCircle extends StatelessWidget {
+  final RoomSeat seat;
+
+  final RoomUser? user;
+
+  final bool isMe;
+
+  final bool isSpeaking;
+
+  final String mediaBaseUrl;
+
+  const _GlassMicCircle({
+    required this.seat,
+    required this.user,
+    required this.isMe,
+    required this.isSpeaking,
+    required this.mediaBaseUrl,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    Color glowColor;
+
+    if (seat.isLocked) {
+      glowColor = Colors.white24;
+    } else if (isSpeaking) {
+      glowColor = const Color(0xFFFFD15B);
+    } else if (isMe) {
+      glowColor = const Color(0xFFE38AFF);
+    } else {
+      glowColor = Colors.white;
+    }
+
+    return AnimatedContainer(
+      duration: const Duration(
+        milliseconds: 180,
+      ),
+
+      width: 76,
+
+      height: 76,
+
+      padding: const EdgeInsets.all(2),
+
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+
+        // ----------------------------------------------------------
+        // GLASS OUTER SURFACE
+        // ----------------------------------------------------------
+
+        color: Colors.white.withValues(
+          alpha: .10,
+        ),
+
+        // Thin white circle.
+        border: Border.all(
+          color: Colors.white.withValues(
+            alpha: .30,
+          ),
+
+          width: 1.1,
+        ),
+
+        boxShadow: [
+          if (isSpeaking)
+            BoxShadow(
+              color: glowColor.withValues(
+                alpha: .45,
+              ),
+
+              blurRadius: 18,
+
+              spreadRadius: 2,
+            ),
+
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: .18,
+            ),
+
+            blurRadius: 12,
+
+            offset: const Offset(
+              0,
+              5,
+            ),
+          ),
+        ],
+      ),
+
+      child: ClipOval(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: 5,
+
+            sigmaY: 5,
+          ),
+
+          child: _buildBody(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    // ------------------------------------------------------------
+    // LOCKED
+    // ------------------------------------------------------------
+
+    if (seat.isLocked) {
       return Container(
-        color: Colors.black.withValues(alpha: .76),
         alignment: Alignment.center,
+
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+
+          color: Colors.white.withValues(
+            alpha: .07,
+          ),
+        ),
+
         child: const Icon(
-          Icons.mic_none_rounded,
-          color: Colors.white,
-          size: 43,
+          Icons.lock_rounded,
+
+          color: Colors.white70,
+
+          size: 30,
         ),
       );
     }
 
+    // ------------------------------------------------------------
+    // EMPTY
+    // ------------------------------------------------------------
+
+    if (user == null) {
+      return Container(
+        alignment: Alignment.center,
+
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+
+            end: Alignment.bottomRight,
+
+            colors: [
+              Colors.white.withValues(
+                alpha: .18,
+              ),
+
+              Colors.white.withValues(
+                alpha: .05,
+              ),
+            ],
+          ),
+        ),
+
+        child: Icon(
+          Icons.mic_none_rounded,
+
+          color: Colors.white.withValues(
+            alpha: .88,
+          ),
+
+          size: 39,
+        ),
+      );
+    }
+
+    // ------------------------------------------------------------
+    // OCCUPIED
+    // ------------------------------------------------------------
+
     return Stack(
       fit: StackFit.expand,
+
       children: [
         _RoomAvatarImage(
-          source: user.avatar,
+          source: user!.avatar,
+
           mediaBaseUrl: mediaBaseUrl,
-          fallbackName: user.name,
+
+          fallbackName: user!.name,
         ),
-        if (user.isMuted)
+
+        // ----------------------------------------------------------
+        // MUTED
+        // ----------------------------------------------------------
+
+        if (user!.isMuted)
           Container(
-            color: Colors.black.withValues(alpha: .52),
+            color: Colors.black.withValues(
+              alpha: .30,
+            ),
+
             alignment: Alignment.center,
+
             child: const Icon(
               Icons.mic_off_rounded,
-              color: Color(0xFFFF7078),
-              size: 33,
+
+              color: Color(0xFFFF737C),
+
+              size: 30,
             ),
           ),
-        if (user.isHost)
+
+        // ----------------------------------------------------------
+        // HOST
+        // ----------------------------------------------------------
+
+        if (user!.isHost)
           Positioned(
             right: 1,
+
             top: 1,
+
             child: Container(
-              width: 25,
-              height: 25,
+              width: 23,
+
+              height: 23,
+
               decoration: const BoxDecoration(
                 color: Color(0xFFFFC23D),
+
                 shape: BoxShape.circle,
               ),
+
               child: const Icon(
                 Icons.workspace_premium_rounded,
+
                 color: Colors.black,
-                size: 16,
+
+                size: 14,
               ),
             ),
           ),
@@ -323,9 +558,153 @@ class _RoomSeatTile extends StatelessWidget {
   }
 }
 
+// ============================================================================
+// SEAT NUMBER
+// ============================================================================
+
+class _SeatNumber extends StatelessWidget {
+  final int number;
+
+  final bool locked;
+
+  const _SeatNumber({
+    required this.number,
+    required this.locked,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      '$number',
+
+      style: GoogleFonts.poppins(
+        color: locked
+            ? Colors.white54
+            : Colors.white.withValues(
+          alpha: .72,
+        ),
+
+        fontSize: 13,
+
+        fontWeight: FontWeight.w500,
+
+        shadows: const [
+          Shadow(
+            color: Colors.black45,
+
+            blurRadius: 5,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// GLASS USERNAME STRIP
+// ============================================================================
+
+class _GlassNameStrip extends StatelessWidget {
+  final String name;
+
+  final bool isMe;
+
+  const _GlassNameStrip({
+    required this.name,
+    required this.isMe,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final borderColor = isMe
+        ? const Color(0xFFFFD15B)
+        : Colors.white;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(
+        18,
+      ),
+
+      child: BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: 5,
+
+          sigmaY: 5,
+        ),
+
+        child: Container(
+          height: 28,
+
+          padding: const EdgeInsets.symmetric(
+            horizontal: 9,
+          ),
+
+          alignment: Alignment.center,
+
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(
+              alpha: .12,
+            ),
+
+            borderRadius: BorderRadius.circular(
+              18,
+            ),
+
+            border: Border.all(
+              color: borderColor.withValues(
+                alpha: isMe ? .55 : .22,
+              ),
+
+              width: .8,
+            ),
+          ),
+
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+
+            child: Text(
+              name,
+
+              maxLines: 1,
+
+              textAlign: TextAlign.center,
+
+              style: GoogleFonts.poppins(
+                color: isMe
+                    ? const Color(0xFFFFD15B)
+                    : Colors.white,
+
+                fontSize: 14.5,
+
+                fontWeight: FontWeight.w600,
+
+                height: 1,
+
+                shadows: const [
+                  Shadow(
+                    color: Colors.black54,
+
+                    blurRadius: 5,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// AVATAR
+// ============================================================================
+
 class _RoomAvatarImage extends StatelessWidget {
   final String? source;
+
   final String mediaBaseUrl;
+
   final String fallbackName;
 
   const _RoomAvatarImage({
@@ -337,50 +716,92 @@ class _RoomAvatarImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final value = source?.trim() ?? '';
-    if (value.isEmpty) return _fallback();
 
-    if (value.startsWith('http://') || value.startsWith('https://')) {
+    if (value.isEmpty) {
+      return _fallback();
+    }
+
+    // ------------------------------------------------------------
+    // FULL URL
+    // ------------------------------------------------------------
+
+    if (value.startsWith('http://') ||
+        value.startsWith('https://')) {
       return Image.network(
         value,
+
         fit: BoxFit.cover,
+
         filterQuality: FilterQuality.medium,
-        errorBuilder: (_, _, _) => _fallback(),
+
+        errorBuilder: (_, _, _) {
+          return _fallback();
+        },
       );
     }
+
+    // ------------------------------------------------------------
+    // SERVER RELATIVE PATH
+    // ------------------------------------------------------------
 
     if (value.startsWith('/')) {
       final base = mediaBaseUrl.endsWith('/')
-          ? mediaBaseUrl.substring(0, mediaBaseUrl.length - 1)
+          ? mediaBaseUrl.substring(
+        0,
+        mediaBaseUrl.length - 1,
+      )
           : mediaBaseUrl;
+
       return Image.network(
         '$base$value',
+
         fit: BoxFit.cover,
+
         filterQuality: FilterQuality.medium,
-        errorBuilder: (_, _, _) => _fallback(),
+
+        errorBuilder: (_, _, _) {
+          return _fallback();
+        },
       );
     }
 
+    // ------------------------------------------------------------
+    // LOCAL ASSET
+    // ------------------------------------------------------------
+
     return Image.asset(
       value,
+
       fit: BoxFit.cover,
+
       filterQuality: FilterQuality.medium,
-      errorBuilder: (_, _, _) => _fallback(),
+
+      errorBuilder: (_, _, _) {
+        return _fallback();
+      },
     );
   }
 
   Widget _fallback() {
-    final initial = fallbackName.trim().isEmpty
+    final name = fallbackName.trim();
+
+    final initial = name.isEmpty
         ? '?'
-        : fallbackName.trim().characters.first.toUpperCase();
+        : name.substring(0, 1).toUpperCase();
 
     return Container(
       color: const Color(0xFF32115B),
+
       alignment: Alignment.center,
+
       child: Text(
         initial,
+
         style: GoogleFonts.poppins(
           color: Colors.white,
+
           fontSize: 28,
+
           fontWeight: FontWeight.w700,
         ),
       ),

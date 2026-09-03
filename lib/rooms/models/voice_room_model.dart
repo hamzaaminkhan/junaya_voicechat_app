@@ -1,4 +1,8 @@
-enum RoomSeatStatus { empty, occupied, locked }
+enum RoomSeatStatus {
+  empty,
+  occupied,
+  locked,
+}
 
 class RoomUser {
   final String id;
@@ -87,9 +91,17 @@ class RoomSeat {
     this.user,
   });
 
-  bool get isEmpty => status == RoomSeatStatus.empty;
-  bool get isOccupied => status == RoomSeatStatus.occupied && user != null;
-  bool get isLocked => status == RoomSeatStatus.locked;
+  bool get isEmpty {
+    return status == RoomSeatStatus.empty;
+  }
+
+  bool get isOccupied {
+    return status == RoomSeatStatus.occupied && user != null;
+  }
+
+  bool get isLocked {
+    return status == RoomSeatStatus.locked;
+  }
 
   RoomSeat copyWith({
     int? number,
@@ -105,25 +117,38 @@ class RoomSeat {
   }
 
   factory RoomSeat.fromJson(Map<String, dynamic> json) {
-    final rawStatus = json['status']?.toString() ?? 'empty';
+    final rawStatus =
+        json['status']?.toString().toLowerCase() ?? 'empty';
 
     RoomSeatStatus parsedStatus;
+
     switch (rawStatus) {
       case 'occupied':
         parsedStatus = RoomSeatStatus.occupied;
         break;
+
       case 'locked':
         parsedStatus = RoomSeatStatus.locked;
         break;
+
+      case 'empty':
       default:
         parsedStatus = RoomSeatStatus.empty;
+        break;
     }
 
     return RoomSeat(
-      number: _parseInt(json['number'], fallback: 1),
+      number: _parseInt(
+        json['number'],
+        fallback: 1,
+      ),
       status: parsedStatus,
       user: json['user'] is Map
-          ? RoomUser.fromJson(Map<String, dynamic>.from(json['user'] as Map))
+          ? RoomUser.fromJson(
+        Map<String, dynamic>.from(
+          json['user'] as Map,
+        ),
+      )
           : null,
     );
   }
@@ -144,6 +169,12 @@ class VoiceRoom {
   final String announcement;
   final int onlineUsers;
   final int roomRank;
+
+  /// Number of seats configured for this room.
+  ///
+  /// Allowed range: 1 - 25.
+  final int seatCount;
+
   final List<RoomSeat> seats;
   final List<RoomUser> members;
 
@@ -155,10 +186,19 @@ class VoiceRoom {
     required this.onlineUsers,
     required this.roomRank,
     required this.seats,
+    this.seatCount = 15,
     this.members = const [],
   });
 
-  int get seatCount => seats.length;
+  /// Returns the configured number of seats.
+  int get totalSeats {
+    return seatCount;
+  }
+
+  /// Returns the actual seat objects currently available.
+  int get availableSeatObjects {
+    return seats.length;
+  }
 
   VoiceRoom copyWith({
     String? id,
@@ -167,6 +207,7 @@ class VoiceRoom {
     String? announcement,
     int? onlineUsers,
     int? roomRank,
+    int? seatCount,
     List<RoomSeat>? seats,
     List<RoomUser>? members,
   }) {
@@ -177,28 +218,70 @@ class VoiceRoom {
       announcement: announcement ?? this.announcement,
       onlineUsers: onlineUsers ?? this.onlineUsers,
       roomRank: roomRank ?? this.roomRank,
+      seatCount: seatCount ?? this.seatCount,
       seats: seats ?? this.seats,
       members: members ?? this.members,
     );
   }
 
+  factory VoiceRoom.fromJson(
+      Map<String, dynamic> json,
+      ) {
+    final rawSeats = json['seats'];
 
-  factory VoiceRoom.fromJson(Map<String, dynamic> json) {
+    final parsedSeats = rawSeats is List
+        ? rawSeats
+        .whereType<Map>()
+        .map(
+          (item) => RoomSeat.fromJson(
+        Map<String, dynamic>.from(item),
+      ),
+    )
+        .toList()
+        : <RoomSeat>[];
+
+    final parsedSeatCount = _parseInt(
+      json['seatCount'],
+      fallback: parsedSeats.isNotEmpty
+          ? parsedSeats.length
+          : 15,
+    );
+
     return VoiceRoom(
-      id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
-      name: json['name']?.toString() ?? 'Junaya Voice Room',
+      id: json['_id']?.toString() ??
+          json['id']?.toString() ??
+          '',
+
+      name: json['name']?.toString() ??
+          'Junaya Voice Room',
+
       ownerId: json['ownerId']?.toString() ?? '',
+
       announcement:
-          json['announcement']?.toString() ?? 'Welcome to Junaya Voice Room.',
-      onlineUsers: _parseInt(json['onlineUsers']),
-      roomRank: _parseInt(json['roomRank']),
-      seats: (json['seats'] as List<dynamic>? ?? const [])
-          .whereType<Map>()
-          .map((item) => RoomSeat.fromJson(Map<String, dynamic>.from(item)))
-          .toList(),
+      json['announcement']?.toString() ??
+          'Welcome to Junaya Voice Room.',
+
+      onlineUsers: _parseInt(
+        json['onlineUsers'],
+      ),
+
+      roomRank: _parseInt(
+        json['roomRank'],
+      ),
+
+      seatCount: _normalizeSeatCount(
+        parsedSeatCount,
+      ),
+
+      seats: parsedSeats,
+
       members: (json['members'] as List<dynamic>? ?? const [])
           .whereType<Map>()
-          .map((item) => RoomUser.fromJson(Map<String, dynamic>.from(item)))
+          .map(
+            (item) => RoomUser.fromJson(
+          Map<String, dynamic>.from(item),
+        ),
+      )
           .toList(),
     );
   }
@@ -211,13 +294,44 @@ class VoiceRoom {
       'announcement': announcement,
       'onlineUsers': onlineUsers,
       'roomRank': roomRank,
-      'seats': seats.map((seat) => seat.toJson()).toList(),
-      'members': members.map((user) => user.toJson()).toList(),
+      'seatCount': seatCount,
+      'seats': seats
+          .map(
+            (seat) => seat.toJson(),
+      )
+          .toList(),
+      'members': members
+          .map(
+            (user) => user.toJson(),
+      )
+          .toList(),
     };
   }
 }
 
-int _parseInt(dynamic value, {int fallback = 0}) {
-  if (value is int) return value;
-  return int.tryParse(value?.toString() ?? '') ?? fallback;
+/// Keeps seat count safely between 1 and 25.
+int _normalizeSeatCount(int value) {
+  if (value < 1) {
+    return 1;
+  }
+
+  if (value > 25) {
+    return 25;
+  }
+
+  return value;
+}
+
+int _parseInt(
+    dynamic value, {
+      int fallback = 0,
+    }) {
+  if (value is int) {
+    return value;
+  }
+
+  return int.tryParse(
+    value?.toString() ?? '',
+  ) ??
+      fallback;
 }
