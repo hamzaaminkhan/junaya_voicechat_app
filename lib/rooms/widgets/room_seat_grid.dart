@@ -18,9 +18,6 @@ class RoomSeatGrid extends StatelessWidget {
 
   final ValueChanged<int> onSeatLongPress;
 
-  /// Number of seats configured for this room.
-  ///
-  /// Allowed range: 1 - 25.
   final int seatCount;
 
   const RoomSeatGrid({
@@ -34,60 +31,22 @@ class RoomSeatGrid extends StatelessWidget {
     required this.onSeatLongPress,
   });
 
-  // ------------------------------------------------------------
-  // COLUMN COUNT
-  // ------------------------------------------------------------
+  // ============================================================
+  // CONSTANTS
+  // ============================================================
 
-  int _getColumnCount(int count) {
-    if (count <= 2) {
-      return 2;
-    }
+  static const int _columns = 5;
 
-    if (count <= 6) {
-      return 3;
-    }
-
-    if (count <= 12) {
-      return 4;
-    }
-
-    return 5;
-  }
-
-  // ------------------------------------------------------------
-  // SEAT HEIGHT
-  // ------------------------------------------------------------
-
-  double _getSeatHeight(int count) {
-    if (count <= 4) {
-      return 150;
-    }
-
-    if (count <= 9) {
-      return 130;
-    }
-
-    if (count <= 16) {
-      return 115;
-    }
-
-    return 105;
-  }
-
-  // ------------------------------------------------------------
+  // ============================================================
   // NORMALIZE SEATS
-  // ------------------------------------------------------------
+  // ============================================================
 
   List<RoomSeat> _buildVisibleSeats() {
     final safeSeatCount = seatCount.clamp(1, 25);
 
     final result = <RoomSeat>[];
 
-    for (
-    int number = 1;
-    number <= safeSeatCount;
-    number++
-    ) {
+    for (int number = 1; number <= safeSeatCount; number++) {
       RoomSeat? existingSeat;
 
       for (final seat in seats) {
@@ -109,9 +68,9 @@ class RoomSeatGrid extends StatelessWidget {
     return result;
   }
 
-  // ------------------------------------------------------------
+  // ============================================================
   // BUILD
-  // ------------------------------------------------------------
+  // ============================================================
 
   @override
   Widget build(BuildContext context) {
@@ -121,40 +80,39 @@ class RoomSeatGrid extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final columns = _getColumnCount(
-      visibleSeats.length,
-    );
-
-    final seatHeight = _getSeatHeight(
-      visibleSeats.length,
-    );
-
     return RepaintBoundary(
       child: GridView.builder(
         padding: const EdgeInsets.fromLTRB(
           18,
-          10,
+          4,
           18,
-          18,
+          4,
         ),
+
+        shrinkWrap: true,
 
         physics:
         const NeverScrollableScrollPhysics(),
 
-        shrinkWrap: true,
-
         itemCount: visibleSeats.length,
 
         gridDelegate:
-        SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: columns,
-          mainAxisExtent: seatHeight,
-          mainAxisSpacing: 8,
-          crossAxisSpacing: 8,
+        const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: _columns,
+
+          mainAxisSpacing: 3,
+
+          crossAxisSpacing: 2,
+
+          mainAxisExtent: 112,
         ),
 
-        itemBuilder: (context, index) {
-          final seat = visibleSeats[index];
+        itemBuilder: (
+            context,
+            index,
+            ) {
+          final seat =
+          visibleSeats[index];
 
           return _RoomSeatTile(
             key: ValueKey(
@@ -163,18 +121,20 @@ class RoomSeatGrid extends StatelessWidget {
 
             seat: seat,
 
-            currentUserId: currentUserId,
+            currentUserId:
+            currentUserId,
 
-            mediaBaseUrl: mediaBaseUrl,
+            mediaBaseUrl:
+            mediaBaseUrl,
 
-            // IMPORTANT:
-            // Always send the actual seat number.
-            // Do NOT send index.
             onTap: () {
-              onSeatTap(seat.number);
+              onSeatTap(
+                seat.number,
+              );
             },
 
-            onLongPress: isRoomOwner
+            onLongPress:
+            isRoomOwner
                 ? () {
               onSeatLongPress(
                 seat.number,
@@ -215,7 +175,9 @@ class _RoomSeatTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final RoomUser? user =
-    seat.isOccupied ? seat.user : null;
+    seat.isOccupied
+        ? seat.user
+        : null;
 
     final bool isMe =
         user?.id == currentUserId;
@@ -229,94 +191,97 @@ class _RoomSeatTile extends StatelessWidget {
 
       label: _semanticLabel(user),
 
-      child: Material(
-        color: Colors.transparent,
+      child: GestureDetector(
+        behavior:
+        HitTestBehavior.opaque,
 
-        child: InkWell(
-          onTap: onTap,
+        onTap: onTap,
 
-          onLongPress: onLongPress,
+        onLongPress:
+        onLongPress,
 
-          borderRadius:
-          BorderRadius.circular(50),
+        child: SizedBox(
+          width: double.infinity,
 
-          child: SizedBox(
-            width: double.infinity,
+          height: double.infinity,
 
-            height: double.infinity,
+          child: Stack(
+            clipBehavior:
+            Clip.none,
 
-            child: Stack(
-              alignment: Alignment.topCenter,
+            alignment:
+            Alignment.topCenter,
 
-              clipBehavior: Clip.none,
+            children: [
 
-              children: [
-                // ----------------------------------------------------------
-                // GLASS MIC
-                // ----------------------------------------------------------
+              // ============================================================
+              // MIC / AVATAR
+              // ============================================================
 
+              Positioned(
+                top: 2,
+
+                child: _SeatCircle(
+                  seat: seat,
+
+                  user: user,
+
+                  isMe: isMe,
+
+                  isSpeaking:
+                  isSpeaking,
+
+                  mediaBaseUrl:
+                  mediaBaseUrl,
+                ),
+              ),
+
+              // ============================================================
+              // SEAT NUMBER
+              // ============================================================
+
+              if (user == null)
                 Positioned(
-                  top: 8,
+                  top: 79,
 
-                  child: _GlassMicCircle(
-                    seat: seat,
+                  child: _SeatNumber(
+                    number:
+                    seat.number,
 
-                    user: user,
-
-                    isMe: isMe,
-
-                    isSpeaking: isSpeaking,
-
-                    mediaBaseUrl:
-                    mediaBaseUrl,
+                    locked:
+                    seat.isLocked,
                   ),
                 ),
 
-                // ----------------------------------------------------------
-                // SEAT NUMBER
-                //
-                // Empty / locked seats show number.
-                // Occupied seats hide number.
-                // ----------------------------------------------------------
+              // ============================================================
+              // USER NAME
+              // ============================================================
 
-                if (user == null)
-                  Positioned(
-                    top: 88,
+              if (user != null)
+                Positioned(
+                  left: 2,
 
-                    child: _SeatNumber(
-                      number: seat.number,
+                  right: 2,
 
-                      locked: seat.isLocked,
-                    ),
+                  bottom: 3,
+
+                  child:
+                  _UserNameBadge(
+                    name: user.name,
+
+                    isMe: isMe,
                   ),
-
-                // ----------------------------------------------------------
-                // USER NAME
-                // ----------------------------------------------------------
-
-                if (user != null)
-                  Positioned(
-                    left: 8,
-
-                    right: 8,
-
-                    bottom: 5,
-
-                    child: _GlassNameStrip(
-                      name: user.name,
-
-                      isMe: isMe,
-                    ),
-                  ),
-              ],
-            ),
+                ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  String _semanticLabel(RoomUser? user) {
+  String _semanticLabel(
+      RoomUser? user,
+      ) {
     if (seat.isLocked) {
       return 'Mic ${seat.number}, locked';
     }
@@ -330,10 +295,10 @@ class _RoomSeatTile extends StatelessWidget {
 }
 
 // ============================================================================
-// GLASS MIC CIRCLE
+// SEAT CIRCLE
 // ============================================================================
 
-class _GlassMicCircle extends StatelessWidget {
+class _SeatCircle extends StatelessWidget {
   final RoomSeat seat;
 
   final RoomUser? user;
@@ -344,7 +309,7 @@ class _GlassMicCircle extends StatelessWidget {
 
   final String mediaBaseUrl;
 
-  const _GlassMicCircle({
+  const _SeatCircle({
     required this.seat,
     required this.user,
     required this.isMe,
@@ -354,23 +319,26 @@ class _GlassMicCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color glowColor;
+    final Color glowColor;
 
     if (seat.isLocked) {
       glowColor = Colors.white24;
     } else if (isSpeaking) {
       glowColor =
-      const Color(0xFFFFD15B);
+      const Color(0xFFFFD45C);
     } else if (isMe) {
       glowColor =
-      const Color(0xFFE38AFF);
+      const Color(0xFFE68AFF);
     } else {
-      glowColor = Colors.white;
+      glowColor =
+          Colors.white;
     }
 
     return AnimatedContainer(
       duration:
-      const Duration(milliseconds: 180),
+      const Duration(
+        milliseconds: 180,
+      ),
 
       width: 76,
 
@@ -382,15 +350,18 @@ class _GlassMicCircle extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
 
-        color: Colors.white.withValues(
+        color:
+        Colors.white.withValues(
           alpha: .10,
         ),
 
         border: Border.all(
-          color: Colors.white.withValues(
-            alpha: .30,
+          color:
+          Colors.white.withValues(
+            alpha: .22,
           ),
-          width: 1.1,
+
+          width: 1,
         ),
 
         boxShadow: [
@@ -400,18 +371,25 @@ class _GlassMicCircle extends StatelessWidget {
               glowColor.withValues(
                 alpha: .45,
               ),
+
               blurRadius: 18,
+
               spreadRadius: 2,
             ),
 
           BoxShadow(
             color:
             Colors.black.withValues(
-              alpha: .18,
+              alpha: .20,
             ),
-            blurRadius: 12,
+
+            blurRadius: 9,
+
             offset:
-            const Offset(0, 5),
+            const Offset(
+              0,
+              4,
+            ),
           ),
         ],
       ),
@@ -420,133 +398,216 @@ class _GlassMicCircle extends StatelessWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(
             sigmaX: 5,
+
             sigmaY: 5,
           ),
 
-          child: _buildBody(),
+          child: _buildContent(),
         ),
       ),
     );
   }
 
-  Widget _buildBody() {
-    // ------------------------------------------------------------
+  Widget _buildContent() {
+    // ============================================================
     // LOCKED
-    // ------------------------------------------------------------
+    // ============================================================
 
     if (seat.isLocked) {
       return Container(
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
+        alignment:
+        Alignment.center,
+
+        decoration:
+        BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.white.withValues(
+
+          color:
+          Colors.white.withValues(
             alpha: .07,
           ),
         ),
+
         child: const Icon(
           Icons.lock_rounded,
-          color: Colors.white70,
-          size: 30,
+
+          color:
+          Colors.white70,
+
+          size: 28,
         ),
       );
     }
 
-    // ------------------------------------------------------------
+    // ============================================================
     // EMPTY
-    // ------------------------------------------------------------
+    // ============================================================
 
     if (user == null) {
       return Container(
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
+        alignment:
+        Alignment.center,
+
+        decoration:
+        BoxDecoration(
           shape: BoxShape.circle,
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+
+          gradient:
+          LinearGradient(
+            begin:
+            Alignment.topLeft,
+
+            end:
+            Alignment.bottomRight,
+
             colors: [
               Colors.white.withValues(
-                alpha: .18,
+                alpha: .20,
               ),
+
               Colors.white.withValues(
-                alpha: .05,
+                alpha: .07,
               ),
             ],
           ),
         ),
+
         child: Icon(
           Icons.mic_none_rounded,
-          color: Colors.white.withValues(
+
+          color:
+          Colors.white.withValues(
             alpha: .88,
           ),
-          size: 39,
+
+          size: 38,
         ),
       );
     }
 
-    // ------------------------------------------------------------
+    // ============================================================
     // OCCUPIED
-    // ------------------------------------------------------------
+    // ============================================================
 
-    final RoomUser occupiedUser = user!;
+    final occupiedUser = user!;
 
     return Stack(
       fit: StackFit.expand,
+
       children: [
+
+        // Avatar
         _RoomAvatarImage(
-          source: occupiedUser.avatar,
-          mediaBaseUrl: mediaBaseUrl,
-          fallbackName: occupiedUser.name,
+          source:
+          occupiedUser.avatar,
+
+          mediaBaseUrl:
+          mediaBaseUrl,
+
+          fallbackName:
+          occupiedUser.name,
         ),
 
-        // ----------------------------------------------------------
+        // ============================================================
         // MUTED
-        // ----------------------------------------------------------
+        // ============================================================
 
         if (occupiedUser.isMuted)
           Container(
-            color: Colors.black.withValues(
+            color:
+            Colors.black.withValues(
               alpha: .30,
             ),
-            alignment: Alignment.center,
+
+            alignment:
+            Alignment.center,
+
             child: const Icon(
               Icons.mic_off_rounded,
-              color: Color(0xFFFF737C),
-              size: 30,
+
+              color:
+              Color(0xFFFF737C),
+
+              size: 28,
             ),
           ),
 
-        // ----------------------------------------------------------
+        // ============================================================
         // HOST
-        // ----------------------------------------------------------
+        // ============================================================
 
         if (occupiedUser.isHost)
           Positioned(
             right: 1,
+
             top: 1,
+
             child: Container(
-              width: 23,
-              height: 23,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFFC23D),
-                shape: BoxShape.circle,
+              width: 22,
+
+              height: 22,
+
+              decoration:
+              const BoxDecoration(
+                color:
+                Color(0xFFFFC23D),
+
+                shape:
+                BoxShape.circle,
               ),
+
               child: const Icon(
-                Icons.workspace_premium_rounded,
+                Icons
+                    .workspace_premium_rounded,
+
                 color: Colors.black,
-                size: 14,
+
+                size: 13,
+              ),
+            ),
+          ),
+
+        // ============================================================
+        // SPEAKING
+        // ============================================================
+
+        if (occupiedUser.isSpeaking &&
+            !occupiedUser.isMuted)
+          Positioned(
+            left: 5,
+
+            right: 5,
+
+            bottom: 5,
+
+            child: Container(
+              height: 4,
+
+              decoration:
+              BoxDecoration(
+                color:
+                const Color(
+                  0xFFFFD45C,
+                ),
+
+                borderRadius:
+                BorderRadius.circular(
+                  5,
+                ),
               ),
             ),
           ),
       ],
     );
   }
- }
+}
 
 // ============================================================================
 // SEAT NUMBER
 // ============================================================================
 
-class _SeatNumber extends StatelessWidget {
+class _SeatNumber
+    extends StatelessWidget {
   final int number;
 
   final bool locked;
@@ -557,26 +618,31 @@ class _SeatNumber extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+      BuildContext context,
+      ) {
     return Text(
       '$number',
 
-      style: GoogleFonts.poppins(
+      style:
+      GoogleFonts.poppins(
         color: locked
-            ? Colors.white54
+            ? Colors.white38
             : Colors.white.withValues(
-          alpha: .72,
+          alpha: .38,
         ),
 
-        fontSize: 13,
+        fontSize: 12,
 
         fontWeight:
         FontWeight.w500,
 
         shadows: const [
           Shadow(
-            color: Colors.black45,
-            blurRadius: 5,
+            color:
+            Colors.black45,
+
+            blurRadius: 4,
           ),
         ],
       ),
@@ -585,104 +651,100 @@ class _SeatNumber extends StatelessWidget {
 }
 
 // ============================================================================
-// GLASS USERNAME STRIP
+// USER NAME
 // ============================================================================
 
-class _GlassNameStrip
+class _UserNameBadge
     extends StatelessWidget {
   final String name;
 
   final bool isMe;
 
-  const _GlassNameStrip({
+  const _UserNameBadge({
     required this.name,
     required this.isMe,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final borderColor = isMe
-        ? const Color(0xFFFFD15B)
-        : Colors.white;
-
+  Widget build(
+      BuildContext context,
+      ) {
     return ClipRRect(
       borderRadius:
-      BorderRadius.circular(18),
+      BorderRadius.circular(
+        14,
+      ),
 
       child: BackdropFilter(
-        filter: ImageFilter.blur(
+        filter:
+        ImageFilter.blur(
           sigmaX: 5,
+
           sigmaY: 5,
         ),
 
         child: Container(
-          height: 28,
+          height: 25,
 
           padding:
           const EdgeInsets.symmetric(
-            horizontal: 9,
+            horizontal: 6,
           ),
 
           alignment:
           Alignment.center,
 
-          decoration: BoxDecoration(
+          decoration:
+          BoxDecoration(
             color:
-            Colors.white.withValues(
+            Colors.black.withValues(
               alpha: .12,
             ),
 
             borderRadius:
             BorderRadius.circular(
-              18,
+              14,
             ),
 
             border: Border.all(
-              color:
-              borderColor.withValues(
-                alpha:
-                isMe ? .55 : .22,
+              color: isMe
+                  ? const Color(
+                0xFFFFD45C,
+              )
+                  : Colors.white
+                  .withValues(
+                alpha: .15,
               ),
 
-              width: .8,
+              width: .7,
             ),
           ),
 
-          child: FittedBox(
-            fit:
-            BoxFit.scaleDown,
+          child: Text(
+            name,
 
-            child: Text(
-              name,
+            maxLines: 1,
 
-              maxLines: 1,
+            overflow:
+            TextOverflow.ellipsis,
 
-              textAlign:
-              TextAlign.center,
+            textAlign:
+            TextAlign.center,
 
-              style:
-              GoogleFonts.poppins(
-                color: isMe
-                    ? const Color(
-                  0xFFFFD15B,
-                )
-                    : Colors.white,
+            style:
+            GoogleFonts.poppins(
+              color: isMe
+                  ? const Color(
+                0xFFFFD45C,
+              )
+                  : Colors.white,
 
-                fontSize: 14.5,
+              fontSize: 10.5,
 
-                fontWeight:
-                FontWeight.w600,
+              fontWeight:
+              FontWeight.w600,
 
-                height: 1,
-
-                shadows: const [
-                  Shadow(
-                    color:
-                    Colors.black54,
-                    blurRadius: 5,
-                  ),
-                ],
-              ),
+              height: 1,
             ),
           ),
         ),
@@ -710,17 +772,23 @@ class _RoomAvatarImage
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+      BuildContext context,
+      ) {
     final value =
         source?.trim() ?? '';
+
+    // ============================================================
+    // EMPTY AVATAR
+    // ============================================================
 
     if (value.isEmpty) {
       return _fallback();
     }
 
-    // ------------------------------------------------------------
+    // ============================================================
     // FULL URL
-    // ------------------------------------------------------------
+    // ============================================================
 
     if (value.startsWith(
       'http://',
@@ -743,9 +811,9 @@ class _RoomAvatarImage
       );
     }
 
-    // ------------------------------------------------------------
-    // SERVER RELATIVE PATH
-    // ------------------------------------------------------------
+    // ============================================================
+    // SERVER PATH
+    // ============================================================
 
     if (value.startsWith('/')) {
       final base =
@@ -771,9 +839,9 @@ class _RoomAvatarImage
       );
     }
 
-    // ------------------------------------------------------------
+    // ============================================================
     // LOCAL ASSET
-    // ------------------------------------------------------------
+    // ============================================================
 
     return Image.asset(
       value,
@@ -802,7 +870,7 @@ class _RoomAvatarImage
 
     return Container(
       color:
-      const Color(0xFF32115B),
+      const Color(0xFF4B1764),
 
       alignment:
       Alignment.center,
@@ -814,7 +882,7 @@ class _RoomAvatarImage
         GoogleFonts.poppins(
           color: Colors.white,
 
-          fontSize: 28,
+          fontSize: 26,
 
           fontWeight:
           FontWeight.w700,
