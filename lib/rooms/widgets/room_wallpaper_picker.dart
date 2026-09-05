@@ -1,82 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class RoomWallpaper {
-  final String id;
-  final String assetPath;
-  final String name;
-
-  const RoomWallpaper({
-    required this.id,
-    required this.assetPath,
-    required this.name,
-  });
-}
+import 'package:junaya_voicechat_app/rooms/models/room_wallpaper_model.dart';
+import 'package:junaya_voicechat_app/rooms/data/room_wallpapers.dart';
 
 
 // ============================================================
-// ROOM WALLPAPER COLLECTION
-// ============================================================
-
-const List<RoomWallpaper> roomWallpapers = [
-  RoomWallpaper(
-    id: 'mralex',
-    assetPath: 'assets/rooms/mralex.jpeg',
-    name: 'Mr Alex',
-  ),
-
-  RoomWallpaper(
-    id: 'room1',
-    assetPath: 'assets/rooms/room1.jpeg',
-    name: 'Royal',
-  ),
-
-  RoomWallpaper(
-    id: 'room2',
-    assetPath: 'assets/rooms/room2.jpeg',
-    name: 'Luxury',
-  ),
-
-  RoomWallpaper(
-    id: 'room3',
-    assetPath: 'assets/rooms/room3.jpeg',
-    name: 'Party',
-  ),
-
-  RoomWallpaper(
-    id: 'room4',
-    assetPath: 'assets/rooms/room4.jpeg',
-    name: 'Romance',
-  ),
-
-  RoomWallpaper(
-    id: 'room5',
-    assetPath: 'assets/rooms/room5.jpeg',
-    name: 'Cute',
-  ),
-
-  RoomWallpaper(
-    id: 'room6',
-    assetPath: 'assets/rooms/room6.jpeg',
-    name: 'Cars',
-  ),
-
-  RoomWallpaper(
-    id: 'room7',
-    assetPath: 'assets/rooms/room7.jpeg',
-    name: 'Palace',
-  ),
-
-  RoomWallpaper(
-    id: 'room8',
-    assetPath: 'assets/rooms/room8.jpeg',
-    name: 'Sunset',
-  ),
-];
-
-
-// ============================================================
-// WALLPAPER PICKER
+// ROOM WALLPAPER PICKER
 // ============================================================
 
 class RoomWallpaperPicker extends StatelessWidget {
@@ -127,6 +57,7 @@ class RoomWallpaperPicker extends StatelessWidget {
 
                 decoration: BoxDecoration(
                   color: Colors.white24,
+
                   borderRadius:
                   BorderRadius.circular(10),
                 ),
@@ -160,7 +91,9 @@ class RoomWallpaperPicker extends StatelessWidget {
 
                     child: const Icon(
                       Icons.wallpaper_rounded,
+
                       color: Color(0xFFD49AFF),
+
                       size: 23,
                     ),
                   ),
@@ -179,7 +112,9 @@ class RoomWallpaperPicker extends StatelessWidget {
 
                           style: GoogleFonts.poppins(
                             color: Colors.white,
+
                             fontSize: 19,
+
                             fontWeight:
                             FontWeight.w700,
                           ),
@@ -192,6 +127,7 @@ class RoomWallpaperPicker extends StatelessWidget {
 
                           style: GoogleFonts.poppins(
                             color: Colors.white54,
+
                             fontSize: 11.5,
                           ),
                         ),
@@ -225,7 +161,8 @@ class RoomWallpaperPicker extends StatelessWidget {
                     childAspectRatio: .56,
                   ),
 
-                  itemCount: roomWallpapers.length,
+                  itemCount:
+                  roomWallpapers.length,
 
                   itemBuilder:
                       (context, index) {
@@ -326,7 +263,7 @@ class _WallpaperTile extends StatelessWidget {
             children: [
 
               // =================================================
-              // WALLPAPER
+              // WALLPAPER IMAGE
               // =================================================
 
               Image.asset(
@@ -336,6 +273,7 @@ class _WallpaperTile extends StatelessWidget {
 
                 errorBuilder:
                     (context, error, stackTrace) {
+
                   return Container(
                     color: const Color(0xFF2B123F),
 
@@ -344,7 +282,9 @@ class _WallpaperTile extends StatelessWidget {
 
                     child: const Icon(
                       Icons.broken_image_outlined,
+
                       color: Colors.white38,
+
                       size: 30,
                     ),
                   );
@@ -374,6 +314,7 @@ class _WallpaperTile extends StatelessWidget {
 
                       colors: [
                         Colors.transparent,
+
                         Colors.black.withValues(
                           alpha: .82,
                         ),
@@ -440,7 +381,9 @@ class _WallpaperTile extends StatelessWidget {
 
                     child: const Icon(
                       Icons.check_rounded,
+
                       color: Colors.white,
+
                       size: 18,
                     ),
                   ),

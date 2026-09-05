@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:junaya_voicechat_app/rooms/room_socket_service.dart';
 import 'package:junaya_voicechat_app/rooms/widgets/room_wallpaper_picker.dart';
+import 'package:junaya_voicechat_app/rooms/models/room_wallpaper_model.dart';
+
 
 class RoomSettingsScreen extends StatefulWidget {
   final String roomId;
@@ -15,12 +17,19 @@ class RoomSettingsScreen extends StatefulWidget {
   /// Called immediately when the user selects a new mic count.
   final ValueChanged<int>? onMicCountChanged;
 
+  final RoomWallpaper? selectedWallpaper;
+
+  final ValueChanged<RoomWallpaper>?
+  onWallpaperChanged;
+
   const RoomSettingsScreen({
     super.key,
     required this.roomId,
     required this.currentMicCount,
     required this.socketService,
     this.onMicCountChanged,
+    this.selectedWallpaper,
+    this.onWallpaperChanged,
   });
 
   @override
@@ -29,8 +38,10 @@ class RoomSettingsScreen extends StatefulWidget {
   }
 }
 
+
 class _RoomSettingsScreenState
     extends State<RoomSettingsScreen> {
+
   // ------------------------------------------------------------
   // COLORS
   // ------------------------------------------------------------
@@ -86,6 +97,10 @@ class _RoomSettingsScreenState
     micCount = _normalizeSeatCount(
       widget.currentMicCount,
     );
+
+    _selectedWallpaperId =
+        widget.selectedWallpaper?.id ??
+            'mralex';
   }
 
   // ------------------------------------------------------------
@@ -137,11 +152,16 @@ class _RoomSettingsScreenState
           child: RoomWallpaperPicker(
             selectedWallpaperId:
             _selectedWallpaperId,
+
             onWallpaperSelected: (wallpaper) {
               setState(() {
                 _selectedWallpaperId =
                     wallpaper.id;
               });
+
+              widget.onWallpaperChanged?.call(
+                wallpaper,
+              );
 
               Navigator.of(context).pop();
             },

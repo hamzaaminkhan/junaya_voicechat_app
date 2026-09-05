@@ -6,6 +6,7 @@ import 'package:junaya_voicechat_app/core/config/app_config.dart';
 
 import 'package:junaya_voicechat_app/core/storage/token_storage.dart';
 import 'package:junaya_voicechat_app/rooms/controllers/room_controller.dart';
+import 'package:junaya_voicechat_app/rooms/models/room_wallpaper_model.dart';
 import 'package:junaya_voicechat_app/rooms/models/voice_room_model.dart';
 
 import 'package:junaya_voicechat_app/rooms/room_socket_service.dart';
@@ -22,15 +23,11 @@ import 'widgets/room_chat_panel.dart';
 import 'room_settings_screen.dart';
 import 'widgets/room_top_overlay.dart';
 
-import 'package:junaya_voicechat_app/rooms/controllers/room_controller.dart';
-
 import 'package:junaya_voicechat_app/rooms/data/room_emojis.dart';
 import 'package:junaya_voicechat_app/rooms/data/room_gifts.dart';
 import 'package:junaya_voicechat_app/rooms/data/room_rockets.dart';
 import 'package:junaya_voicechat_app/rooms/data/room_top_users.dart';
 import 'package:junaya_voicechat_app/rooms/data/room_wallpapers.dart';
-
-import 'package:junaya_voicechat_app/rooms/models/voice_room_model.dart';
 
 class RoomScreen extends StatefulWidget {
   /// Optional Socket.IO override from --dart-define.
@@ -68,8 +65,13 @@ class RoomScreen extends StatefulWidget {
   State<RoomScreen> createState() => _RoomScreenState();
 }
 
-class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
-  static const Color _pink = Color(0xFFFF48ED);
+class _RoomScreenState extends State<RoomScreen>
+    with WidgetsBindingObserver {
+
+  static const Color _pink =
+  Color(0xFFFF48ED);
+
+  RoomWallpaper? _selectedWallpaper;
 
   late final RoomController _roomController;
   late final RoomSocketService _socketService;
@@ -121,7 +123,12 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addObserver(this);
+
+    _selectedWallpaper =
+        _getDefaultWallpaper();
+
     _enterImmersiveRoomMode();
     // The room identity is resolved from /api/auth/me before Socket.IO
     // connects. Widget-supplied IDs are never trusted for authorization.
@@ -155,6 +162,37 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
     if (widget.enableRealtime) {
       _connectRealtimeRoom();
     }
+  }
+
+  RoomWallpaper? _getDefaultWallpaper() {
+    for (final wallpaper in roomWallpapers) {
+      if (wallpaper.isDefault) {
+        return wallpaper;
+      }
+    }
+
+    if (roomWallpapers.isNotEmpty) {
+      return roomWallpapers.first;
+    }
+
+    return null;
+  }
+
+  void _selectRoomWallpaper(
+      RoomWallpaper wallpaper,
+      ) {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _selectedWallpaper =
+          wallpaper;
+    });
+
+    _showMessage(
+      '${wallpaper.name} selected',
+    );
   }
 
   void _enterImmersiveRoomMode() {
@@ -2243,10 +2281,22 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
                           builder: (_) {
                             return RoomSettingsScreen(
                               roomId: _room.id,
-                              currentMicCount: _room.seatCount,
-                              socketService: _socketService,
+
+                              currentMicCount:
+                              _room.seatCount,
+
+                              socketService:
+                              _socketService,
+
                               onMicCountChanged: (count) {
                                 _updateSeatCount(count);
+                              },
+
+                              selectedWallpaper:
+                              _selectedWallpaper,
+
+                              onWallpaperChanged: (wallpaper) {
+                                _selectRoomWallpaper(wallpaper);
                               },
                             );
                           },
@@ -2480,20 +2530,19 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
   }
 
   String get _roomBackgroundAsset {
-    final customAsset = widget.backgroundAsset.trim();
+    final customAsset =
+    widget.backgroundAsset.trim();
 
     if (customAsset.isNotEmpty) {
       return customAsset;
     }
 
-    for (final wallpaper in roomWallpapers) {
-      if (wallpaper.isDefault && wallpaper.assetPath.trim().isNotEmpty) {
-        return wallpaper.assetPath;
-      }
-    }
+    final wallpaper =
+        _selectedWallpaper;
 
-    if (roomWallpapers.isNotEmpty) {
-      return roomWallpapers.first.assetPath;
+    if (wallpaper != null &&
+        wallpaper.assetPath.trim().isNotEmpty) {
+      return wallpaper.assetPath;
     }
 
     return '';
