@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:junaya_voicechat_app/rooms/models/voice_room_model.dart';
+import 'package:junaya_voicechat_app/rooms/data/room_wallpapers.dart';
+import 'package:junaya_voicechat_app/rooms/models/room_wallpaper_model.dart';
 
 class RoomController extends ChangeNotifier {
   String currentUserId;
@@ -57,6 +59,59 @@ class RoomController extends ChangeNotifier {
 
   bool get microphoneEnabled {
     return _microphoneEnabled;
+  }
+
+  // ------------------------------------------------------------
+// ROOM WALLPAPER
+// ------------------------------------------------------------
+
+  RoomWallpaper _selectedWallpaper =
+  roomWallpapers.firstWhere(
+        (wallpaper) => wallpaper.isDefault,
+    orElse: () => roomWallpapers.first,
+  );
+
+  RoomWallpaper get selectedWallpaper {
+    return _selectedWallpaper;
+  }
+
+  String get wallpaperAssetPath {
+    return _selectedWallpaper.assetPath;
+  }
+
+  void setWallpaper(
+      RoomWallpaper wallpaper,
+      ) {
+    _selectedWallpaper = wallpaper;
+
+    _error = null;
+
+    notifyListeners();
+  }
+
+  void setWallpaperById(
+      String wallpaperId,
+      ) {
+    for (final wallpaper in roomWallpapers) {
+      if (wallpaper.id == wallpaperId) {
+        setWallpaper(wallpaper);
+        return;
+      }
+    }
+
+    _setError(
+      'Wallpaper not found.',
+    );
+  }
+
+  void resetWallpaper() {
+    _selectedWallpaper =
+        roomWallpapers.firstWhere(
+              (wallpaper) => wallpaper.isDefault,
+          orElse: () => roomWallpapers.first,
+        );
+
+    notifyListeners();
   }
 
   // ------------------------------------------------------------
@@ -224,20 +279,19 @@ class RoomController extends ChangeNotifier {
       return;
     }
 
-    final seatBeingRemoved =
-    findSeatByNumber(currentCount);
+    final newCount = currentCount - 1;
 
-    if (seatBeingRemoved?.isOccupied == true) {
-      _setError(
-        'Cannot remove an occupied seat.',
-      );
+    for (final seat in visibleSeats) {
+      if (seat.number > newCount && seat.isOccupied) {
+        _setError(
+          'Cannot remove an occupied seat.',
+        );
 
-      return;
+        return;
+      }
     }
 
-    setSeatCount(
-      currentCount - 1,
-    );
+    setSeatCount(newCount);
   }
 
   // ------------------------------------------------------------

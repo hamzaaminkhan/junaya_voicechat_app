@@ -22,6 +22,16 @@ import 'widgets/room_chat_panel.dart';
 import 'room_settings_screen.dart';
 import 'widgets/room_top_overlay.dart';
 
+import 'package:junaya_voicechat_app/rooms/controllers/room_controller.dart';
+
+import 'package:junaya_voicechat_app/rooms/data/room_emojis.dart';
+import 'package:junaya_voicechat_app/rooms/data/room_gifts.dart';
+import 'package:junaya_voicechat_app/rooms/data/room_rockets.dart';
+import 'package:junaya_voicechat_app/rooms/data/room_top_users.dart';
+import 'package:junaya_voicechat_app/rooms/data/room_wallpapers.dart';
+
+import 'package:junaya_voicechat_app/rooms/models/voice_room_model.dart';
+
 class RoomScreen extends StatefulWidget {
   /// Optional Socket.IO override from --dart-define.
   ///
@@ -50,7 +60,7 @@ class RoomScreen extends StatefulWidget {
     this.currentUserName,
     this.currentUserAvatar,
     this.socketServerUrl = '',
-    this.backgroundAsset = 'assets/rooms/mralex.jpeg',
+    this.backgroundAsset = '',
     this.enableRealtime = true,
   });
 
@@ -1202,7 +1212,6 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
         canPop: false,
         onPopInvokedWithResult: (didPop, result) {
           if (!didPop) {
-            _showExitDialog();
           }
         },
         child: Scaffold(
@@ -1299,7 +1308,7 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
                         children: [
                           RepaintBoundary(
                             child: Image.asset(
-                              widget.backgroundAsset,
+                              _roomBackgroundAsset,
                               fit: BoxFit.cover,
                               alignment: Alignment.topCenter,
                               filterQuality: FilterQuality.high,
@@ -2000,16 +2009,12 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
   }
 
   void _showGiftSheet() {
-    final gifts = [
-      ['🌹', 'Rose', '10'],
-      ['❤️', 'Love', '20'],
-      ['🎁', 'Box', '50'],
-      ['💎', 'Diamond', '100'],
-      ['👑', 'Crown', '500'],
-      ['🚀', 'Rocket', '1000'],
-      ['🏎️', 'Car', '2500'],
-      ['🏰', 'Castle', '5000'],
-    ];
+    final gifts = roomGifts
+        .where((gift) => gift.isActive)
+        .toList()
+      ..sort(
+            (a, b) => a.order.compareTo(b.order),
+      );
 
     showModalBottomSheet(
       context: context,
@@ -2070,16 +2075,21 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
                   mainAxisSpacing: 12,
                   crossAxisSpacing: 12,
                 ),
+
                 itemBuilder: (_, index) {
                   final gift = gifts[index];
 
                   return GestureDetector(
                     onTap: () {
-                      _showExitDialog();
+                      Navigator.pop(context);
 
-                      _addActivity('You sent ${gift[1]} ${gift[0]}');
+                      _addActivity(
+                        'You sent ${gift.name}',
+                      );
 
-                      _showMessage('${gift[1]} sent successfully');
+                      _showMessage(
+                        '${gift.name} sent successfully',
+                      );
                     },
                     child: Container(
                       decoration: BoxDecoration(
@@ -2092,17 +2102,43 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(gift[0], style: const TextStyle(fontSize: 28)),
-                          const SizedBox(height: 4),
+                          if (gift.hasAsset)
+                            SizedBox(
+                              width: 46,
+                              height: 46,
+                              child: Image.asset(
+                                gift.assetPath!,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, _, _) {
+                                  return const Icon(
+                                    Icons.card_giftcard_rounded,
+                                    color: Color(0xFFFFD76A),
+                                    size: 36,
+                                  );
+                                },
+                              ),
+                            )
+                          else
+                            const Icon(
+                              Icons.card_giftcard_rounded,
+                              color: Color(0xFFFFD76A),
+                              size: 36,
+                            ),
+
+                          const SizedBox(height: 5),
+
                           Text(
-                            gift[1],
+                            gift.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.poppins(
                               color: Colors.white70,
                               fontSize: 9.5,
                             ),
                           ),
+
                           Text(
-                            '🪙 ${gift[2]}',
+                            '🪙 ${gift.price}',
                             style: GoogleFonts.poppins(
                               color: const Color(0xFFFFCE58),
                               fontSize: 8,
@@ -2113,6 +2149,7 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
                     ),
                   );
                 },
+
               ),
             ],
           ),
@@ -2441,5 +2478,26 @@ class _RoomScreenState extends State<RoomScreen> with WidgetsBindingObserver {
       'Room now has $count mic seats.',
     );
   }
+
+  String get _roomBackgroundAsset {
+    final customAsset = widget.backgroundAsset.trim();
+
+    if (customAsset.isNotEmpty) {
+      return customAsset;
+    }
+
+    for (final wallpaper in roomWallpapers) {
+      if (wallpaper.isDefault && wallpaper.assetPath.trim().isNotEmpty) {
+        return wallpaper.assetPath;
+      }
+    }
+
+    if (roomWallpapers.isNotEmpty) {
+      return roomWallpapers.first.assetPath;
+    }
+
+    return '';
   }
+
+}
 
