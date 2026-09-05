@@ -4,7 +4,7 @@ const List<RoomWallpaper> roomWallpapers = [
   RoomWallpaper(
     id: 'mralex',
     name: 'Snake',
-    assetPath: 'assets/rooms/mralex.jpeg',
+    assetPath: 'assets/rooms/mralex.png',
     isDefault: true,
   ),
 

@@ -22,7 +22,9 @@ import 'widgets/room_bottom_controls.dart';
 import 'widgets/room_chat_panel.dart';
 import 'room_settings_screen.dart';
 import 'widgets/room_top_overlay.dart';
+import 'widgets/room_chat_input.dart';
 
+import 'package:junaya_voicechat_app/rooms/widgets/room_activity_feed.dart';
 import 'package:junaya_voicechat_app/rooms/data/room_emojis.dart';
 import 'package:junaya_voicechat_app/rooms/data/room_gifts.dart';
 import 'package:junaya_voicechat_app/rooms/data/room_rockets.dart';
@@ -993,8 +995,29 @@ class _RoomScreenState extends State<RoomScreen>
         if (ok) {
           _chatController.clear();
 
+          final userName =
+          _roomController.currentUserName.trim().isEmpty
+              ? 'You'
+              : _roomController.currentUserName;
+
+          _addChatEntry(
+            RoomChatDisplayItem(
+              userId: _roomController.currentUserId,
+              name: userName,
+              avatar: _roomController.currentUserAvatar,
+              vipLevel: _currentVipLevel,
+              message: message,
+              isMe: true,
+            ),
+          );
+
+          _addActivity(
+            '$userName: $message',
+          );
         } else {
-          _showMessage(error ?? 'Unable to send message');
+          _showMessage(
+            error ?? 'Unable to send message',
+          );
         }
       },
     );
@@ -1005,105 +1028,36 @@ class _RoomScreenState extends State<RoomScreen>
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (sheetContext) {
         return Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
           ),
           child: Container(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
             decoration: const BoxDecoration(
               color: Color(0xFF160633),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
-            ),
-            child: SafeArea(
-              top: false,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _chatController,
-                      autofocus: true,
-                      textInputAction: TextInputAction.send,
-                      maxLength: 250,
-                      onSubmitted: (_) {
-                        _sendChatMessage();
-                        if (_chatController.text.trim().isEmpty &&
-                            Navigator.canPop(sheetContext)) {
-                          Navigator.pop(sheetContext);
-                        }
-                      },
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: 13,
-                      ),
-                      decoration: InputDecoration(
-                        counterText: '',
-                        hintText: 'Say something...',
-                        hintStyle: GoogleFonts.poppins(
-                          color: Colors.white38,
-                          fontSize: 12,
-                        ),
-                        prefixIcon: const Icon(
-                          Icons.chat_bubble_outline_rounded,
-                          color: Color(0xFFFFD76A),
-                          size: 19,
-                        ),
-                        filled: true,
-                        fillColor: const Color(0xFF250D49),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 11,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(22),
-                          borderSide: BorderSide(
-                            color: _pink.withValues(alpha: .25),
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(22),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFFFD76A),
-                            width: 1,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        final hadText = _chatController.text.trim().isNotEmpty;
-
-                        _sendChatMessage();
-
-                        if (hadText && Navigator.canPop(sheetContext)) {
-                          Navigator.pop(sheetContext);
-                        }
-                      },
-                      customBorder: const CircleBorder(),
-                      child: Container(
-                        width: 46,
-                        height: 46,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [Color(0xFFFFD76A), Color(0xFFFFA61E)],
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.send_rounded,
-                          color: Color(0xFF2B0D3E),
-                          size: 21,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(24),
               ),
+            ),
+            child: RoomChatInput(
+              controller: _chatController,
+
+              onSend: () {
+                _sendChatMessage();
+
+                if (_chatController.text.trim().isEmpty &&
+                    Navigator.canPop(sheetContext)) {
+                  Navigator.pop(sheetContext);
+                }
+              },
+
+              onEmojiTap: () {
+                _showMessage(
+                  'Emoji picker coming next',
+                );
+              },
             ),
           ),
         );
@@ -1346,10 +1300,15 @@ class _RoomScreenState extends State<RoomScreen>
                         children: [
                           RepaintBoundary(
                             child: Image.asset(
-                              _roomBackgroundAsset,
+                              _selectedWallpaper?.assetPath ??
+                                  _roomBackgroundAsset,
+
                               fit: BoxFit.cover,
+
                               alignment: Alignment.topCenter,
+
                               filterQuality: FilterQuality.high,
+
                               errorBuilder: (_, _, _) {
                                 return const DecoratedBox(
                                   decoration: BoxDecoration(
@@ -1359,7 +1318,9 @@ class _RoomScreenState extends State<RoomScreen>
                                         Color(0xFF26121A),
                                         Color(0xFF05030A),
                                       ],
+
                                       begin: Alignment.topCenter,
+
                                       end: Alignment.bottomCenter,
                                     ),
                                   ),
@@ -1429,17 +1390,30 @@ class _RoomScreenState extends State<RoomScreen>
                               onSeatLongPress: _showOwnerSeatControls,
                             ),
                           ),
+
                           Positioned(
                             left: 0,
                             right: 0,
-                            top: 1228,
-                            height: 278,
-                            child: RoomChatPanel(
-                              messages: _chatMessages,
-                              onTap: _showChatComposer,
-                              rightActionInset: 122,
+                            top: 870,
+                            child: RoomActivityFeed(
+                              messages: _activityMessages,
+
+                              onChangeRoomName: () {
+                                _showMessage(
+                                  'Change room name',
+                                );
+                              },
+
+                              onEditAnnouncement: () {
+                                _showMessage(
+                                  'Edit room announcement',
+                                );
+                              },
                             ),
                           ),
+
+
+
                           Positioned(
                             right: 8,
                             top: 1218,
@@ -1447,16 +1421,15 @@ class _RoomScreenState extends State<RoomScreen>
                               onPk: () {
                                 _showMessage('PK Battle');
                               },
-
                               onVip: () {
                                 _showMessage('VIP Store');
                               },
-
                               onRocket: () {
                                 _showMessage('Rocket Event');
                               },
                             ),
                           ),
+
                           Positioned(
                             left: 0,
                             right: 0,

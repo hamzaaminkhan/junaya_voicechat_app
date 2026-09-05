@@ -83,10 +83,10 @@ class RoomSeatGrid extends StatelessWidget {
     return RepaintBoundary(
       child: GridView.builder(
         padding: const EdgeInsets.fromLTRB(
-          18,
-          4,
-          18,
-          4,
+          20,
+          2,
+          20,
+          2,
         ),
 
         shrinkWrap: true,
@@ -100,11 +100,11 @@ class RoomSeatGrid extends StatelessWidget {
         const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: _columns,
 
-          mainAxisSpacing: 3,
+          mainAxisSpacing: 1,
 
-          crossAxisSpacing: 2,
+          crossAxisSpacing: 4,
 
-          mainAxisExtent: 112,
+          mainAxisExtent: 96,
         ),
 
         itemBuilder: (
@@ -242,7 +242,7 @@ class _RoomSeatTile extends StatelessWidget {
 
               if (user == null)
                 Positioned(
-                  top: 79,
+                  top: 70,
 
                   child: _SeatNumber(
                     number:
@@ -340,9 +340,9 @@ class _SeatCircle extends StatelessWidget {
         milliseconds: 180,
       ),
 
-      width: 76,
+      width: 68,
 
-      height: 76,
+      height: 68,
 
       padding:
       const EdgeInsets.all(2),
@@ -480,7 +480,7 @@ class _SeatCircle extends StatelessWidget {
             alpha: .88,
           ),
 
-          size: 38,
+          size: 32,
         ),
       );
     }
@@ -684,7 +684,7 @@ class _UserNameBadge
         ),
 
         child: Container(
-          height: 25,
+          height: 22,
 
           padding:
           const EdgeInsets.symmetric(
@@ -739,7 +739,7 @@ class _UserNameBadge
               )
                   : Colors.white,
 
-              fontSize: 10.5,
+              fontSize: 9.5,
 
               fontWeight:
               FontWeight.w600,
