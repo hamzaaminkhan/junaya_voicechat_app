@@ -13,27 +13,51 @@ class RoomController extends ChangeNotifier {
     this.currentUserAvatar,
   });
 
+  // ------------------------------------------------------------
+  // ROOM
+  // ------------------------------------------------------------
+
   VoiceRoom? _room;
 
-  VoiceRoom? get room => _room;
+  VoiceRoom? get room {
+    return _room;
+  }
 
-  bool get hasRoom => _room != null;
+  bool get hasRoom {
+    return _room != null;
+  }
+
+  // ------------------------------------------------------------
+  // LOADING / ERROR
+  // ------------------------------------------------------------
 
   bool _loading = false;
 
-  bool get loading => _loading;
+  bool get loading {
+    return _loading;
+  }
 
   String? _error;
 
-  String? get error => _error;
+  String? get error {
+    return _error;
+  }
+
+  // ------------------------------------------------------------
+  // AUDIO
+  // ------------------------------------------------------------
 
   bool _speakerEnabled = true;
 
-  bool get speakerEnabled => _speakerEnabled;
+  bool get speakerEnabled {
+    return _speakerEnabled;
+  }
 
   bool _microphoneEnabled = true;
 
-  bool get microphoneEnabled => _microphoneEnabled;
+  bool get microphoneEnabled {
+    return _microphoneEnabled;
+  }
 
   // ------------------------------------------------------------
   // AUTHENTICATED USER
@@ -52,17 +76,25 @@ class RoomController extends ChangeNotifier {
   }
 
   // ------------------------------------------------------------
-  // ROOM / SEAT INFORMATION
+  // SEAT COUNT
   // ------------------------------------------------------------
 
+  /// Current configured number of mic seats.
+  ///
+  /// Always stays between 1 and 25.
   int get seatCount {
     return _room?.seatCount ?? 15;
   }
 
-  /// Returns seats that should currently be displayed.
+  /// All seats that should currently be displayed.
   ///
-  /// If the room has 10 configured seats, this returns 1-10.
-  /// If the room has 25 configured seats, this returns 1-25.
+  /// Example:
+  ///
+  /// seatCount = 5
+  /// => seats 1, 2, 3, 4, 5
+  ///
+  /// seatCount = 25
+  /// => seats 1 through 25
   List<RoomSeat> get visibleSeats {
     final currentRoom = _room;
 
@@ -70,27 +102,147 @@ class RoomController extends ChangeNotifier {
       return const [];
     }
 
-    final seats = <RoomSeat>[];
+    final List<RoomSeat> result = [];
 
-    for (int number = 1;
+    for (
+    int number = 1;
     number <= currentRoom.seatCount;
-    number++) {
-      final existingSeat = findSeatByNumber(number);
+    number++
+    ) {
+      RoomSeat? existingSeat;
 
-      if (existingSeat != null) {
-        seats.add(existingSeat);
-      } else {
-        seats.add(
-          RoomSeat(
-            number: number,
-            status: RoomSeatStatus.empty,
-          ),
-        );
+      for (final seat in currentRoom.seats) {
+        if (seat.number == number) {
+          existingSeat = seat;
+          break;
+        }
       }
+
+      result.add(
+        existingSeat ??
+            RoomSeat(
+              number: number,
+              status: RoomSeatStatus.empty,
+            ),
+      );
     }
 
-    return seats;
+    return result;
   }
+
+  // ------------------------------------------------------------
+  // CHANGE NUMBER OF SEATS
+  // ------------------------------------------------------------
+
+  /// Changes the number of visible mic seats.
+  ///
+  /// Allowed range:
+  /// 1 - 25
+  ///
+  /// This is currently local/UI state.
+  /// Backend synchronization will be added later.
+  void setSeatCount(int count) {
+    if (count < 1 || count > 25) {
+      _setError(
+        'Room seats must be between 1 and 25.',
+      );
+
+      return;
+    }
+
+    // If room has not loaded yet, remember nothing.
+    // The room needs to exist before its seatCount can be changed.
+    if (_room == null) {
+      _setError(
+        'Room is not loaded yet.',
+      );
+
+      return;
+    }
+
+    final currentRoom = _room!;
+
+    if (currentRoom.seatCount == count) {
+      return;
+    }
+
+    final List<RoomSeat> updatedSeats = [];
+
+    for (
+    int number = 1;
+    number <= count;
+    number++
+    ) {
+      RoomSeat? existingSeat;
+
+      for (final seat in currentRoom.seats) {
+        if (seat.number == number) {
+          existingSeat = seat;
+          break;
+        }
+      }
+
+      updatedSeats.add(
+        existingSeat ??
+            RoomSeat(
+              number: number,
+              status: RoomSeatStatus.empty,
+            ),
+      );
+    }
+
+    _room = currentRoom.copyWith(
+      seatCount: count,
+      seats: updatedSeats,
+    );
+
+    _error = null;
+
+    notifyListeners();
+  }
+
+  // ------------------------------------------------------------
+  // INCREASE / DECREASE SEATS
+  // ------------------------------------------------------------
+
+  void increaseSeatCount() {
+    final currentCount = seatCount;
+
+    if (currentCount >= 25) {
+      return;
+    }
+
+    setSeatCount(
+      currentCount + 1,
+    );
+  }
+
+  void decreaseSeatCount() {
+    final currentCount = seatCount;
+
+    if (currentCount <= 1) {
+      return;
+    }
+
+    final seatBeingRemoved =
+    findSeatByNumber(currentCount);
+
+    if (seatBeingRemoved?.isOccupied == true) {
+      _setError(
+        'Cannot remove an occupied seat.',
+      );
+
+      return;
+    }
+
+    setSeatCount(
+      currentCount - 1,
+    );
+  }
+
+  // ------------------------------------------------------------
+  // MY SEAT
+  // ------------------------------------------------------------
 
   int? get mySeatNumber {
     final currentRoom = _room;
@@ -122,6 +274,10 @@ class RoomController extends ChangeNotifier {
     return mySeatNumber != null;
   }
 
+  // ------------------------------------------------------------
+  // ROOM OWNER
+  // ------------------------------------------------------------
+
   bool get isRoomOwner {
     return _room?.ownerId == currentUserId;
   }
@@ -130,10 +286,19 @@ class RoomController extends ChangeNotifier {
   // FIND SEAT
   // ------------------------------------------------------------
 
-  RoomSeat? findSeatByNumber(int seatNumber) {
+  RoomSeat? findSeatByNumber(
+      int seatNumber,
+      ) {
     final currentRoom = _room;
 
     if (currentRoom == null) {
+      return null;
+    }
+
+    if (
+    seatNumber < 1 ||
+        seatNumber > currentRoom.seatCount
+    ) {
       return null;
     }
 
@@ -143,113 +308,25 @@ class RoomController extends ChangeNotifier {
       }
     }
 
-    return null;
-  }
-
-  // ------------------------------------------------------------
-  // ROOM SETTINGS
-  // ------------------------------------------------------------
-
-  /// Change the number of seats in the room.
-  ///
-  /// Allowed values:
-  /// 1 through 25.
-  ///
-  /// This is UI/local state for Phase 1.
-  /// Backend synchronization can be added later.
-  void setSeatCount(int count) {
-    if (_room == null) {
-      return;
-    }
-
-    if (count < 1 || count > 25) {
-      _setError(
-        'Room seats must be between 1 and 25.',
-      );
-      return;
-    }
-
-    final currentSeats = _room!.seats;
-
-    final updatedSeats = <RoomSeat>[];
-
-    for (int number = 1; number <= count; number++) {
-      RoomSeat? existingSeat;
-
-      for (final seat in currentSeats) {
-        if (seat.number == number) {
-          existingSeat = seat;
-          break;
-        }
-      }
-
-      updatedSeats.add(
-        existingSeat ??
-            RoomSeat(
-              number: number,
-              status: RoomSeatStatus.empty,
-            ),
-      );
-    }
-
-    _room = _room!.copyWith(
-      seatCount: count,
-      seats: updatedSeats,
+    // The seat is configured but does not yet
+    // exist in the server seat list.
+    return RoomSeat(
+      number: seatNumber,
+      status: RoomSeatStatus.empty,
     );
-
-    _error = null;
-
-    notifyListeners();
-  }
-
-  /// Convenience method for Room Settings.
-  void increaseSeatCount() {
-    final currentCount = seatCount;
-
-    if (currentCount >= 25) {
-      return;
-    }
-
-    setSeatCount(currentCount + 1);
-  }
-
-  /// Convenience method for Room Settings.
-  void decreaseSeatCount() {
-    final currentCount = seatCount;
-
-    if (currentCount <= 1) {
-      return;
-    }
-
-    final seats = visibleSeats;
-
-    final removedSeatNumber = currentCount;
-
-    final removedSeat = seats.firstWhere(
-          (seat) => seat.number == removedSeatNumber,
-      orElse: () => RoomSeat(
-        number: removedSeatNumber,
-        status: RoomSeatStatus.empty,
-      ),
-    );
-
-    if (removedSeat.isOccupied) {
-      _setError(
-        'Cannot remove an occupied seat.',
-      );
-
-      return;
-    }
-
-    setSeatCount(currentCount - 1);
   }
 
   // ------------------------------------------------------------
-  // SEAT PERMISSION
+  // JOIN SEAT
   // ------------------------------------------------------------
 
-  bool canJoinSeat(int seatNumber) {
-    if (seatNumber < 1 || seatNumber > seatCount) {
+  bool canJoinSeat(
+      int seatNumber,
+      ) {
+    if (
+    seatNumber < 1 ||
+        seatNumber > seatCount
+    ) {
       _setError(
         'This seat is not available.',
       );
@@ -257,10 +334,15 @@ class RoomController extends ChangeNotifier {
       return false;
     }
 
-    final seat = findSeatByNumber(seatNumber);
+    final seat =
+    findSeatByNumber(seatNumber);
 
     if (seat == null) {
-      return true;
+      _setError(
+        'Seat not found.',
+      );
+
+      return false;
     }
 
     if (seat.isLocked) {
@@ -290,15 +372,25 @@ class RoomController extends ChangeNotifier {
     return true;
   }
 
-  bool canLockSeat(int seatNumber) {
-    if (seatNumber < 1 || seatNumber > seatCount) {
+  // ------------------------------------------------------------
+  // LOCK SEAT
+  // ------------------------------------------------------------
+
+  bool canLockSeat(
+      int seatNumber,
+      ) {
+    if (
+    seatNumber < 1 ||
+        seatNumber > seatCount
+    ) {
       return false;
     }
 
-    final seat = findSeatByNumber(seatNumber);
+    final seat =
+    findSeatByNumber(seatNumber);
 
     if (seat == null) {
-      return true;
+      return false;
     }
 
     if (seat.isOccupied) {
@@ -316,14 +408,21 @@ class RoomController extends ChangeNotifier {
   // MICROPHONE
   // ------------------------------------------------------------
 
-  void setMicrophoneState(bool enabled) {
+  void setMicrophoneState(
+      bool enabled,
+      ) {
+    if (_microphoneEnabled == enabled) {
+      return;
+    }
+
     _microphoneEnabled = enabled;
 
     notifyListeners();
   }
 
   void toggleMicrophone() {
-    _microphoneEnabled = !_microphoneEnabled;
+    _microphoneEnabled =
+    !_microphoneEnabled;
 
     notifyListeners();
   }
@@ -333,20 +432,22 @@ class RoomController extends ChangeNotifier {
   // ------------------------------------------------------------
 
   void toggleSpeaker() {
-    _speakerEnabled = !_speakerEnabled;
+    _speakerEnabled =
+    !_speakerEnabled;
 
     notifyListeners();
   }
 
   // ------------------------------------------------------------
-  // ROOM DATA
+  // UPDATE ROOM FROM SERVER
   // ------------------------------------------------------------
 
   void updateRoomFromServer(
       Map<String, dynamic> json,
       ) {
     try {
-      final parsed = VoiceRoom.fromJson(json);
+      final parsed =
+      VoiceRoom.fromJson(json);
 
       if (parsed.id.isEmpty) {
         _setError(
@@ -356,7 +457,9 @@ class RoomController extends ChangeNotifier {
         return;
       }
 
-      _room = parsed;
+      _room = _normalizeRoom(
+        parsed,
+      );
 
       _loading = false;
       _error = null;
@@ -369,16 +472,86 @@ class RoomController extends ChangeNotifier {
     }
   }
 
+  // ------------------------------------------------------------
+  // REPLACE ROOM
+  // ------------------------------------------------------------
+
   void replaceRoom(
       VoiceRoom room,
       ) {
-    _room = room;
+    _room = _normalizeRoom(
+      room,
+    );
 
     _loading = false;
     _error = null;
 
     notifyListeners();
   }
+
+  // ------------------------------------------------------------
+  // NORMALIZE ROOM
+  // ------------------------------------------------------------
+
+  /// Makes sure the room always contains
+  /// seat objects from 1 to seatCount.
+  VoiceRoom _normalizeRoom(
+      VoiceRoom room,
+      ) {
+    final count =
+    _normalizeSeatCount(
+      room.seatCount,
+    );
+
+    final List<RoomSeat> normalizedSeats =
+    [];
+
+    for (
+    int number = 1;
+    number <= count;
+    number++
+    ) {
+      RoomSeat? existingSeat;
+
+      for (final seat in room.seats) {
+        if (seat.number == number) {
+          existingSeat = seat;
+          break;
+        }
+      }
+
+      normalizedSeats.add(
+        existingSeat ??
+            RoomSeat(
+              number: number,
+              status: RoomSeatStatus.empty,
+            ),
+      );
+    }
+
+    return room.copyWith(
+      seatCount: count,
+      seats: normalizedSeats,
+    );
+  }
+
+  int _normalizeSeatCount(
+      int value,
+      ) {
+    if (value < 1) {
+      return 1;
+    }
+
+    if (value > 25) {
+      return 25;
+    }
+
+    return value;
+  }
+
+  // ------------------------------------------------------------
+  // CLEAR ROOM
+  // ------------------------------------------------------------
 
   void clearRoom() {
     _room = null;
@@ -410,7 +583,9 @@ class RoomController extends ChangeNotifier {
   void setError(
       String message,
       ) {
-    _setError(message);
+    _setError(
+      message,
+    );
   }
 
   void clearError() {
