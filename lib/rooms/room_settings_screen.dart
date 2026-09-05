@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:junaya_voicechat_app/rooms/widgets/room_wallpaper_picker.dart';
+
 import 'package:junaya_voicechat_app/rooms/room_socket_service.dart';
+import 'package:junaya_voicechat_app/rooms/widgets/room_wallpaper_picker.dart';
 
 class RoomSettingsScreen extends StatefulWidget {
   final String roomId;
+
+  /// Current number of mic seats in the room.
   final int currentMicCount;
+
   final RoomSocketService socketService;
 
+  /// Called immediately when the user selects a new mic count.
   final ValueChanged<int>? onMicCountChanged;
 
   const RoomSettingsScreen({
@@ -26,13 +31,28 @@ class RoomSettingsScreen extends StatefulWidget {
 
 class _RoomSettingsScreenState
     extends State<RoomSettingsScreen> {
-  static const Color _pageBg = Color(0xFF090020);
-  static const Color _bg = Color(0xFF12002E);
-  static const Color _purple = Color(0xFFA84CF4);
-  static const Color _border = Color(0xFF4A1466);
-  static const Color _tileBg = Color(0xFF160235);
+  // ------------------------------------------------------------
+  // COLORS
+  // ------------------------------------------------------------
 
-  String _selectedWallpaperId = 'mralex';
+  static const Color _pageBg =
+  Color(0xFF090020);
+
+  static const Color _bg =
+  Color(0xFF12002E);
+
+  static const Color _purple =
+  Color(0xFFA84CF4);
+
+  static const Color _border =
+  Color(0xFF4A1466);
+
+  static const Color _tileBg =
+  Color(0xFF160235);
+
+  // ------------------------------------------------------------
+  // ROOM SETTINGS
+  // ------------------------------------------------------------
 
   late int micCount;
 
@@ -49,6 +69,16 @@ class _RoomSettingsScreenState
 
   bool followersTakeMic = true;
 
+  // ------------------------------------------------------------
+  // WALLPAPER
+  // ------------------------------------------------------------
+
+  String _selectedWallpaperId = 'mralex';
+
+  // ------------------------------------------------------------
+  // INIT
+  // ------------------------------------------------------------
+
   @override
   void initState() {
     super.initState();
@@ -57,32 +87,6 @@ class _RoomSettingsScreenState
       widget.currentMicCount,
     );
   }
-
-  void _openWallpaperPicker() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return FractionallySizedBox(
-          heightFactor: 0.72,
-          child: RoomWallpaperPicker(
-            selectedWallpaperId: _selectedWallpaperId,
-
-            onWallpaperSelected: (wallpaper) {
-              setState(() {
-                _selectedWallpaperId = wallpaper.id;
-              });
-
-              Navigator.of(context).pop();
-            },
-          ),
-        );
-      },
-    );
-  }
-
-
 
   // ------------------------------------------------------------
   // SEAT COUNT
@@ -100,7 +104,7 @@ class _RoomSettingsScreenState
     return value;
   }
 
-  Future<void> _changeMicCount(int value) async {
+  void _changeMicCount(int value) {
     final count = _normalizeSeatCount(value);
 
     if (count == micCount) {
@@ -116,6 +120,69 @@ class _RoomSettingsScreenState
     _message(
       'Room now has $count mic seats.',
     );
+  }
+
+  // ------------------------------------------------------------
+  // WALLPAPER
+  // ------------------------------------------------------------
+
+  void _openWallpaperPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return FractionallySizedBox(
+          heightFactor: 0.72,
+          child: RoomWallpaperPicker(
+            selectedWallpaperId:
+            _selectedWallpaperId,
+            onWallpaperSelected: (wallpaper) {
+              setState(() {
+                _selectedWallpaperId =
+                    wallpaper.id;
+              });
+
+              Navigator.of(context).pop();
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  String _wallpaperDisplayName(String id) {
+    switch (id) {
+      case 'mralex':
+        return 'Mr Alex';
+
+      case 'room1':
+        return 'Wallpaper 1';
+
+      case 'room2':
+        return 'Wallpaper 2';
+
+      case 'room3':
+        return 'Wallpaper 3';
+
+      case 'room4':
+        return 'Wallpaper 4';
+
+      case 'room5':
+        return 'Wallpaper 5';
+
+      case 'room6':
+        return 'Wallpaper 6';
+
+      case 'room7':
+        return 'Wallpaper 7';
+
+      case 'room8':
+        return 'Wallpaper 8';
+
+      default:
+        return 'Default';
+    }
   }
 
   // ------------------------------------------------------------
@@ -254,9 +321,11 @@ class _RoomSettingsScreenState
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFF2B0A4B),
+                    color:
+                    const Color(0xFF2B0A4B),
                     border: Border.all(
-                      color: _purple.withValues(
+                      color:
+                      _purple.withValues(
                         alpha: .35,
                       ),
                     ),
@@ -282,7 +351,8 @@ class _RoomSettingsScreenState
               style: GoogleFonts.poppins(
                 color: Colors.white,
                 fontSize: 19,
-                fontWeight: FontWeight.w600,
+                fontWeight:
+                FontWeight.w600,
               ),
             ),
           ),
@@ -303,7 +373,8 @@ class _RoomSettingsScreenState
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontSize: 16,
-            fontWeight: FontWeight.w500,
+            fontWeight:
+            FontWeight.w500,
           ),
         ),
 
@@ -317,15 +388,13 @@ class _RoomSettingsScreenState
             width: 48,
             height: 48,
             fit: BoxFit.cover,
-            errorBuilder: (
-                _,
-                _,
-                _,
-                ) {
+            errorBuilder:
+                (_, _, _) {
               return Container(
                 width: 48,
                 height: 48,
-                color: const Color(0xFF3A185F),
+                color:
+                const Color(0xFF3A185F),
                 child: const Icon(
                   Icons.person_rounded,
                   color: Colors.white,
@@ -354,7 +423,8 @@ class _RoomSettingsScreenState
         12,
       ),
       decoration: BoxDecoration(
-        color: const Color(0xFF140039)
+        color:
+        const Color(0xFF140039)
             .withValues(alpha: .38),
         borderRadius:
         BorderRadius.circular(10),
@@ -395,7 +465,7 @@ class _RoomSettingsScreenState
   }
 
   // ------------------------------------------------------------
-  // SETTINGS TILES
+  // ROOM NAME
   // ------------------------------------------------------------
 
   Widget _buildRoomNameTile() {
@@ -417,6 +487,10 @@ class _RoomSettingsScreenState
     );
   }
 
+  // ------------------------------------------------------------
+  // ANNOUNCEMENT
+  // ------------------------------------------------------------
+
   Widget _buildAnnouncementTile() {
     return _tile(
       icon: Icons.campaign_rounded,
@@ -437,6 +511,10 @@ class _RoomSettingsScreenState
     );
   }
 
+  // ------------------------------------------------------------
+  // MIC COUNT
+  // ------------------------------------------------------------
+
   Widget _buildMicCountTile() {
     return _tile(
       icon: Icons.mic_rounded,
@@ -456,15 +534,25 @@ class _RoomSettingsScreenState
     );
   }
 
+  // ------------------------------------------------------------
+  // WALLPAPER
+  // ------------------------------------------------------------
+
   Widget _buildWallpaperTile() {
     return _tile(
       icon: Icons.wallpaper_rounded,
       title: 'Wallpaper',
-      value: _selectedWallpaperId,
+      value: _wallpaperDisplayName(
+        _selectedWallpaperId,
+      ),
       valueMaxWidth: 120,
       onTap: _openWallpaperPicker,
     );
   }
+
+  // ------------------------------------------------------------
+  // THEME
+  // ------------------------------------------------------------
 
   Widget _buildThemeTile() {
     return _tile(
@@ -472,23 +560,31 @@ class _RoomSettingsScreenState
       title: 'Theme',
       onTap: () {
         _message(
-          'Theme selector',
+          'Theme selector coming soon.',
         );
       },
     );
   }
 
+  // ------------------------------------------------------------
+  // ROOM FRAME
+  // ------------------------------------------------------------
+
   Widget _buildRoomFrameTile() {
     return _tile(
       icon: Icons.crop_square_rounded,
-      title: 'RoomFrame',
+      title: 'Room Frame',
       onTap: () {
         _message(
-          'Room frame selector',
+          'Room frame selector coming soon.',
         );
       },
     );
   }
+
+  // ------------------------------------------------------------
+  // PASSWORD
+  // ------------------------------------------------------------
 
   Widget _buildPasswordTile() {
     return _tile(
@@ -501,13 +597,17 @@ class _RoomSettingsScreenState
           obscure: true,
           onSaved: (_) {
             _message(
-              'Password updated',
+              'Password updated.',
             );
           },
         );
       },
     );
   }
+
+  // ------------------------------------------------------------
+  // DICE
+  // ------------------------------------------------------------
 
   Widget _buildDiceTile() {
     return _tile(
@@ -536,17 +636,25 @@ class _RoomSettingsScreenState
     );
   }
 
+  // ------------------------------------------------------------
+  // GUEST TEXT
+  // ------------------------------------------------------------
+
   Widget _buildGuestTextTile() {
     return _tile(
       icon: Icons.text_fields_rounded,
       title: 'Guest send text level',
       onTap: () {
         _message(
-          'Guest text level',
+          'Guest text level selector coming soon.',
         );
       },
     );
   }
+
+  // ------------------------------------------------------------
+  // BLOCKED LIST
+  // ------------------------------------------------------------
 
   Widget _buildBlockedListTile() {
     return _tile(
@@ -554,7 +662,7 @@ class _RoomSettingsScreenState
       title: 'Blocked List',
       onTap: () {
         _message(
-          'Blocked list',
+          'Blocked list coming soon.',
         );
       },
     );
@@ -581,7 +689,8 @@ class _RoomSettingsScreenState
 
   Widget _buildGamesSwitch() {
     return _switchTile(
-      icon: Icons.sports_esports_rounded,
+      icon:
+      Icons.sports_esports_rounded,
       title:
       'Only room admins can open games',
       value: adminsOpenGames,
@@ -608,7 +717,7 @@ class _RoomSettingsScreenState
   }
 
   // ------------------------------------------------------------
-  // TILE
+  // STANDARD TILE
   // ------------------------------------------------------------
 
   Widget _tile({
@@ -668,8 +777,7 @@ class _RoomSettingsScreenState
                   constraints:
                   BoxConstraints(
                     maxWidth:
-                    valueMaxWidth ??
-                        105,
+                    valueMaxWidth ?? 105,
                   ),
                   child: Text(
                     value,
@@ -705,6 +813,10 @@ class _RoomSettingsScreenState
       ),
     );
   }
+
+  // ------------------------------------------------------------
+  // SWITCH TILE
+  // ------------------------------------------------------------
 
   Widget _switchTile({
     required IconData icon,
@@ -767,9 +879,7 @@ class _RoomSettingsScreenState
                 inactiveThumbColor:
                 Colors.white,
                 inactiveTrackColor:
-                const Color(
-                  0xFF2A0A4C,
-                ),
+                const Color(0xFF2A0A4C),
                 trackOutlineColor:
                 WidgetStatePropertyAll(
                   _purple.withValues(
@@ -784,9 +894,11 @@ class _RoomSettingsScreenState
     );
   }
 
-  Widget _iconBox(
-      IconData icon,
-      ) {
+  // ------------------------------------------------------------
+  // ICON BOX
+  // ------------------------------------------------------------
+
+  Widget _iconBox(IconData icon) {
     return Container(
       width: 36,
       height: 36,
@@ -803,7 +915,8 @@ class _RoomSettingsScreenState
       ),
       child: Icon(
         icon,
-        color: const Color(0xFFE4A7FF),
+        color:
+        const Color(0xFFE4A7FF),
         size: 21,
       ),
     );
@@ -828,7 +941,7 @@ class _RoomSettingsScreenState
     final result =
     await showDialog<String>(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           backgroundColor:
           const Color(0xFF220546),
@@ -860,13 +973,11 @@ class _RoomSettingsScreenState
             InputDecoration(
               filled: true,
               fillColor:
-              Colors.black
-                  .withValues(
+              Colors.black.withValues(
                 alpha: .15,
               ),
               contentPadding:
-              const EdgeInsets
-                  .symmetric(
+              const EdgeInsets.symmetric(
                 horizontal: 12,
                 vertical: 11,
               ),
@@ -901,7 +1012,7 @@ class _RoomSettingsScreenState
             TextButton(
               onPressed: () {
                 Navigator.pop(
-                  context,
+                  dialogContext,
                 );
               },
               child:
@@ -910,7 +1021,7 @@ class _RoomSettingsScreenState
             TextButton(
               onPressed: () {
                 Navigator.pop(
-                  context,
+                  dialogContext,
                   controller.text.trim(),
                 );
               },
@@ -923,6 +1034,10 @@ class _RoomSettingsScreenState
     );
 
     controller.dispose();
+
+    if (!mounted) {
+      return;
+    }
 
     if (result != null &&
         result.isNotEmpty) {
@@ -953,7 +1068,7 @@ class _RoomSettingsScreenState
           top: Radius.circular(18),
         ),
       ),
-      builder: (context) {
+      builder: (sheetContext) {
         return SafeArea(
           child: Padding(
             padding:
@@ -981,53 +1096,51 @@ class _RoomSettingsScreenState
                 const SizedBox(height: 14),
 
                 if (title ==
-                    'Number of Mic')
+                    'Number of Mic') ...[
                   _buildSeatRangeInfo(),
 
-                const SizedBox(height: 12),
+                  const SizedBox(height: 12),
+                ],
 
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children:
-                  values.map(
-                        (value) {
-                      final active =
-                          value ==
-                              selected;
+                  values.map((value) {
+                    final active =
+                        value == selected;
 
-                      return ChoiceChip(
-                        label:
-                        Text('$value'),
-                        selected:
-                        active,
-                        onSelected: (_) {
-                          Navigator.pop(
-                            context,
-                            value,
-                          );
-                        },
-                        selectedColor:
-                        _purple,
-                        backgroundColor:
-                        const Color(
-                          0xFF32105A,
+                    return ChoiceChip(
+                      label:
+                      Text('$value'),
+                      selected:
+                      active,
+                      onSelected: (_) {
+                        Navigator.pop(
+                          sheetContext,
+                          value,
+                        );
+                      },
+                      selectedColor:
+                      _purple,
+                      backgroundColor:
+                      const Color(
+                        0xFF32105A,
+                      ),
+                      labelStyle:
+                      const TextStyle(
+                        color:
+                        Colors.white,
+                      ),
+                      side:
+                      BorderSide(
+                        color:
+                        _purple.withValues(
+                          alpha: .35,
                         ),
-                        labelStyle:
-                        const TextStyle(
-                          color:
-                          Colors.white,
-                        ),
-                        side:
-                        BorderSide(
-                          color:
-                          _purple.withValues(
-                            alpha: .35,
-                          ),
-                        ),
-                      );
-                    },
-                  ).toList(),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ],
             ),
@@ -1036,10 +1149,18 @@ class _RoomSettingsScreenState
       },
     );
 
+    if (!mounted) {
+      return;
+    }
+
     if (result != null) {
       onSelected(result);
     }
   }
+
+  // ------------------------------------------------------------
+  // SEAT RANGE INFO
+  // ------------------------------------------------------------
 
   Widget _buildSeatRangeInfo() {
     return Container(
@@ -1051,16 +1172,12 @@ class _RoomSettingsScreenState
       ),
       decoration: BoxDecoration(
         color:
-        _purple.withValues(
-          alpha: .08,
-        ),
+        _purple.withValues(alpha: .08),
         borderRadius:
         BorderRadius.circular(10),
         border: Border.all(
           color:
-          _purple.withValues(
-            alpha: .20,
-          ),
+          _purple.withValues(alpha: .20),
         ),
       ),
       child: Row(
@@ -1090,12 +1207,10 @@ class _RoomSettingsScreenState
   }
 
   // ------------------------------------------------------------
-  // MESSAGE
+  // SNACKBAR
   // ------------------------------------------------------------
 
-  void _message(
-      String text,
-      ) {
+  void _message(String text) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -1120,4 +1235,3 @@ class _RoomSettingsScreenState
       );
   }
 }
-
