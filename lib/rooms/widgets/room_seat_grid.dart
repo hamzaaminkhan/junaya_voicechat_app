@@ -86,9 +86,9 @@ class RoomSeatGrid extends StatelessWidget {
 
           crossAxisSpacing: 7,
 
-          mainAxisSpacing: 8,
+          mainAxisSpacing: 5,
 
-          mainAxisExtent: 122,
+          mainAxisExtent: 106,
         ),
 
         itemBuilder: (
@@ -154,8 +154,7 @@ class _RoomSeatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user =
-    seat.isOccupied
+    final user = seat.isOccupied
         ? seat.user
         : null;
 
@@ -167,48 +166,37 @@ class _RoomSeatTile extends StatelessWidget {
             user?.isMuted != true;
 
     return GestureDetector(
-      behavior:
-      HitTestBehavior.opaque,
+      behavior: HitTestBehavior.opaque,
 
       onTap: onTap,
 
-      onLongPress:
-      onLongPress,
+      onLongPress: onLongPress,
 
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 82,
-            height: 82,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.18),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.25),
-                width: 1,
-              ),
-            ),
-            alignment: Alignment.center,
-            child: Icon(
-              Icons.mic_none_rounded,
-              color: Colors.white.withValues(alpha: 1.50),
-              size: 36,
-            ),
+          _SeatCircle(
+            seat: seat,
+            user: user,
+            isMe: isMe,
+            isSpeaking: isSpeaking,
+            mediaBaseUrl: mediaBaseUrl,
           ),
 
           const SizedBox(height: 7),
 
-          Text(
-            '${seat.number}',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.95),
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
+          if (user == null)
+            _EmptySeatNumber(
+              number: seat.number,
+              locked: seat.isLocked,
+            )
+          else
+            _OccupiedUserName(
+              name: user.name,
+              isMe: isMe,
             ),
-          ),
         ],
-      )
+      ),
     );
   }
 }
@@ -239,12 +227,10 @@ class _SeatCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool locked =
-        seat.isLocked;
+    final bool locked = seat.isLocked;
 
     return AnimatedContainer(
-      duration:
-      const Duration(
+      duration: const Duration(
         milliseconds: 180,
       ),
 
@@ -252,66 +238,54 @@ class _SeatCircle extends StatelessWidget {
 
       height: 82,
 
-      padding:
-      const EdgeInsets.all(2),
+      padding: const EdgeInsets.all(2),
 
       decoration: BoxDecoration(
-        shape:
-        BoxShape.circle,
+        shape: BoxShape.circle,
 
-        color:
-        const Color(0xFF261936)
-            .withValues(
-          alpha: .78,
+        // --------------------------------------------------------
+        // GLASS SEAT
+        // --------------------------------------------------------
+
+        color: Colors.white.withValues(
+          alpha: .16,
         ),
 
         border: Border.all(
-          color: isSpeaking
-              ? const Color(
-            0xFFFFD45C,
-          )
-              : isMe
-              ? const Color(
-            0xFFFFD45C,
-          )
-              : Colors.white
-              .withValues(
-            alpha: .16,
+          color: isSpeaking || isMe
+              ? const Color(0xFFFFD45C)
+              : Colors.white.withValues(
+            alpha: .32,
           ),
 
-          width:
-          isSpeaking || isMe
+          width: isSpeaking || isMe
               ? 2
               : 1,
         ),
 
         boxShadow: [
           BoxShadow(
-            color:
-            Colors.black
-                .withValues(
-              alpha: .28,
+            color: Colors.black.withValues(
+              alpha: .16,
             ),
 
-            blurRadius: 8,
+            blurRadius: 6,
 
-            offset:
-            const Offset(
+            offset: const Offset(
               0,
-              4,
+              3,
             ),
           ),
 
           if (isSpeaking)
             BoxShadow(
-              color:
-              const Color(
+              color: const Color(
                 0xFFFFD45C,
               ).withValues(
-                alpha: .30,
+                alpha: .28,
               ),
 
-              blurRadius: 14,
+              blurRadius: 12,
 
               spreadRadius: 1,
             ),
@@ -335,20 +309,16 @@ class _SeatCircle extends StatelessWidget {
 
     if (locked) {
       return Container(
-        color:
-        const Color(0xFF171020)
-            .withValues(
-          alpha: .92,
+        color: Colors.black.withValues(
+          alpha: .22,
         ),
 
-        alignment:
-        Alignment.center,
+        alignment: Alignment.center,
 
         child: const Icon(
           Icons.lock_rounded,
 
-          color:
-          Colors.white38,
+          color: Colors.white70,
 
           size: 27,
         ),
@@ -360,37 +330,11 @@ class _SeatCircle extends StatelessWidget {
     // ============================================================
 
     if (user == null) {
-      return Container(
-        width: 82,
-        height: 82,
-
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-
-          // White, transparent glass
-          color: Colors.white.withValues(
-            alpha: 0.18,
-          ),
-
-          // Subtle white glass border
-          border: Border.all(
-            color: Colors.white.withValues(
-              alpha: 0.25,
-            ),
-            width: 1,
-          ),
-        ),
-
-        alignment: Alignment.center,
-
+      return const Center(
         child: Icon(
           Icons.mic_none_rounded,
-
-          color: Colors.white.withValues(
-            alpha: 0.85,
-          ),
-
-          size: 36,
+          color: Colors.white,
+          size: 32,
         ),
       );
     }
@@ -399,30 +343,19 @@ class _SeatCircle extends StatelessWidget {
     // OCCUPIED
     // ============================================================
 
-    final occupiedUser =
-    user!;
+    final occupiedUser = user!;
 
     return Stack(
-      fit:
-      StackFit.expand,
+      fit: StackFit.expand,
 
       children: [
         _RoomAvatarImage(
-          source:
-          occupiedUser.avatar,
+          source: occupiedUser.avatar,
 
-          mediaBaseUrl:
-          mediaBaseUrl,
+          mediaBaseUrl: mediaBaseUrl,
 
-          fallbackName:
-          occupiedUser.name,
+          fallbackName: occupiedUser.name,
         ),
-
-        // --------------------------------------------------------
-        // DARK OVERLAY
-        // --------------------------------------------------------
-
-
 
         // --------------------------------------------------------
         // MUTED
@@ -430,20 +363,18 @@ class _SeatCircle extends StatelessWidget {
 
         if (occupiedUser.isMuted)
           Container(
-            color:
-            Colors.black
-                .withValues(
+            color: Colors.black.withValues(
               alpha: .42,
             ),
 
-            alignment:
-            Alignment.center,
+            alignment: Alignment.center,
 
             child: const Icon(
               Icons.mic_off_rounded,
 
-              color:
-              Color(0xFFFF737C),
+              color: Color(
+                0xFFFF737C,
+              ),
 
               size: 30,
             ),
@@ -464,21 +395,20 @@ class _SeatCircle extends StatelessWidget {
 
               height: 23,
 
-              decoration:
-              const BoxDecoration(
-                color:
-                Color(0xFFFFC83D),
+              decoration: const BoxDecoration(
+                color: Color(
+                  0xFFFFC83D,
+                ),
 
-                shape:
-                BoxShape.circle,
+                shape: BoxShape.circle,
               ),
 
               child: const Icon(
-                Icons
-                    .workspace_premium_rounded,
+                Icons.workspace_premium_rounded,
 
-                color:
-                Color(0xFF3A1850),
+                color: Color(
+                  0xFF3A1850,
+                ),
 
                 size: 14,
               ),
@@ -486,7 +416,7 @@ class _SeatCircle extends StatelessWidget {
           ),
 
         // --------------------------------------------------------
-        // SPEAKING INDICATOR
+        // SPEAKING
         // --------------------------------------------------------
 
         if (occupiedUser.isSpeaking &&
@@ -501,10 +431,8 @@ class _SeatCircle extends StatelessWidget {
             child: Container(
               height: 4,
 
-              decoration:
-              BoxDecoration(
-                color:
-                const Color(
+              decoration: BoxDecoration(
+                color: const Color(
                   0xFFFFD45C,
                 ),
 

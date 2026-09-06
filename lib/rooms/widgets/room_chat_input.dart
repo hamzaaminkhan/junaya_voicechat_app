@@ -4,24 +4,36 @@ import 'package:google_fonts/google_fonts.dart';
 class RoomChatInput extends StatefulWidget {
   final TextEditingController controller;
 
+  final FocusNode? focusNode;
+
   final VoidCallback onSend;
 
   final VoidCallback? onEmojiTap;
 
   const RoomChatInput({
     super.key,
+
     required this.controller,
+
+    this.focusNode,
+
     required this.onSend,
+
     this.onEmojiTap,
   });
 
   @override
-  State<RoomChatInput> createState() => _RoomChatInputState();
+  State<RoomChatInput> createState() {
+    return _RoomChatInputState();
+  }
 }
 
 class _RoomChatInputState extends State<RoomChatInput> {
-  static const Color _pink = Color(0xFFFF48ED);
-  static const Color _gold = Color(0xFFFFD76A);
+  static const Color _pink =
+  Color(0xFFFF48ED);
+
+  static const Color _gold =
+  Color(0xFFFFD76A);
 
   bool _hasText = false;
 
@@ -29,14 +41,31 @@ class _RoomChatInputState extends State<RoomChatInput> {
   void initState() {
     super.initState();
 
-    widget.controller.addListener(_onTextChanged);
+    widget.controller.addListener(
+      _onTextChanged,
+    );
 
-    _hasText = widget.controller.text.trim().isNotEmpty;
+    _hasText =
+        widget.controller.text.trim().isNotEmpty;
+
+    // Give the TextField time to enter the
+    // widget tree before requesting the keyboard.
+    if (widget.focusNode != null) {
+      WidgetsBinding.instance.addPostFrameCallback(
+            (_) {
+          if (!mounted) return;
+
+          widget.focusNode!.requestFocus();
+        },
+      );
+    }
   }
 
   @override
   void dispose() {
-    widget.controller.removeListener(_onTextChanged);
+    widget.controller.removeListener(
+      _onTextChanged,
+    );
 
     super.dispose();
   }
@@ -64,6 +93,7 @@ class _RoomChatInputState extends State<RoomChatInput> {
   Widget build(BuildContext context) {
     return SafeArea(
       top: false,
+
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
           10,
@@ -71,33 +101,50 @@ class _RoomChatInputState extends State<RoomChatInput> {
           10,
           8,
         ),
+
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
+          crossAxisAlignment:
+          CrossAxisAlignment.end,
+
           children: [
+
             // ==================================================
             // EMOJI BUTTON
             // ==================================================
 
             Material(
               color: Colors.transparent,
+
               child: InkWell(
                 onTap: widget.onEmojiTap,
-                borderRadius: BorderRadius.circular(28),
+
+                borderRadius:
+                BorderRadius.circular(28),
+
                 child: Container(
                   width: 48,
                   height: 48,
+
                   decoration: BoxDecoration(
                     color: const Color(0xFF170525)
                         .withValues(alpha: .92),
+
                     shape: BoxShape.circle,
+
                     border: Border.all(
-                      color: _pink.withValues(alpha: .55),
+                      color: _pink.withValues(
+                        alpha: .55,
+                      ),
+
                       width: 1,
                     ),
                   ),
+
                   child: const Icon(
                     Icons.emoji_emotions_outlined,
+
                     color: Colors.white,
+
                     size: 23,
                   ),
                 ),
@@ -112,25 +159,42 @@ class _RoomChatInputState extends State<RoomChatInput> {
 
             Expanded(
               child: Container(
-                constraints: const BoxConstraints(
+                constraints:
+                const BoxConstraints(
                   minHeight: 48,
                   maxHeight: 110,
                 ),
+
                 decoration: BoxDecoration(
                   color: const Color(0xFF170525)
                       .withValues(alpha: .94),
-                  borderRadius: BorderRadius.circular(26),
+
+                  borderRadius:
+                  BorderRadius.circular(26),
+
                   border: Border.all(
-                    color: _pink.withValues(alpha: .45),
+                    color: _pink.withValues(
+                      alpha: .45,
+                    ),
+
                     width: 1,
                   ),
                 ),
+
                 child: TextField(
-                  controller: widget.controller,
+                  controller:
+                  widget.controller,
 
-                  autofocus: false,
+                  focusNode:
+                  widget.focusNode,
 
-                  keyboardType: TextInputType.text,
+                  // IMPORTANT:
+                  // This allows the Android keyboard
+                  // to open when the composer appears.
+                  autofocus: widget.focusNode != null,
+
+                  keyboardType:
+                  TextInputType.text,
 
                   textInputAction:
                   TextInputAction.send,
@@ -138,6 +202,7 @@ class _RoomChatInputState extends State<RoomChatInput> {
                   maxLength: 250,
 
                   minLines: 1,
+
                   maxLines: 4,
 
                   onSubmitted: (_) {
@@ -146,25 +211,33 @@ class _RoomChatInputState extends State<RoomChatInput> {
 
                   style: GoogleFonts.poppins(
                     color: Colors.white,
+
                     fontSize: 13,
                   ),
 
                   cursorColor: _gold,
 
-                  decoration: InputDecoration(
+                  decoration:
+                  InputDecoration(
                     counterText: '',
-                    hintText: 'Say something...',
 
-                    hintStyle: GoogleFonts.poppins(
+                    hintText:
+                    'Say something...',
+
+                    hintStyle:
+                    GoogleFonts.poppins(
                       color: Colors.white38,
+
                       fontSize: 12,
                     ),
 
-                    border: InputBorder.none,
+                    border:
+                    InputBorder.none,
 
                     contentPadding:
                     const EdgeInsets.symmetric(
                       horizontal: 16,
+
                       vertical: 13,
                     ),
                   ),
@@ -180,36 +253,57 @@ class _RoomChatInputState extends State<RoomChatInput> {
 
             Material(
               color: Colors.transparent,
+
               child: InkWell(
-                onTap: _hasText ? _submit : null,
-                borderRadius: BorderRadius.circular(28),
+                onTap:
+                _hasText
+                    ? _submit
+                    : null,
+
+                borderRadius:
+                BorderRadius.circular(28),
+
                 child: AnimatedContainer(
                   duration:
-                  const Duration(milliseconds: 180),
+                  const Duration(
+                    milliseconds: 180,
+                  ),
 
                   width: 48,
+
                   height: 48,
 
-                  decoration: BoxDecoration(
+                  decoration:
+                  BoxDecoration(
                     color: _hasText
                         ? _gold
-                        : const Color(0xFF170525)
-                        .withValues(alpha: .92),
+                        : const Color(
+                      0xFF170525,
+                    ).withValues(
+                      alpha: .92,
+                    ),
 
-                    shape: BoxShape.circle,
+                    shape:
+                    BoxShape.circle,
 
                     border: Border.all(
                       color: _hasText
                           ? _gold
-                          : _pink.withValues(alpha: .35),
+                          : _pink.withValues(
+                        alpha: .35,
+                      ),
                     ),
                   ),
 
                   child: Icon(
                     Icons.send_rounded,
+
                     size: 21,
+
                     color: _hasText
-                        ? const Color(0xFF35105D)
+                        ? const Color(
+                      0xFF35105D,
+                    )
                         : Colors.white38,
                   ),
                 ),

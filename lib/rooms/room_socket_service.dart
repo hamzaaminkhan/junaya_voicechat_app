@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
@@ -137,33 +139,82 @@ class RoomSocketService {
     final socket = _socket;
 
     if (socket == null || !socket.connected) {
-      onResult?.call(false, 'Socket is not connected.');
+      onResult?.call(
+        false,
+        'Socket is not connected.',
+      );
       return;
     }
+
+    bool completed = false;
+
+    void finish(
+        bool ok,
+        String? error,
+        ) {
+      if (completed) {
+        return;
+      }
+
+      completed = true;
+      onResult?.call(ok, error);
+    }
+
+    final timeoutTimer = Timer(
+      const Duration(seconds: 10),
+          () {
+        debugPrint(
+          '⏰ ROOM JOIN TIMEOUT: '
+              'room=$roomId',
+        );
+
+        finish(
+          false,
+          'The server did not respond while joining the room.',
+        );
+      },
+    );
 
     socket.emitWithAck(
       'room:join',
       {
         'roomId': roomId,
-        if (roomName != null && roomName.trim().isNotEmpty)
+        if (roomName != null &&
+            roomName.trim().isNotEmpty)
           'roomName': roomName.trim(),
       },
       ack: (data) {
+        timeoutTimer.cancel();
+
         final result = _toMap(data);
 
         if (result == null) {
-          onResult?.call(false, 'Invalid room join response.');
+          finish(
+            false,
+            'Invalid room join response.',
+          );
           return;
         }
 
         final ok = result['ok'] == true;
 
         if (ok) {
-          final room = _toMap(result['room']);
-          if (room != null) _onRoomUpdate?.call(room);
-        }
+          final room = _toMap(
+            result['room'],
+          );
 
-        onResult?.call(ok, ok ? null : result['error']?.toString());
+          if (room != null) {
+            _onRoomUpdate?.call(room);
+          }
+
+          finish(true, null);
+        } else {
+          finish(
+            false,
+            result['error']?.toString() ??
+                'Unable to join room.',
+          );
+        }
       },
     );
   }

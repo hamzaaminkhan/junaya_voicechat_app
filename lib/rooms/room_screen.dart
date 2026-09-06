@@ -95,7 +95,11 @@ class _RoomScreenState extends State<RoomScreen>
     'Welcome to Junaya Voice Room 👋',
   ];
 
-  final TextEditingController _chatController = TextEditingController();
+  final TextEditingController _chatController =
+  TextEditingController();
+
+  final FocusNode _chatFocusNode =
+  FocusNode();
 
   String? _currentJunayaId;
   int _currentVipLevel = 0;
@@ -116,8 +120,7 @@ class _RoomScreenState extends State<RoomScreen>
     return AppConfig.socketBaseUrl;
   }
 
-  final List<RoomMessage> _chatMessages = [
-  ];
+  final List<RoomMessage> _chatMessages = [];
 
   @override
   void initState() {
@@ -125,16 +128,18 @@ class _RoomScreenState extends State<RoomScreen>
 
     WidgetsBinding.instance.addObserver(this);
 
-    _selectedWallpaper =
-        _getDefaultWallpaper();
+    _selectedWallpaper = _getDefaultWallpaper();
 
     _enterImmersiveRoomMode();
+
+    // ------------------------------------------------------------
+    // INITIALIZE ROOM CONTROLLER FIRST
+    // ------------------------------------------------------------
 
     _roomController = RoomController(
       currentUserId: '',
       currentUserName: 'Authenticating...',
-      currentUserAvatar:
-      widget.currentUserAvatar,
+      currentUserAvatar: widget.currentUserAvatar,
     );
 
     _roomController.setLoading(
@@ -145,15 +150,26 @@ class _RoomScreenState extends State<RoomScreen>
       _roomUpdated,
     );
 
-    _socketService =
-        RoomSocketService();
+    // ------------------------------------------------------------
+    // SOCKET
+    // ------------------------------------------------------------
+
+    _socketService = RoomSocketService();
+
+    // ------------------------------------------------------------
+    // LIVEKIT
+    // ------------------------------------------------------------
 
     _liveKitVoiceService = LiveKitVoiceService(
       onRemoteUserJoined: (identity) {
-        debugPrint('LiveKit remote user joined: $identity');
+        debugPrint(
+          'LiveKit remote user joined: $identity',
+        );
       },
       onRemoteUserLeft: (identity) {
-        debugPrint('LiveKit remote user left: $identity');
+        debugPrint(
+          'LiveKit remote user left: $identity',
+        );
       },
       onError: (message) {
         if (!mounted) return;
@@ -162,7 +178,13 @@ class _RoomScreenState extends State<RoomScreen>
       },
     );
 
-    _liveKitVoiceService.addListener(_liveKitUpdated);
+    _liveKitVoiceService.addListener(
+      _liveKitUpdated,
+    );
+
+    // ------------------------------------------------------------
+    // CONNECT
+    // ------------------------------------------------------------
 
     if (widget.enableRealtime) {
       _connectRealtimeRoom();
@@ -328,9 +350,17 @@ class _RoomScreenState extends State<RoomScreen>
               if (!mounted) return;
 
               if (!ok) {
-                final message = error ?? 'Unable to join the room.';
-                setState(() => _socketError = message);
+                final message =
+                    error ?? 'Unable to join the room.';
+
+                setState(() {
+                  _socketError = message;
+                  _socketConnected = false;
+                });
+
                 _roomController.setError(message);
+                _roomController.setLoading(false);
+
                 return;
               }
 
@@ -355,7 +385,11 @@ class _RoomScreenState extends State<RoomScreen>
           });
 
           if (_roomController.room == null) {
-            _roomController.setError('Room connection was lost.');
+            _roomController.setError(
+              'Room connection was lost.',
+            );
+
+            _roomController.setLoading(false);
           }
         },
         onError: (message) {
@@ -363,10 +397,6 @@ class _RoomScreenState extends State<RoomScreen>
             '❌ SOCKET ERROR: '
                 '$message '
                 'url=$_resolvedSocketServerUrl',
-          );
-          debugPrint(
-            '📱 REAL PHONE CHECK: open '
-                '$_resolvedSocketServerUrl/health in the phone browser.',
           );
 
           if (!mounted) return;
@@ -377,6 +407,7 @@ class _RoomScreenState extends State<RoomScreen>
           });
 
           _roomController.setError(message);
+          _roomController.setLoading(false);
         },
         onRoomUpdate: (roomJson) {
           if (!mounted) return;
@@ -945,6 +976,7 @@ class _RoomScreenState extends State<RoomScreen>
 
   @override
   void dispose() {
+    _chatFocusNode.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _restoreSystemUi();
     if (_socketConnected && !_roomExitHandled) {
@@ -1102,8 +1134,10 @@ class _RoomScreenState extends State<RoomScreen>
                 top: Radius.circular(24),
               ),
             ),
-            child: RoomChatInput(
+            child:RoomChatInput(
               controller: _chatController,
+
+              focusNode: _chatFocusNode,
 
               onSend: () {
                 final hadText =
@@ -1473,8 +1507,8 @@ class _RoomScreenState extends State<RoomScreen>
                           Positioned(
                             left: 0,
                             right: 0,
-                            top: 260,
-                            bottom: 360,
+                            top: 240,
+                            bottom: 445,
                             child:RoomSeatGrid(
                               seats: _roomController.visibleSeats,
                               seatCount: _roomController.seatCount,
@@ -1489,7 +1523,7 @@ class _RoomScreenState extends State<RoomScreen>
                           Positioned(
                             left: 0,
                             right: 0,
-                            top: 870,
+                            top: 890,
                             child: RoomActivityFeed(
                               messages: _activityMessages,
 
@@ -1731,9 +1765,166 @@ class _RoomScreenState extends State<RoomScreen>
       return;
     }
 
-    final isMe = user.id == _roomController.currentUserId;
+    final isMe =
+        user.id == _roomController.currentUserId;
 
-    // ... rest of your existing code
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Container(
+            margin: const EdgeInsets.all(12),
+            padding: const EdgeInsets.fromLTRB(
+              18,
+              14,
+              18,
+              18,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFF190837),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: _pink.withValues(alpha: .22),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 44,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+
+                const SizedBox(height: 18),
+
+                // ==================================================
+                // AVATAR
+                // ==================================================
+
+                Container(
+                  width: 72,
+                  height: 72,
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isMe
+                          ? const Color(0xFFFFD45C)
+                          : Colors.white24,
+                      width: isMe ? 2 : 1,
+                    ),
+                  ),
+                  child: _roomAvatarImage(
+                    source: user.avatar,
+                    name: user.name,
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                Text(
+                  user.name,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+
+                const SizedBox(height: 4),
+
+                Text(
+                  isMe
+                      ? 'You • Mic ${seat.number}'
+                      : 'Mic ${seat.number}',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white54,
+                    fontSize: 11,
+                  ),
+                ),
+
+                const SizedBox(height: 18),
+
+                // ==================================================
+                // YOUR OWN MIC
+                // ==================================================
+
+                if (isMe)
+                  _seatMenuAction(
+                    icon: Icons.mic_off_rounded,
+                    title: 'Leave Mic',
+                    subtitle:
+                    'Leave this seat and return to listener mode.',
+                    color: const Color(0xFFFF667A),
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+
+                      _leaveMicRealtime();
+                    },
+                  ),
+
+                // ==================================================
+                // OTHER USER
+                // ==================================================
+
+                if (!isMe)
+                  _seatMenuAction(
+                    icon: Icons.person_outline_rounded,
+                    title: 'View Profile',
+                    subtitle: 'View this member profile.',
+                    color: const Color(0xFFB98CFF),
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+
+                      _showMessage(
+                        'Profile: ${user.name}',
+                      );
+                    },
+                  ),
+
+                const SizedBox(height: 10),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.pop(sheetContext);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white70,
+                      minimumSize:
+                      const Size.fromHeight(46),
+                      side: BorderSide(
+                        color: Colors.white.withValues(
+                          alpha: .15,
+                        ),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                        BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: Text(
+                      'Cancel',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _sheetAction({
@@ -2616,6 +2807,87 @@ class _RoomScreenState extends State<RoomScreen>
     }
 
     return 'assets/rooms/mralex.png';
+  }
+
+  Widget _seatMenuAction({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 12,
+          ),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: .08),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: color.withValues(alpha: .20),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: .14),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 20,
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+
+                    const SizedBox(height: 2),
+
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white54,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              Icon(
+                Icons.chevron_right_rounded,
+                color: color,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
 }
