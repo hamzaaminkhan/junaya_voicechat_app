@@ -81,7 +81,7 @@ flutter:
     - assets/images/moments/
 
     # rooms
-    - assets/rooms/room1.jpeg
+    - assets/rooms/
     - assets/categories/
 
     # gifts and animations

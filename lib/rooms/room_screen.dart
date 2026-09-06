@@ -1388,31 +1388,41 @@ class _RoomScreenState extends State<RoomScreen>
                         fit: StackFit.expand,
                         children: [
                           RepaintBoundary(
-                            child: Image.asset(
-                              _roomBackgroundAsset,
-                              key: ValueKey(_roomBackgroundAsset),
-                              fit: BoxFit.cover,
-                              alignment: Alignment.topCenter,
-                              filterQuality: FilterQuality.high,
-                              errorBuilder: (_, _, _) {
-                                return const DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Color(0xFF0B0713),
-                                        Color(0xFF26121A),
-                                        Color(0xFF05030A),
-                                      ],
-
-                                      begin: Alignment.topCenter,
-
-                                      end: Alignment.bottomCenter,
+                            child: ColorFiltered(
+                              colorFilter: ColorFilter.mode(
+                                Colors.black.withValues(
+                                  alpha: .37,
+                                ),
+                                BlendMode.darken,
+                              ),
+                              child: Image.asset(
+                                _roomBackgroundAsset,
+                                key: ValueKey(_roomBackgroundAsset),
+                                fit: BoxFit.cover,
+                                alignment: Alignment.topCenter,
+                                filterQuality: FilterQuality.high,
+                                errorBuilder: (_, _, _) {
+                                  return const DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Color(0xFF0B0713),
+                                          Color(0xFF26121A),
+                                          Color(0xFF05030A),
+                                        ],
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
+                                  );
+                                },
+                              ),
                             ),
                           ),
+
+                          // ============================================================
+                          // TOP GRADIENT
+                          // ============================================================
                           Positioned(
                             left: 0,
                             top: 0,

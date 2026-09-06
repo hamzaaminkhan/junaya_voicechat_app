@@ -3,7 +3,7 @@ import 'package:junaya_voicechat_app/rooms/models/room_wallpaper_model.dart';
 const List<RoomWallpaper> roomWallpapers = [
   RoomWallpaper(
     id: 'mralex',
-    name: 'Snake',
+    name: 'Default',
     assetPath: 'assets/rooms/mralex.png',
     isDefault: true,
   ),
@@ -22,7 +22,7 @@ const List<RoomWallpaper> roomWallpapers = [
 
   RoomWallpaper(
     id: 'room3',
-    name: 'Night Lounge',
+    name: 'Mr Alex',
     assetPath: 'assets/rooms/room3.jpeg',
   ),
 
@@ -52,7 +52,14 @@ const List<RoomWallpaper> roomWallpapers = [
 
   RoomWallpaper(
     id: 'room8',
-    name: 'Sunset',
+    name: 'Sunset Paradise',
     assetPath: 'assets/rooms/room8.jpeg',
   ),
+
+  RoomWallpaper(
+    id: 'room10',
+    name: 'Dragon Temple',
+    assetPath: 'assets/rooms/room10.jpeg',
+  ),
+
 ];
