@@ -180,9 +180,7 @@ class RoomWallpaperPicker extends StatelessWidget {
                       selected: selected,
 
                       onTap: () {
-                        onWallpaperSelected(
-                          wallpaper,
-                        );
+                        onWallpaperSelected(wallpaper);
                       },
                     );
                   },

@@ -19,9 +19,8 @@ class RoomMessage {
 
   final DateTime createdAt;
 
-
   const RoomMessage({
-    required this.id,
+    this.id = '',
     required this.roomId,
     required this.userId,
     required this.userName,
@@ -33,6 +32,27 @@ class RoomMessage {
     required this.createdAt,
   });
 
+  // ============================================================
+  // HELPERS
+  // ============================================================
+
+  bool get hasAvatar {
+    return avatar != null &&
+        avatar!.trim().isNotEmpty;
+  }
+
+  bool get hasBadge {
+    return badge != null &&
+        badge!.trim().isNotEmpty;
+  }
+
+  bool get hasMessage {
+    return message.trim().isNotEmpty;
+  }
+
+  // ============================================================
+  // COPY
+  // ============================================================
 
   RoomMessage copyWith({
     String? id,
@@ -60,6 +80,9 @@ class RoomMessage {
     );
   }
 
+  // ============================================================
+  // JSON
+  // ============================================================
 
   factory RoomMessage.fromJson(
       Map<String, dynamic> json,
@@ -69,32 +92,36 @@ class RoomMessage {
           json['id']?.toString() ??
           '',
 
-      roomId: json['roomId']?.toString() ?? '',
+      roomId:
+      json['roomId']?.toString() ?? '',
 
-      userId: json['userId']?.toString() ?? '',
+      userId:
+      json['userId']?.toString() ?? '',
 
-      userName: json['userName']?.toString() ??
+      userName:
+      json['userName']?.toString() ??
           json['name']?.toString() ??
           'User',
 
-      avatar: json['avatar']?.toString(),
+      avatar:
+      json['avatar']?.toString(),
 
-      message: json['message']?.toString() ?? '',
+      message:
+      json['message']?.toString() ?? '',
 
-      badge: json['badge']?.toString(),
+      badge:
+      json['badge']?.toString(),
 
-      vipLevel: _parseInt(
-        json['vipLevel'],
-      ),
+      vipLevel:
+      _parseInt(json['vipLevel']),
 
-      isSystem: json['isSystem'] == true,
+      isSystem:
+      json['isSystem'] == true,
 
-      createdAt: _parseDateTime(
-        json['createdAt'],
-      ),
+      createdAt:
+      _parseDateTime(json['createdAt']),
     );
   }
-
 
   Map<String, dynamic> toJson() {
     return {
@@ -111,7 +138,6 @@ class RoomMessage {
     };
   }
 
-
   @override
   String toString() {
     return 'RoomMessage('
@@ -120,19 +146,21 @@ class RoomMessage {
         'userId: $userId, '
         'userName: $userName, '
         'message: $message, '
+        'vipLevel: $vipLevel, '
+        'isSystem: $isSystem, '
         'createdAt: $createdAt'
         ')';
   }
 }
-
 
 // ============================================================
 // HELPERS
 // ============================================================
 
 int _parseInt(
-    dynamic value,
-    ) {
+    dynamic value, {
+      int fallback = 0,
+    }) {
   if (value is int) {
     return value;
   }
@@ -140,9 +168,8 @@ int _parseInt(
   return int.tryParse(
     value?.toString() ?? '',
   ) ??
-      0;
+      fallback;
 }
-
 
 DateTime _parseDateTime(
     dynamic value,

@@ -128,17 +128,13 @@ class RoomSeatGrid extends StatelessWidget {
             mediaBaseUrl,
 
             onTap: () {
-              onSeatTap(
-                seat.number,
-              );
+              onSeatTap(index);
             },
 
             onLongPress:
             isRoomOwner
                 ? () {
-              onSeatLongPress(
-                seat.number,
-              );
+              onSeatLongPress(index);
             }
                 : null,
           );

@@ -174,31 +174,31 @@ class _RoomSettingsScreenState
   String _wallpaperDisplayName(String id) {
     switch (id) {
       case 'mralex':
-        return 'Mr Alex';
+        return 'Snake';
 
       case 'room1':
-        return 'Wallpaper 1';
+        return 'Golden Palace';
 
       case 'room2':
-        return 'Wallpaper 2';
+        return 'Luxury';
 
       case 'room3':
-        return 'Wallpaper 3';
+        return 'Night Lounge';
 
       case 'room4':
-        return 'Wallpaper 4';
+        return 'Couple';
 
       case 'room5':
-        return 'Wallpaper 5';
+        return 'Cute';
 
       case 'room6':
-        return 'Wallpaper 6';
+        return 'Luxury Cars';
 
       case 'room7':
-        return 'Wallpaper 7';
+        return 'White Palace';
 
       case 'room8':
-        return 'Wallpaper 8';
+        return 'Sunset';
 
       default:
         return 'Default';

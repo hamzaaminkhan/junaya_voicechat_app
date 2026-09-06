@@ -2,19 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:junaya_voicechat_app/rooms/room_socket_service.dart';
-
+import 'package:junaya_voicechat_app/rooms/models/room_wallpaper_model.dart';
 import 'room_settings_screen.dart';
 
 class RoomProfileScreen extends StatefulWidget {
   final String roomId;
   final int currentMicCount;
   final RoomSocketService socketService;
+  final RoomWallpaper? selectedWallpaper;
+  final ValueChanged<RoomWallpaper>? onWallpaperChanged;
 
   const RoomProfileScreen({
     super.key,
     required this.roomId,
     required this.currentMicCount,
     required this.socketService,
+    this.selectedWallpaper,
+    this.onWallpaperChanged,
   });
 
   @override
@@ -1018,8 +1022,11 @@ class _RoomProfileScreenState extends State<RoomProfileScreen> {
         builder: (_) {
           return RoomSettingsScreen(
             roomId: widget.roomId,
+
             currentMicCount: _micCount,
+
             socketService: widget.socketService,
+
             onMicCountChanged: (count) {
               if (!mounted) {
                 return;
@@ -1030,6 +1037,15 @@ class _RoomProfileScreenState extends State<RoomProfileScreen> {
                   count,
                 );
               });
+            },
+
+            selectedWallpaper:
+            widget.selectedWallpaper,
+
+            onWallpaperChanged: (wallpaper) {
+              widget.onWallpaperChanged?.call(
+                wallpaper,
+              );
             },
           );
         },

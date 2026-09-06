@@ -6,6 +6,7 @@ import 'package:junaya_voicechat_app/core/config/app_config.dart';
 
 import 'package:junaya_voicechat_app/core/storage/token_storage.dart';
 import 'package:junaya_voicechat_app/rooms/controllers/room_controller.dart';
+import 'package:junaya_voicechat_app/rooms/models/room_message_model.dart';
 import 'package:junaya_voicechat_app/rooms/models/room_wallpaper_model.dart';
 import 'package:junaya_voicechat_app/rooms/models/voice_room_model.dart';
 
@@ -23,6 +24,8 @@ import 'widgets/room_chat_panel.dart';
 import 'room_settings_screen.dart';
 import 'widgets/room_top_overlay.dart';
 import 'widgets/room_chat_input.dart';
+import 'widgets/room_emoji_picker.dart';
+import 'widgets/room_chat_messages.dart';
 
 import 'package:junaya_voicechat_app/rooms/widgets/room_activity_feed.dart';
 import 'package:junaya_voicechat_app/rooms/data/room_emojis.dart';
@@ -113,13 +116,7 @@ class _RoomScreenState extends State<RoomScreen>
     return AppConfig.socketBaseUrl;
   }
 
-  final List<RoomChatDisplayItem> _chatMessages = [
-    const RoomChatDisplayItem(
-      name: 'System',
-      message: 'Welcome to Junaya Voice Room.',
-      badge: 'ROOM',
-      isSystem: true,
-    ),
+  final List<RoomMessage> _chatMessages = [
   ];
 
   @override
@@ -132,18 +129,24 @@ class _RoomScreenState extends State<RoomScreen>
         _getDefaultWallpaper();
 
     _enterImmersiveRoomMode();
-    // The room identity is resolved from /api/auth/me before Socket.IO
-    // connects. Widget-supplied IDs are never trusted for authorization.
+
     _roomController = RoomController(
       currentUserId: '',
       currentUserName: 'Authenticating...',
-      currentUserAvatar: widget.currentUserAvatar,
+      currentUserAvatar:
+      widget.currentUserAvatar,
     );
-    _roomController.setLoading(widget.enableRealtime);
 
-    _roomController.addListener(_roomUpdated);
+    _roomController.setLoading(
+      widget.enableRealtime,
+    );
 
-    _socketService = RoomSocketService();
+    _roomController.addListener(
+      _roomUpdated,
+    );
+
+    _socketService =
+        RoomSocketService();
 
     _liveKitVoiceService = LiveKitVoiceService(
       onRemoteUserJoined: (identity) {
@@ -187,10 +190,21 @@ class _RoomScreenState extends State<RoomScreen>
       return;
     }
 
+    debugPrint(
+      '🖼️ WALLPAPER SELECTED: '
+          'id=${wallpaper.id} '
+          'name=${wallpaper.name} '
+          'asset=${wallpaper.assetPath}',
+    );
+
     setState(() {
-      _selectedWallpaper =
-          wallpaper;
+      _selectedWallpaper = wallpaper;
     });
+
+    debugPrint(
+      '🖼️ CURRENT WALLPAPER AFTER SET: '
+          '${_selectedWallpaper?.assetPath}',
+    );
 
     _showMessage(
       '${wallpaper.name} selected',
@@ -373,11 +387,15 @@ class _RoomScreenState extends State<RoomScreen>
           _addActivity('$name joined the room');
 
           _addChatEntry(
-            RoomChatDisplayItem(
-              name: 'System',
+            RoomMessage(
+              id: 'joined-${DateTime.now().microsecondsSinceEpoch}',
+              roomId: widget.roomId,
+              userId: 'system',
+              userName: 'System',
               message: '$name joined the room',
               badge: 'ROOM',
               isSystem: true,
+              createdAt: DateTime.now(),
             ),
           );
         },
@@ -386,11 +404,15 @@ class _RoomScreenState extends State<RoomScreen>
           _addActivity('$name left the room');
 
           _addChatEntry(
-            RoomChatDisplayItem(
-              name: 'System',
+            RoomMessage(
+              id: 'left-${DateTime.now().microsecondsSinceEpoch}',
+              roomId: widget.roomId,
+              userId: 'system',
+              userName: 'System',
               message: '$name left the room',
               badge: 'ROOM',
               isSystem: true,
+              createdAt: DateTime.now(),
             ),
           );
         },
@@ -406,27 +428,63 @@ class _RoomScreenState extends State<RoomScreen>
           int vipLevel = 0;
 
           if (rawUser is Map) {
-            chatUserId = rawUser['id']?.toString() ?? '';
-            name = rawUser['name']?.toString() ?? 'User';
-            avatar = rawUser['avatar']?.toString();
-            vipLevel = int.tryParse(rawUser['vipLevel']?.toString() ?? '') ?? 0;
+            chatUserId =
+                rawUser['id']?.toString() ?? '';
+
+            name =
+                rawUser['name']?.toString() ??
+                    'User';
+
+            avatar =
+                rawUser['avatar']?.toString();
+
+            vipLevel =
+                int.tryParse(
+                  rawUser['vipLevel']?.toString() ?? '',
+                ) ??
+                    0;
           }
 
-          final message = data['message']?.toString().trim() ?? '';
-          if (message.isEmpty) return;
+          final message =
+              data['message']?.toString().trim() ?? '';
+
+          if (message.isEmpty) {
+            return;
+          }
 
           _addChatEntry(
-            RoomChatDisplayItem(
+            RoomMessage(
+              id: data['id']?.toString() ??
+                  DateTime.now()
+                      .microsecondsSinceEpoch
+                      .toString(),
+
+              roomId:
+              data['roomId']?.toString() ??
+                  widget.roomId,
+
               userId: chatUserId,
-              name: name,
+
+              userName: name,
+
               avatar: avatar,
-              vipLevel: vipLevel,
+
               message: message,
-              isMe: chatUserId == _roomController.currentUserId,
+
+              vipLevel: vipLevel,
+
+              isSystem: false,
+
+              createdAt: DateTime.tryParse(
+                data['createdAt']?.toString() ?? '',
+              ) ??
+                  DateTime.now(),
             ),
           );
 
-          _addActivity('$name: $message');
+          _addActivity(
+            '$name: $message',
+          );
         },
       );
     } catch (error) {
@@ -919,8 +977,21 @@ class _RoomScreenState extends State<RoomScreen>
       MaterialPageRoute(
         builder: (_) => RoomProfileScreen(
           roomId: _room.id,
-          currentMicCount: _room.seatCount,
-          socketService: _socketService,
+
+          currentMicCount:
+          _room.seatCount,
+
+          socketService:
+          _socketService,
+
+          selectedWallpaper:
+          _selectedWallpaper,
+
+          onWallpaperChanged: (wallpaper) {
+            _selectRoomWallpaper(
+              wallpaper,
+            );
+          },
         ),
       ),
     );
@@ -963,8 +1034,10 @@ class _RoomScreenState extends State<RoomScreen>
     });
   }
 
-  void _addChatEntry(RoomChatDisplayItem entry) {
-    if (!mounted) return;
+  void _addChatEntry(RoomMessage entry) {
+    if (!mounted) {
+      return;
+    }
 
     setState(() {
       _chatMessages.add(entry);
@@ -972,17 +1045,21 @@ class _RoomScreenState extends State<RoomScreen>
       if (_chatMessages.length > 100) {
         _chatMessages.removeAt(0);
       }
-
     });
   }
 
   void _sendChatMessage() {
-    final message = _chatController.text.trim();
+    final message =
+    _chatController.text.trim();
 
-    if (message.isEmpty) return;
+    if (message.isEmpty) {
+      return;
+    }
 
     if (!_socketConnected) {
-      _showMessage('Connect to the room before sending a message.');
+      _showMessage(
+        'Connect to the room before sending a message.',
+      );
       return;
     }
 
@@ -990,30 +1067,12 @@ class _RoomScreenState extends State<RoomScreen>
       roomId: widget.roomId,
       message: message,
       onResult: (ok, error) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
 
         if (ok) {
           _chatController.clear();
-
-          final userName =
-          _roomController.currentUserName.trim().isEmpty
-              ? 'You'
-              : _roomController.currentUserName;
-
-          _addChatEntry(
-            RoomChatDisplayItem(
-              userId: _roomController.currentUserId,
-              name: userName,
-              avatar: _roomController.currentUserAvatar,
-              vipLevel: _currentVipLevel,
-              message: message,
-              isMe: true,
-            ),
-          );
-
-          _addActivity(
-            '$userName: $message',
-          );
         } else {
           _showMessage(
             error ?? 'Unable to send message',
@@ -1032,7 +1091,9 @@ class _RoomScreenState extends State<RoomScreen>
       builder: (sheetContext) {
         return Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+            bottom: MediaQuery.of(sheetContext)
+                .viewInsets
+                .bottom,
           ),
           child: Container(
             decoration: const BoxDecoration(
@@ -1045,17 +1106,45 @@ class _RoomScreenState extends State<RoomScreen>
               controller: _chatController,
 
               onSend: () {
+                final hadText =
+                    _chatController.text.trim().isNotEmpty;
+
                 _sendChatMessage();
 
-                if (_chatController.text.trim().isEmpty &&
+                if (hadText &&
                     Navigator.canPop(sheetContext)) {
                   Navigator.pop(sheetContext);
                 }
               },
 
               onEmojiTap: () {
-                _showMessage(
-                  'Emoji picker coming next',
+                FocusScope.of(sheetContext).unfocus();
+
+                showModalBottomSheet(
+                  context: sheetContext,
+                  backgroundColor: Colors.transparent,
+                  isScrollControlled: true,
+                  builder: (emojiContext) {
+                    return RoomEmojiPicker(
+                      onEmojiSelected: (emoji) {
+                        final current =
+                            _chatController.text;
+
+                        _chatController.text =
+                        '$current$emoji';
+
+                        _chatController.selection =
+                            TextSelection.fromPosition(
+                              TextPosition(
+                                offset:
+                                _chatController.text.length,
+                              ),
+                            );
+
+                        Navigator.pop(emojiContext);
+                      },
+                    );
+                  },
                 );
               },
             ),
@@ -1300,15 +1389,11 @@ class _RoomScreenState extends State<RoomScreen>
                         children: [
                           RepaintBoundary(
                             child: Image.asset(
-                              _selectedWallpaper?.assetPath ??
-                                  _roomBackgroundAsset,
-
+                              _roomBackgroundAsset,
+                              key: ValueKey(_roomBackgroundAsset),
                               fit: BoxFit.cover,
-
                               alignment: Alignment.topCenter,
-
                               filterQuality: FilterQuality.high,
-
                               errorBuilder: (_, _, _) {
                                 return const DecoratedBox(
                                   decoration: BoxDecoration(
@@ -1412,7 +1497,16 @@ class _RoomScreenState extends State<RoomScreen>
                             ),
                           ),
 
-
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            top: 1080,
+                            bottom: 90,
+                            child: RoomChatMessages(
+                              messages: _chatMessages,
+                              currentUserId: _roomController.currentUserId,
+                            ),
+                          ),
 
                           Positioned(
                             right: 8,
@@ -2457,14 +2551,8 @@ class _RoomScreenState extends State<RoomScreen>
     );
   }
 
-  void _leaveRoom(){
-
-    _socketService.leaveRoom(
-      roomId: widget.roomId,
-    );
-
-
-    Navigator.pop(context);
+  void _leaveRoom() {
+    _leaveRoomProfessionally();
   }
 
   void _minimizeRoom(){
@@ -2503,6 +2591,13 @@ class _RoomScreenState extends State<RoomScreen>
   }
 
   String get _roomBackgroundAsset {
+    final wallpaper = _selectedWallpaper;
+
+    if (wallpaper != null &&
+        wallpaper.assetPath.trim().isNotEmpty) {
+      return wallpaper.assetPath;
+    }
+
     final customAsset =
     widget.backgroundAsset.trim();
 
@@ -2510,15 +2605,7 @@ class _RoomScreenState extends State<RoomScreen>
       return customAsset;
     }
 
-    final wallpaper =
-        _selectedWallpaper;
-
-    if (wallpaper != null &&
-        wallpaper.assetPath.trim().isNotEmpty) {
-      return wallpaper.assetPath;
-    }
-
-    return '';
+    return 'assets/rooms/mralex.png';
   }
 
 }
