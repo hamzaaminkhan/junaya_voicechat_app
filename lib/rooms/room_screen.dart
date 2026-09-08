@@ -131,124 +131,127 @@ class _RoomScreenState extends State<RoomScreen>
 
   bool _chatTabSelected = false;
 
+
+
   Widget _buildRoomFeedSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+    return Transform.translate(
+      offset: const Offset(0, -115),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
 
-        // ==========================================================
-        // ALL / CHAT TABS
-        // ==========================================================
+          // ==========================================================
+          // ALL / CHAT TABS
+          // ==========================================================
 
-        SizedBox(
-          height: 30,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 18,
-            ),
-            child: Row(
-              children: [
+          SizedBox(
+            height: 30,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 18,
+              ),
+              child: Row(
+                children: [
 
-                // --------------------------------------------------
-                // ALL
-                // --------------------------------------------------
+                  // --------------------------------------------------
+                  // ALL
+                  // --------------------------------------------------
 
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    setState(() {
-                      _chatTabSelected = false;
-                    });
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 4,
-                    ),
-                    child: Text(
-                      'All',
-                      style: GoogleFonts.poppins(
-                        color: !_chatTabSelected
-                            ? Colors.white
-                            : Colors.white54,
-                        fontSize: 14,
-                        fontWeight: !_chatTabSelected
-                            ? FontWeight.w600
-                            : FontWeight.w400,
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      if (_chatTabSelected) {
+                        setState(() {
+                          _chatTabSelected = false;
+                        });
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 1,
+                      ),
+                      child: Text(
+                        'All',
+                        style: GoogleFonts.poppins(
+                          color: !_chatTabSelected
+                              ? Colors.white
+                              : Colors.white54,
+                          fontSize: 22,
+                          fontWeight: !_chatTabSelected
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
                       ),
                     ),
                   ),
-                ),
 
-                const SizedBox(width: 28),
+                  const SizedBox(width: 28),
 
-                // --------------------------------------------------
-                // CHAT
-                // --------------------------------------------------
+                  // --------------------------------------------------
+                  // CHAT
+                  // --------------------------------------------------
 
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    setState(() {
-                      _chatTabSelected = true;
-                    });
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 4,
-                    ),
-                    child: Text(
-                      'Chat',
-                      style: GoogleFonts.poppins(
-                        color: _chatTabSelected
-                            ? Colors.white
-                            : Colors.white54,
-                        fontSize: 14,
-                        fontWeight: _chatTabSelected
-                            ? FontWeight.w600
-                            : FontWeight.w400,
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      if (!_chatTabSelected) {
+                        setState(() {
+                          _chatTabSelected = true;
+                        });
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 4,
+                      ),
+                      child: Text(
+                        'Chat',
+                        style: GoogleFonts.poppins(
+                          color: _chatTabSelected
+                              ? Colors.white
+                              : Colors.white54,
+                          fontSize: 22,
+                          fontWeight: _chatTabSelected
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
                       ),
                     ),
                   ),
-                ),
 
-                const Spacer(),
+                  const Spacer(),
 
-                Container(
-                  width: 50,
-                  height: 1,
-                  color: Colors.white24,
-                ),
-              ],
+                  Container(
+                    width: 50,
+                    height: 1,
+                    color: Colors.white24,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
 
-        const SizedBox(height: 4),
+          const SizedBox(height: 15),
 
-        // ==========================================================
-        // FEED AREA
-        // ==========================================================
+          // ==========================================================
+          // FEED
+          // ==========================================================
 
-        Expanded(
-          child: ClipRect(
+          ClipRect(
             child: _chatTabSelected
                 ? _buildChatTab()
                 : SingleChildScrollView(
               physics: const ClampingScrollPhysics(),
-
               padding: const EdgeInsets.only(
                 bottom: 12,
               ),
-
               child: RoomActivityFeed(
                 messages: _activityMessages,
-
                 onChangeRoomName: () {
                   _showMessage(
                     'Change room name',
                   );
                 },
-
                 onEditAnnouncement: () {
                   _showMessage(
                     'Edit room announcement',
@@ -257,10 +260,8 @@ class _RoomScreenState extends State<RoomScreen>
               ),
             ),
           ),
-        ),
-
-
-      ],
+        ],
+      ),
     );
   }
 

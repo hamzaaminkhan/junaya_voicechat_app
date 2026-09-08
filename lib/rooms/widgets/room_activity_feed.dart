@@ -21,17 +21,6 @@ class RoomActivityFeed extends StatelessWidget {
       children: [
 
         // ============================================================
-        // PEACE MESSAGE
-        // ============================================================
-
-        const Align(
-          alignment: Alignment.centerLeft,
-          child: _PeaceMessage(),
-        ),
-
-        const SizedBox(height: 12),
-
-        // ============================================================
         // ACTIVITY
         // ============================================================
 
@@ -59,43 +48,6 @@ class RoomActivityFeed extends StatelessWidget {
           onTap: onEditAnnouncement,
         ),
       ],
-    );
-  }
-}
-
-// ================================================================
-// PEACE MESSAGE
-// ================================================================
-
-class _PeaceMessage extends StatelessWidget {
-  const _PeaceMessage();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(
-        left: 95,
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 10,
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xFF5D216A).withValues(
-          alpha: .82,
-        ),
-        borderRadius: BorderRadius.circular(
-          18,
-        ),
-      ),
-      child: const Text(
-        'Peace Come!',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
     );
   }
 }

@@ -141,7 +141,7 @@ class RoomHeader extends StatelessWidget {
         _buildActionButton(
           icon: Icons.refresh_rounded,
           onTap: onRefresh,
-          size: 38,
+          size: 56,
         ),
 
         const SizedBox(width: 12),
@@ -153,7 +153,7 @@ class RoomHeader extends StatelessWidget {
         _buildActionButton(
           icon: Icons.keyboard_arrow_up_rounded,
           onTap: onCollapse,
-          size: 38,
+          size: 56,
         ),
       ],
     );
@@ -232,7 +232,7 @@ class RoomHeader extends StatelessWidget {
   Widget _buildActionButton({
     required IconData icon,
     VoidCallback? onTap,
-    double size = 32,
+    double size = 46,
   }) {
     return GestureDetector(
       onTap: onTap,
