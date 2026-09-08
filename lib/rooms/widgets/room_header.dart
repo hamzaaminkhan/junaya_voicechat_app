@@ -52,7 +52,7 @@ class RoomHeader extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(
             20,
-            12,
+            20,
             16,
             0,
           ),
@@ -60,7 +60,7 @@ class RoomHeader extends StatelessWidget {
             children: [
               _buildTopRow(),
 
-              const SizedBox(height: 14),
+              const SizedBox(height: 18),
 
               _buildRoomStats(
                 topUser: topUser,
@@ -108,7 +108,7 @@ class RoomHeader extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 7),
+              const SizedBox(height: 9),
 
               Row(
                 children: [
@@ -118,7 +118,7 @@ class RoomHeader extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: Colors.white.withOpacity(.9),
-                      fontSize: 15,
+                      fontSize: 18,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
@@ -134,24 +134,26 @@ class RoomHeader extends StatelessWidget {
 
         const SizedBox(width: 8),
 
-        // --------------------------------------------------------
-        // REFRESH
-        // --------------------------------------------------------
+// --------------------------------------------------------
+// REFRESH
+// --------------------------------------------------------
 
         _buildActionButton(
           icon: Icons.refresh_rounded,
           onTap: onRefresh,
+          size: 38,
         ),
 
         const SizedBox(width: 12),
 
-        // --------------------------------------------------------
-        // COLLAPSE
-        // --------------------------------------------------------
+// --------------------------------------------------------
+// COLLAPSE
+// --------------------------------------------------------
 
         _buildActionButton(
           icon: Icons.keyboard_arrow_up_rounded,
           onTap: onCollapse,
+          size: 38,
         ),
       ],
     );
@@ -163,11 +165,11 @@ class RoomHeader extends StatelessWidget {
 
   Widget _buildHostAvatar() {
     return Container(
-      width: 70,
-      height: 70,
+      width: 110,
+      height: 110,
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(.45),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: Colors.white.withOpacity(.12),
         ),
@@ -176,7 +178,7 @@ class RoomHeader extends StatelessWidget {
       child: _buildAvatarImage(
         avatar: hostAvatar,
         fallbackText: hostName,
-        iconSize: 34,
+        iconSize: 42,
       ),
     );
   }
@@ -230,17 +232,18 @@ class RoomHeader extends StatelessWidget {
   Widget _buildActionButton({
     required IconData icon,
     VoidCallback? onTap,
+    double size = 32,
   }) {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 38,
-        height: 38,
+        width: 44,
+        height: 44,
         child: Icon(
           icon,
           color: Colors.white,
-          size: 32,
+          size: size,
         ),
       ),
     );
@@ -260,20 +263,20 @@ class RoomHeader extends StatelessWidget {
         // --------------------------------------------------------
 
         Container(
-          height: 48,
+          height: 54,
           padding: const EdgeInsets.symmetric(
             horizontal: 14,
           ),
           decoration: BoxDecoration(
             color: Colors.black.withOpacity(.10),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(31),
           ),
           child: Row(
             children: [
               const Icon(
                 Icons.emoji_events_rounded,
                 color: Color(0xffffd75a),
-                size: 27,
+                size: 31,
               ),
 
               const SizedBox(width: 12),
@@ -282,7 +285,7 @@ class RoomHeader extends StatelessWidget {
                 _formatSending(totalSending),
                 style: const TextStyle(
                   color: Color(0xffffd75a),
-                  fontSize: 17,
+                  fontSize: 19,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -309,8 +312,8 @@ class RoomHeader extends StatelessWidget {
         GestureDetector(
           onTap: onMicTap,
           child: Container(
-            width: 48,
-            height: 48,
+            width: 56,
+            height: 56,
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(.08),
               shape: BoxShape.circle,
@@ -334,8 +337,8 @@ class RoomHeader extends StatelessWidget {
       RoomTopUser user,
       ) {
     return Container(
-      width: 48,
-      height: 48,
+      width: 56,
+      height: 56,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
@@ -347,7 +350,7 @@ class RoomHeader extends StatelessWidget {
       child: _buildAvatarImage(
         avatar: user.avatar,
         fallbackText: user.name,
-        iconSize: 24,
+        iconSize: 28,
       ),
     );
   }

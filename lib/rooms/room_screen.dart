@@ -135,6 +135,7 @@ class _RoomScreenState extends State<RoomScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+
         // ==========================================================
         // ALL / CHAT TABS
         // ==========================================================
@@ -142,9 +143,16 @@ class _RoomScreenState extends State<RoomScreen>
         SizedBox(
           height: 30,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 18,
+            ),
             child: Row(
               children: [
+
+                // --------------------------------------------------
+                // ALL
+                // --------------------------------------------------
+
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
@@ -172,6 +180,10 @@ class _RoomScreenState extends State<RoomScreen>
                 ),
 
                 const SizedBox(width: 28),
+
+                // --------------------------------------------------
+                // CHAT
+                // --------------------------------------------------
 
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
@@ -214,24 +226,29 @@ class _RoomScreenState extends State<RoomScreen>
         const SizedBox(height: 4),
 
         // ==========================================================
-        // SCROLLABLE CONTENT
+        // FEED AREA
         // ==========================================================
 
-           ClipRect(
+        Expanded(
+          child: ClipRect(
             child: _chatTabSelected
                 ? _buildChatTab()
                 : SingleChildScrollView(
               physics: const ClampingScrollPhysics(),
+
               padding: const EdgeInsets.only(
                 bottom: 12,
               ),
+
               child: RoomActivityFeed(
                 messages: _activityMessages,
+
                 onChangeRoomName: () {
                   _showMessage(
                     'Change room name',
                   );
                 },
+
                 onEditAnnouncement: () {
                   _showMessage(
                     'Edit room announcement',
@@ -240,6 +257,9 @@ class _RoomScreenState extends State<RoomScreen>
               ),
             ),
           ),
+        ),
+
+
       ],
     );
   }
@@ -452,17 +472,16 @@ class _RoomScreenState extends State<RoomScreen>
   void _enterImmersiveRoomMode() {
     if (kIsWeb) return;
 
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    } else {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    }
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.edgeToEdge,
+    );
 
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         systemNavigationBarColor: Colors.transparent,
         systemNavigationBarDividerColor: Colors.transparent,
+
         statusBarIconBrightness: Brightness.light,
         systemNavigationBarIconBrightness: Brightness.light,
       ),
@@ -1633,9 +1652,14 @@ class _RoomScreenState extends State<RoomScreen>
           _showExitDialog();
         }
       },
-      child: Scaffold(
-        backgroundColor: const Color(0xFF05030A),
-        body: LayoutBuilder(
+        child: Scaffold(
+            backgroundColor: const Color(0xFF05030A),
+            body: SafeArea(
+              top: false,
+              bottom: true,
+              child: ColoredBox(
+                color: const Color(0xFF05030A),
+                child: LayoutBuilder(
           builder: (context, constraints) {
             const designWidth = 738.0;
             const designHeight = 1600.0;
@@ -1646,7 +1670,7 @@ class _RoomScreenState extends State<RoomScreen>
                   width: constraints.maxWidth,
                   height: constraints.maxHeight,
                   child: FittedBox(
-                    fit: BoxFit.cover,
+                    fit: BoxFit.contain,
                     alignment: Alignment.center,
                     clipBehavior: Clip.hardEdge,
                     child: SizedBox(
@@ -1714,7 +1738,7 @@ class _RoomScreenState extends State<RoomScreen>
                           ),
                           Positioned(
                             left: 0,
-                            top: 0,
+                            top: MediaQuery.of(context).padding.top,
                             right: 0,
                             child: RoomTopOverlay(
                               room: currentRoom,
@@ -1751,7 +1775,7 @@ class _RoomScreenState extends State<RoomScreen>
                                 final int seatRows =
                                 (seatCount / 5).ceil();
 
-                                const double feedHeight = 430.0;
+                                const double feedHeight = 450.0;
 
                                 final double seatGridHeight =
                                 math.max(
@@ -1834,6 +1858,8 @@ class _RoomScreenState extends State<RoomScreen>
           },
         ),
       ),
+    )
+    )
     );
   }
 
@@ -3131,6 +3157,5 @@ class _RoomScreenState extends State<RoomScreen>
       ),
     );
   }
-
 }
 

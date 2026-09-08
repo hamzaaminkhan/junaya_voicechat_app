@@ -82,46 +82,23 @@ class RoomSeatGrid extends StatelessWidget {
   // ==========================================================================
 
   double _avatarSizeForSeatCount(int count) {
-    // ================================================================
-    // 1–5 SEATS
-    // Large seats
-    // ================================================================
-
     if (count <= 5) {
-      return 100;
+      return 125;
     }
-
-    // ================================================================
-    // 6–10 SEATS
-    // ================================================================
 
     if (count <= 10) {
-      return 92;
+      return 110;
     }
-
-    // ================================================================
-    // 11–15 SEATS
-    // Default room size
-    // ================================================================
 
     if (count <= 15) {
-      return 84;
+      return 98;
     }
-
-    // ================================================================
-    // 16–20 SEATS
-    // ================================================================
 
     if (count <= 20) {
-      return 76;
+      return 86;
     }
 
-    // ================================================================
-    // 21–25 SEATS
-    // Maximum room size
-    // ================================================================
-
-    return 68;
+    return 76;
   }
 
   Widget _buildCenteredSmallGrid(
@@ -215,22 +192,17 @@ class RoomSeatGrid extends StatelessWidget {
         final double avatarSize =
         math.min(
           desiredAvatarSize,
-          columnWidth - 8,
+          columnWidth - 4,
         );
 
         final int rows =
         (visibleSeatCount / _columns).ceil();
 
         final double rowSpacing =
-        visibleSeatCount <= 5 ? 12.0 : 8.0;
+        visibleSeatCount <= 5 ? 12.0 : 16.0;
 
         final double rowHeight =
-        math.max(
-          1.0,
-          (constraints.maxHeight -
-              (rowSpacing * (rows - 1))) /
-              rows,
-        );
+            avatarSize + 22.0;
 
         final Widget seatLayout;
 
@@ -287,12 +259,16 @@ class RoomSeatGrid extends StatelessWidget {
 
         return RepaintBoundary(
           child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: horizontalPadding,
+            padding: EdgeInsets.only(
+              left: horizontalPadding,
+              right: horizontalPadding,
+              top: 65,
             ),
             child: seatLayout,
           ),
         );
+
+
       },
     );
   }

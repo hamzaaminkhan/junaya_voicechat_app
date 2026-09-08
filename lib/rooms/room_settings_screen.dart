@@ -192,7 +192,7 @@ class _RoomSettingsScreenState
   String _wallpaperDisplayName(String id) {
     switch (id) {
       case 'mralex':
-        return 'Snake';
+        return 'Default';
 
       case 'room1':
         return 'Golden Palace';
