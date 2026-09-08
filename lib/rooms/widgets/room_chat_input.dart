@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/services.dart';
 
 class RoomChatInput extends StatefulWidget {
   final TextEditingController controller;
@@ -48,14 +49,23 @@ class _RoomChatInputState extends State<RoomChatInput> {
     _hasText =
         widget.controller.text.trim().isNotEmpty;
 
-    // Give the TextField time to enter the
-    // widget tree before requesting the keyboard.
     if (widget.focusNode != null) {
       WidgetsBinding.instance.addPostFrameCallback(
             (_) {
           if (!mounted) return;
 
           widget.focusNode!.requestFocus();
+
+          Future.delayed(
+            const Duration(milliseconds: 150),
+                () {
+              if (!mounted) return;
+
+              SystemChannels.textInput.invokeMethod(
+                'TextInput.show',
+              );
+            },
+          );
         },
       );
     }

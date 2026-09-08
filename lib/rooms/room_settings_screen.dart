@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:junaya_voicechat_app/rooms/room_socket_service.dart';
 import 'package:junaya_voicechat_app/rooms/widgets/room_wallpaper_picker.dart';
+import 'package:junaya_voicechat_app/rooms/widgets/room_seat_count_picker.dart';
 import 'package:junaya_voicechat_app/rooms/models/room_wallpaper_model.dart';
 
 
@@ -119,21 +120,38 @@ class _RoomSettingsScreenState
     return value;
   }
 
-  void _changeMicCount(int value) {
+  Future<void> _changeMicCount(int value) async {
     final count = _normalizeSeatCount(value);
 
     if (count == micCount) {
       return;
     }
 
-    setState(() {
-      micCount = count;
-    });
+    widget.socketService.updateMicSeatCount(
+      roomId: widget.roomId,
+      seatCount: count,
+      onResult: (ok, error) {
+        if (!mounted) {
+          return;
+        }
 
-    widget.onMicCountChanged?.call(count);
+        if (!ok) {
+          _message(
+            error ?? 'Unable to update mic seats.',
+          );
+          return;
+        }
 
-    _message(
-      'Room now has $count mic seats.',
+        setState(() {
+          micCount = count;
+        });
+
+        widget.onMicCountChanged?.call(count);
+
+        _message(
+          'Room now has $count mic seats.',
+        );
+      },
     );
   }
 
@@ -540,18 +558,32 @@ class _RoomSettingsScreenState
       icon: Icons.mic_rounded,
       title: 'Number of Mic',
       value: '$micCount',
-      onTap: () {
-        _pickNumber(
-          title: 'Number of Mic',
-          values: List.generate(
-            25,
-                (index) => index + 1,
-          ),
-          selected: micCount,
-          onSelected: _changeMicCount,
+      onTap: _openSeatCountPicker,
+    );
+  }
+
+  Future<void> _openSeatCountPicker() async {
+    final result =
+    await showModalBottomSheet<int>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return RoomSeatCountPicker(
+          initialValue: micCount,
         );
       },
     );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (result == null) {
+      return;
+    }
+
+    _changeMicCount(result);
   }
 
   // ------------------------------------------------------------
@@ -1115,13 +1147,6 @@ class _RoomSettingsScreenState
 
                 const SizedBox(height: 14),
 
-                if (title ==
-                    'Number of Mic') ...[
-                  _buildSeatRangeInfo(),
-
-                  const SizedBox(height: 12),
-                ],
-
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -1179,54 +1204,6 @@ class _RoomSettingsScreenState
   }
 
   // ------------------------------------------------------------
-  // SEAT RANGE INFO
-  // ------------------------------------------------------------
-
-  Widget _buildSeatRangeInfo() {
-    return Container(
-      width: double.infinity,
-      padding:
-      const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 9,
-      ),
-      decoration: BoxDecoration(
-        color:
-        _purple.withValues(alpha: .08),
-        borderRadius:
-        BorderRadius.circular(10),
-        border: Border.all(
-          color:
-          _purple.withValues(alpha: .20),
-        ),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.mic_rounded,
-            color: Color(0xFFD7A7FF),
-            size: 18,
-          ),
-
-          const SizedBox(width: 8),
-
-          Expanded(
-            child: Text(
-              'Choose between 1 and 25 mic seats.',
-              style:
-              GoogleFonts.poppins(
-                color:
-                Colors.white70,
-                fontSize: 11,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ------------------------------------------------------------
   // SNACKBAR
   // ------------------------------------------------------------
 
@@ -1254,4 +1231,7 @@ class _RoomSettingsScreenState
         ),
       );
   }
+
+
+
 }

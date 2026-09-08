@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:math' as math;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:junaya_voicechat_app/core/config/app_config.dart';
 
@@ -35,6 +36,7 @@ import 'package:junaya_voicechat_app/rooms/data/room_top_users.dart';
 import 'package:junaya_voicechat_app/rooms/data/room_wallpapers.dart';
 
 class RoomScreen extends StatefulWidget {
+
   /// Optional Socket.IO override from --dart-define.
   ///
   /// Real phone:
@@ -72,6 +74,7 @@ class RoomScreen extends StatefulWidget {
 
 class _RoomScreenState extends State<RoomScreen>
     with WidgetsBindingObserver {
+
 
   static const Color _pink =
   Color(0xFFFF48ED);
@@ -121,6 +124,219 @@ class _RoomScreenState extends State<RoomScreen>
   }
 
   final List<RoomMessage> _chatMessages = [];
+
+  // ============================================================
+  // CHAT TAB
+  // ============================================================
+
+  bool _chatTabSelected = false;
+
+  Widget _buildRoomFeedSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ==========================================================
+        // ALL / CHAT TABS
+        // ==========================================================
+
+        SizedBox(
+          height: 30,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child: Row(
+              children: [
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    setState(() {
+                      _chatTabSelected = false;
+                    });
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 4,
+                    ),
+                    child: Text(
+                      'All',
+                      style: GoogleFonts.poppins(
+                        color: !_chatTabSelected
+                            ? Colors.white
+                            : Colors.white54,
+                        fontSize: 14,
+                        fontWeight: !_chatTabSelected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 28),
+
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    setState(() {
+                      _chatTabSelected = true;
+                    });
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 4,
+                    ),
+                    child: Text(
+                      'Chat',
+                      style: GoogleFonts.poppins(
+                        color: _chatTabSelected
+                            ? Colors.white
+                            : Colors.white54,
+                        fontSize: 14,
+                        fontWeight: _chatTabSelected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const Spacer(),
+
+                Container(
+                  width: 50,
+                  height: 1,
+                  color: Colors.white24,
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 4),
+
+        // ==========================================================
+        // SCROLLABLE CONTENT
+        // ==========================================================
+
+           ClipRect(
+            child: _chatTabSelected
+                ? _buildChatTab()
+                : SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              padding: const EdgeInsets.only(
+                bottom: 12,
+              ),
+              child: RoomActivityFeed(
+                messages: _activityMessages,
+                onChangeRoomName: () {
+                  _showMessage(
+                    'Change room name',
+                  );
+                },
+                onEditAnnouncement: () {
+                  _showMessage(
+                    'Edit room announcement',
+                  );
+                },
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildChatTab() {
+    if (_chatMessages.isEmpty) {
+      return Center(
+        child: Text(
+          'No messages yet',
+          style: TextStyle(
+            color: Colors.white38,
+            fontSize: 11,
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 18,
+      ),
+      itemCount: _chatMessages.length,
+      itemBuilder: (context, index) {
+        final message = _chatMessages[index];
+
+        return Padding(
+          padding: const EdgeInsets.only(
+            bottom: 6,
+          ),
+          child: Row(
+            crossAxisAlignment:
+            CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                clipBehavior: Clip.antiAlias,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFF6B3981),
+                ),
+                child: message.avatar != null &&
+                    message.avatar!.trim().isNotEmpty
+                    ? Image.network(
+                  message.avatar!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (
+                      context,
+                      error,
+                      stackTrace,
+                      ) {
+                    return const Icon(
+                      Icons.person,
+                      color: Colors.white70,
+                      size: 16,
+                    );
+                  },
+                )
+                    : const Icon(
+                  Icons.person,
+                  color: Colors.white70,
+                  size: 16,
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              Expanded(
+                child: RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: '${message.userName}: ',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+
+                      TextSpan(
+                        text: message.message,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -416,6 +632,18 @@ class _RoomScreenState extends State<RoomScreen>
         onUserJoined: (data) {
           final name = data['name']?.toString() ?? 'A user';
           _addActivity('$name joined the room');
+
+          final incomingId =
+          data['id']?.toString();
+
+          final alreadyExists = incomingId != null &&
+              _chatMessages.any(
+                    (message) => message.id == incomingId,
+              );
+
+          if (alreadyExists) {
+            return;
+          }
 
           _addChatEntry(
             RoomMessage(
@@ -770,7 +998,7 @@ class _RoomScreenState extends State<RoomScreen>
                       },
                     ),
                   ],
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
@@ -1081,8 +1309,7 @@ class _RoomScreenState extends State<RoomScreen>
   }
 
   void _sendChatMessage() {
-    final message =
-    _chatController.text.trim();
+    final message = _chatController.text.trim();
 
     if (message.isEmpty) {
       return;
@@ -1095,6 +1322,22 @@ class _RoomScreenState extends State<RoomScreen>
       return;
     }
 
+    final localMessage = RoomMessage(
+      id: 'local-${DateTime.now().microsecondsSinceEpoch}',
+      roomId: widget.roomId,
+      userId: _roomController.currentUserId,
+      userName: _roomController.currentUserName,
+      avatar: _roomController.currentUserAvatar,
+      message: message,
+      vipLevel: _currentVipLevel,
+      isSystem: false,
+      createdAt: DateTime.now(),
+    );
+
+    _addChatEntry(localMessage);
+
+    _chatController.clear();
+
     _socketService.sendChatMessage(
       roomId: widget.roomId,
       message: message,
@@ -1103,9 +1346,7 @@ class _RoomScreenState extends State<RoomScreen>
           return;
         }
 
-        if (ok) {
-          _chatController.clear();
-        } else {
+        if (!ok) {
           _showMessage(
             error ?? 'Unable to send message',
           );
@@ -1135,18 +1376,15 @@ class _RoomScreenState extends State<RoomScreen>
               ),
             ),
             child:RoomChatInput(
+
               controller: _chatController,
 
               focusNode: _chatFocusNode,
 
               onSend: () {
-                final hadText =
-                    _chatController.text.trim().isNotEmpty;
-
                 _sendChatMessage();
 
-                if (hadText &&
-                    Navigator.canPop(sheetContext)) {
+                if (Navigator.canPop(sheetContext)) {
                   Navigator.pop(sheetContext);
                 }
               },
@@ -1402,10 +1640,6 @@ class _RoomScreenState extends State<RoomScreen>
             const designWidth = 738.0;
             const designHeight = 1600.0;
 
-            // The client's approved reference is 738 x 1600. Building the room
-            // on that exact coordinate system and uniformly scaling it keeps
-            // the header, 5x5 microphones, chat and controls aligned across
-            // phones instead of reflowing each section independently.
             return Center(
               child: ClipRect(
                 child: SizedBox(
@@ -1499,62 +1733,70 @@ class _RoomScreenState extends State<RoomScreen>
                               onCloseTap: _showExitRoomSheet,
                             ),
                           ),
-                          // Bring the 5x5 mic stage up directly beneath the
-                          // header/artwork instead of reserving a large empty
-                          // middle band. The grid itself adds generous row and
-                          // column spacing, so the room feels open without
-                          // wasting the upper half of the stage.
-                          Positioned(
-                            left: 0,
-                            right: 0,
-                            top: 240,
-                            bottom: 445,
-                            child:RoomSeatGrid(
-                              seats: _roomController.visibleSeats,
-                              seatCount: _roomController.seatCount,
-                              currentUserId: _roomController.currentUserId,
-                              mediaBaseUrl: AppConfig.apiBaseUrl,
-                              isRoomOwner: _roomController.isRoomOwner,
-                              onSeatTap: _handleSeatTap,
-                              onSeatLongPress: _showOwnerSeatControls,
-                            ),
-                          ),
+
+                          // ============================================================
+                          // RESPONSIVE ROOM CONTENT
+                          // ============================================================
 
                           Positioned(
                             left: 0,
                             right: 0,
-                            top: 890,
-                            child: RoomActivityFeed(
-                              messages: _activityMessages,
+                            top: 225,
+                            bottom: 150,
+                            child: LayoutBuilder(
+                              builder: (context, contentConstraints) {
+                                final int seatCount =
+                                _roomController.seatCount.clamp(1, 25);
 
-                              onChangeRoomName: () {
-                                _showMessage(
-                                  'Change room name',
+                                final int seatRows =
+                                (seatCount / 5).ceil();
+
+                                const double feedHeight = 430.0;
+
+                                final double seatGridHeight =
+                                math.max(
+                                  180.0,
+                                  contentConstraints.maxHeight -
+                                      feedHeight -
+                                      8.0,
+                                );
+
+                                return Column(
+                                  children: [
+                                    SizedBox(
+                                      height: seatGridHeight,
+                                      width: double.infinity,
+                                      child: RoomSeatGrid(
+                                        seats: _roomController.visibleSeats,
+                                        seatCount: seatCount,
+                                        currentUserId:
+                                        _roomController.currentUserId,
+                                        mediaBaseUrl:
+                                        AppConfig.apiBaseUrl,
+                                        isRoomOwner:
+                                        _roomController.isRoomOwner,
+                                        onSeatTap:
+                                        _handleSeatTap,
+                                        onSeatLongPress:
+                                        _showOwnerSeatControls,
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 6),
+
+                                    SizedBox(
+                                      height: feedHeight,
+                                      child: _buildRoomFeedSection(),
+                                    ),
+                                  ],
                                 );
                               },
-
-                              onEditAnnouncement: () {
-                                _showMessage(
-                                  'Edit room announcement',
-                                );
-                              },
-                            ),
-                          ),
-
-                          Positioned(
-                            left: 0,
-                            right: 0,
-                            top: 1080,
-                            bottom: 90,
-                            child: RoomChatMessages(
-                              messages: _chatMessages,
-                              currentUserId: _roomController.currentUserId,
                             ),
                           ),
 
                           Positioned(
                             right: 8,
-                            top: 1218,
+                            top: 1225,
                             child: RoomSideActionRail(
                               onPk: () {
                                 _showMessage('PK Battle');

@@ -219,6 +219,7 @@ class RoomSocketService {
     );
   }
 
+
   void leaveRoom({
     required String roomId,
     void Function(bool ok, String? error)? onResult,
@@ -417,21 +418,19 @@ class RoomSocketService {
     _socket?.disconnect();
   }
 
-  void updateRoomSettings({
+  void updateMicSeatCount({
     required String roomId,
     required int seatCount,
     void Function(bool ok, String? error)? onResult,
   }) {
-
     _emitWithResult(
-      'room:update_settings',
+      'room:set_mic_seat_count',
       {
         'roomId': roomId,
         'seatCount': seatCount,
       },
       onResult,
     );
-
   }
 
 

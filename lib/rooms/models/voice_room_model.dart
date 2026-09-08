@@ -1,3 +1,4 @@
+import 'package:junaya_voicechat_app/rooms/widgets/room_seat_limits.dart';
 enum RoomSeatStatus {
   empty,
   occupied,
@@ -288,7 +289,8 @@ class VoiceRoom {
     required this.roomRank,
     required this.seats,
 
-    this.seatCount = 15,
+    this.seatCount =
+        RoomSeatLimits.defaultCount,
 
     this.members = const [],
 
@@ -638,19 +640,10 @@ List<RoomUser> _parseUsers(
 int _normalizeSeatCount(
     int value,
     ) {
-  if (value < 1) {
-    return 1;
-  }
-
-
-  if (value > 25) {
-    return 25;
-  }
-
-
-  return value;
+  return RoomSeatLimits.normalize(
+    value,
+  );
 }
-
 
 // ============================================================
 // INTEGER PARSER

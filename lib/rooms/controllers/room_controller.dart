@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:junaya_voicechat_app/rooms/models/voice_room_model.dart';
 import 'package:junaya_voicechat_app/rooms/data/room_wallpapers.dart';
 import 'package:junaya_voicechat_app/rooms/models/room_wallpaper_model.dart';
+import 'package:junaya_voicechat_app/rooms/widgets/room_seat_limits.dart';
 
 class RoomController extends ChangeNotifier {
   String currentUserId;
@@ -138,7 +139,8 @@ class RoomController extends ChangeNotifier {
   ///
   /// Always stays between 1 and 25.
   int get seatCount {
-    return _room?.seatCount ?? 15;
+    return _room?.seatCount ??
+        RoomSeatLimits.defaultCount;
   }
 
   /// All seats that should currently be displayed.
@@ -197,7 +199,8 @@ class RoomController extends ChangeNotifier {
   /// This is currently local/UI state.
   /// Backend synchronization will be added later.
   void setSeatCount(int count) {
-    if (count < 1 || count > 25) {
+    if (count < RoomSeatLimits.min ||
+        count > RoomSeatLimits.max) {
       _setError(
         'Room seats must be between 1 and 25.',
       );
@@ -263,7 +266,8 @@ class RoomController extends ChangeNotifier {
   void increaseSeatCount() {
     final currentCount = seatCount;
 
-    if (currentCount >= 25) {
+    if (currentCount >=
+        RoomSeatLimits.max) {
       return;
     }
 
@@ -275,7 +279,8 @@ class RoomController extends ChangeNotifier {
   void decreaseSeatCount() {
     final currentCount = seatCount;
 
-    if (currentCount <= 1) {
+    if (currentCount <=
+        RoomSeatLimits.min) {
       return;
     }
 

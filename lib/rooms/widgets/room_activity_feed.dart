@@ -19,13 +19,6 @@ class RoomActivityFeed extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // ============================================================
-        // TABS
-        // ============================================================
-
-        const _RoomActivityTabs(),
-
-        const SizedBox(height: 8),
 
         // ============================================================
         // PEACE MESSAGE
@@ -69,58 +62,6 @@ class RoomActivityFeed extends StatelessWidget {
     );
   }
 }
-
-
-// ================================================================
-// TABS
-// ================================================================
-
-class _RoomActivityTabs extends StatelessWidget {
-  const _RoomActivityTabs();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: 20,
-      ),
-      child: Row(
-        children: [
-          Text(
-            'All',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-
-          SizedBox(width: 28),
-
-          Text(
-            'Chat',
-            style: TextStyle(
-              color: Colors.white54,
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-
-          Spacer(),
-
-          SizedBox(
-            width: 50,
-            child: Divider(
-              color: Colors.white24,
-              thickness: 1,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 
 // ================================================================
 // PEACE MESSAGE
