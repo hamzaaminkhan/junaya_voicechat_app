@@ -1,41 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
 import 'package:junaya_voicechat_app/rooms/models/voice_room_model.dart';
 
+// ============================================================================
+// ROOM PROFILE SCREEN
+// ============================================================================
+
 class RoomProfileScreen extends StatefulWidget {
-  // ================================================================
-  // ROOM
-  // ================================================================
-
   final VoiceRoom room;
-
-  // ================================================================
-  // WALLPAPER
-  // ================================================================
-
-  final dynamic selectedWallpaper;
-
-  final ValueChanged<dynamic>? onWallpaperChanged;
-
-  // ================================================================
-  // ACTIONS
-  // ================================================================
-
-  final VoidCallback? onRefresh;
-
-  final VoidCallback? onTop;
-
-  final VoidCallback? onSettings;
 
   const RoomProfileScreen({
     super.key,
     required this.room,
-    this.selectedWallpaper,
-    this.onWallpaperChanged,
-    this.onRefresh,
-    this.onTop,
-    this.onSettings,
   });
 
   @override
@@ -51,27 +26,28 @@ class RoomProfileScreen extends StatefulWidget {
 class _RoomProfileScreenState
     extends State<RoomProfileScreen> {
 
-  // ================================================================
-  // TABS
-  // ================================================================
+  // --------------------------------------------------------------------------
+  // TAB
+  // --------------------------------------------------------------------------
 
   int _selectedTab = 0;
 
-  // ================================================================
-  // COLORS
-  // ================================================================
+  // --------------------------------------------------------------------------
+  // TEMPORARY PROFILE DATA
+  //
+  // These are intentionally temporary.
+  // Later we will connect them to the real user/room data.
+  // --------------------------------------------------------------------------
 
-  static const Color _background =
-  Color(0xFF16052F);
+  static const String _temporaryCountry = 'Pakistan';
 
-  static const Color _accent =
-  Color(0xFFB55CFF);
+  static const String _temporaryFlag = '🇵🇰';
 
-  static const Color _cyan =
-  Color(0xFF18D4C3);
+  static const int _temporaryLevel = 2;
 
-  static const Color _yellow =
-  Color(0xFFFFD45C);
+  static const int _temporaryLevelProgress = 150;
+
+  static const int _temporaryLevelTarget = 500;
 
 
   // ==========================================================================
@@ -80,102 +56,43 @@ class _RoomProfileScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
+    return Scaffold(
+      backgroundColor: const Color(0xFF17052D),
 
-      child: Container(
-        width: double.infinity,
+      body: SafeArea(
+        bottom: false,
 
-        constraints: BoxConstraints(
-          maxHeight:
-          MediaQuery.of(context).size.height * .90,
-        ),
-
-        decoration: const BoxDecoration(
-          color: _background,
-
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(28),
-          ),
-        ),
-
-        child: Column(
+        child: Stack(
           children: [
 
-            // ==========================================================
-            // HANDLE
-            // ==========================================================
+            // ==============================================================
+            // BACKGROUND
+            // ==============================================================
 
-            const SizedBox(height: 10),
+            _buildBackground(),
 
-            Container(
-              width: 42,
-              height: 4,
+            // ==============================================================
+            // MAIN CONTENT
+            // ==============================================================
 
-              decoration: BoxDecoration(
-                color: Colors.white24,
-                borderRadius:
-                BorderRadius.circular(20),
-              ),
-            ),
+            Column(
+              children: [
 
-            const SizedBox(height: 8),
+                // ==========================================================
+                // CONTENT
+                // ==========================================================
 
-            // ==========================================================
-            // HEADER
-            // ==========================================================
-
-            _buildHeader(),
-
-            // ==========================================================
-            // CONTENT
-            // ==========================================================
-
-            Expanded(
-              child: SingleChildScrollView(
-                physics:
-                const BouncingScrollPhysics(),
-
-                padding: const EdgeInsets.fromLTRB(
-                  16,
-                  0,
-                  16,
-                  20,
+                Expanded(
+                  child: _buildContent(),
                 ),
 
-                child: Column(
-                  crossAxisAlignment:
-                  CrossAxisAlignment.stretch,
+                // ==========================================================
+                // FIXED BOTTOM ACTIONS
+                // ==============================================================
 
-                  children: [
-
-                    _buildRoomHeaderCard(),
-
-                    const SizedBox(height: 18),
-
-                    _buildTabs(),
-
-                    const SizedBox(height: 18),
-
-                    AnimatedSwitcher(
-                      duration:
-                      const Duration(
-                        milliseconds: 180,
-                      ),
-
-                      child:
-                      _buildSelectedTab(),
-                    ),
-                  ],
-                ),
-              ),
+                _buildBottomActions(),
+              ],
             ),
-
-            // ==========================================================
-            // BOTTOM ACTIONS
-            // ==========================================================
-
-            _buildBottomActions(),
           ],
         ),
       ),
@@ -183,241 +100,71 @@ class _RoomProfileScreenState
   }
 
 
-  // ==========================================================================
-  // HEADER
-  // ==========================================================================
-
-  Widget _buildHeader() {
-    final room = widget.room;
-    final owner = room.owner;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        18,
-        2,
-        14,
-        12,
-      ),
-
-      child: Row(
-        children: [
-
-          // --------------------------------------------------------------
-          // OWNER AVATAR
-          // --------------------------------------------------------------
-
-          _buildAvatar(
-            avatar: owner?.avatar,
-            name: owner?.name ?? room.name,
-            size: 40,
-          ),
-
-          const SizedBox(width: 11),
-
-          // --------------------------------------------------------------
-          // TITLE
-          // --------------------------------------------------------------
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
-
-              children: [
-
-                Text(
-                  'Room Profile',
-
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight:
-                    FontWeight.w700,
-                  ),
-                ),
-
-                const SizedBox(height: 1),
-
-                Text(
-                  'Room ID: ${room.id}',
-
-                  maxLines: 1,
-
-                  overflow:
-                  TextOverflow.ellipsis,
-
-                  style: GoogleFonts.poppins(
-                    color: Colors.white38,
-                    fontSize: 8.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // --------------------------------------------------------------
-          // REFRESH
-          // --------------------------------------------------------------
-
-          _headerButton(
-            icon: Icons.refresh_rounded,
-            onTap: widget.onRefresh,
-          ),
-
-          const SizedBox(width: 2),
-
-          // --------------------------------------------------------------
-          // CLOSE
-          // --------------------------------------------------------------
-
-          _headerButton(
-            icon:
-            Icons.keyboard_arrow_down_rounded,
-
-            onTap: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
-    );
-  }
 
 
   // ==========================================================================
-  // ROOM HEADER CARD
+  // BACKGROUND
   // ==========================================================================
 
-  Widget _buildRoomHeaderCard() {
-    final room = widget.room;
-
+  Widget _buildBackground() {
     return Container(
-      width: double.infinity,
-
-      padding: const EdgeInsets.all(15),
-
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
 
           colors: [
-            Color(0xFF6935A8),
-            Color(0xFF452079),
+            Color(0xFF32117A),
+            Color(0xFF4A168E),
+            Color(0xFF16042D),
           ],
         ),
+      ),
+    );
+  }
 
-        borderRadius:
-        BorderRadius.circular(20),
+  // ==========================================================================
+  // CONTENT
+  // ==========================================================================
 
-        border: Border.all(
-          color: Colors.white
-              .withValues(alpha: .07),
-        ),
+  Widget _buildContent() {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+
+      padding: const EdgeInsets.fromLTRB(
+        12,
+        4,
+        12,
+        110,
       ),
 
       child: Column(
+        crossAxisAlignment:
+        CrossAxisAlignment.stretch,
+
         children: [
 
-          // ==============================================================
-          // ROOM INFO
-          // ==============================================================
+          // --------------------------------------------------------------------
+          // ROOM CARD
+          // --------------------------------------------------------------------
 
-          Row(
-            children: [
+          _buildRoomCard(),
 
-              _buildRoomAvatar(
-                room,
-                size: 72,
-              ),
+          const SizedBox(height: 12),
 
-              const SizedBox(width: 13),
+          // --------------------------------------------------------------------
+          // TABS
+          // --------------------------------------------------------------------
 
-              Expanded(
-                child: Column(
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
+          _buildTabs(),
 
-                  children: [
+          const SizedBox(height: 14),
 
-                    Text(
-                      room.name,
+          // --------------------------------------------------------------------
+          // TAB CONTENT
+          // --------------------------------------------------------------------
 
-                      maxLines: 2,
-
-                      overflow:
-                      TextOverflow.ellipsis,
-
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight:
-                        FontWeight.w700,
-                      ),
-                    ),
-
-                    const SizedBox(height: 4),
-
-                    Text(
-                      'Room ID: ${room.id}',
-
-                      maxLines: 1,
-
-                      overflow:
-                      TextOverflow.ellipsis,
-
-                      style: GoogleFonts.poppins(
-                        color: Colors.white54,
-                        fontSize: 9,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    Row(
-                      children: [
-
-                        const Icon(
-                          Icons.mic_rounded,
-                          color: _yellow,
-                          size: 14,
-                        ),
-
-                        const SizedBox(width: 4),
-
-                        Text(
-                          '${room.seatCount} Seats',
-
-                          style:
-                          GoogleFonts.poppins(
-                            color:
-                            Colors.white70,
-                            fontSize: 9.5,
-                            fontWeight:
-                            FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              _headerButton(
-                icon:
-                Icons.refresh_rounded,
-                onTap: widget.onRefresh,
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 15),
-
-          // ==============================================================
-          // ROOM STATS
-          // ==============================================================
-
-          _buildRoomStats(),
+          _buildSelectedTab(),
         ],
       ),
     );
@@ -425,84 +172,304 @@ class _RoomProfileScreenState
 
 
   // ==========================================================================
-  // ROOM STATS
+  // ROOM CARD
+  //
+  // Part 1 only creates the shell.
+  // We will make the contents production-level in Part 2.
   // ==========================================================================
 
-  Widget _buildRoomStats() {
+  // ============================================================================
+// ROOM INFORMATION CARD
+// ============================================================================
+
+  Widget _buildRoomCard() {
     final room = widget.room;
 
-    return Row(
-      children: [
+    final roomName = room.name.trim().isEmpty
+        ? 'Junaya Voice Room'
+        : room.name.trim();
 
-        Expanded(
-          child: _buildStat(
-            Icons.people_alt_outlined,
-            '${room.onlineUsers}',
-            'Online',
-          ),
+    final roomId = room.id.toString();
+
+    final seatCount = room.seatCount;
+
+    final initial = roomName.isEmpty
+        ? '?'
+        : roomName.substring(0, 1).toUpperCase();
+
+    return Container(
+      width: double.infinity,
+
+      padding: const EdgeInsets.fromLTRB(
+        14,
+        14,
+        14,
+        13,
+      ),
+
+      decoration: BoxDecoration(
+        color: const Color(0xFF6E35A0).withValues(
+          alpha: 0.78,
         ),
 
-        Expanded(
-          child: _buildStat(
-            Icons.mic_none_rounded,
-            '${room.occupiedSeatCount}',
-            'On Mic',
-          ),
-        ),
+        borderRadius: BorderRadius.circular(18),
 
-        Expanded(
-          child: _buildStat(
-            Icons.emoji_events_outlined,
-            '${room.roomRank}',
-            'Rank',
+        border: Border.all(
+          color: Colors.white.withValues(
+            alpha: 0.08,
           ),
         ),
-      ],
+      ),
+
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+
+        children: [
+
+          // ======================================================================
+          // ROOM HEADER
+          // ======================================================================
+
+          Row(
+            crossAxisAlignment:
+            CrossAxisAlignment.start,
+
+            children: [
+
+              // ------------------------------------------------------------------
+              // ROOM AVATAR
+              // ------------------------------------------------------------------
+
+              Container(
+                width: 70,
+                height: 70,
+
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4D1D73),
+
+                  borderRadius:
+                  BorderRadius.circular(14),
+
+                  border: Border.all(
+                    color: Colors.white.withValues(
+                      alpha: 0.12,
+                    ),
+                  ),
+                ),
+
+                child: Center(
+                  child: Text(
+                    initial,
+
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 27,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 13),
+
+              // ------------------------------------------------------------------
+              // ROOM NAME + ID
+              // ------------------------------------------------------------------
+
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    top: 3,
+                  ),
+
+                  child: Column(
+                    crossAxisAlignment:
+                    CrossAxisAlignment.start,
+
+                    children: [
+
+                      Text(
+                        roomName,
+
+                        maxLines: 1,
+
+                        overflow:
+                        TextOverflow.ellipsis,
+
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight:
+                          FontWeight.w700,
+                        ),
+                      ),
+
+                      const SizedBox(height: 5),
+
+                      Text(
+                        'Room ID: $roomId',
+
+                        maxLines: 1,
+
+                        overflow:
+                        TextOverflow.ellipsis,
+
+                        style: TextStyle(
+                          color: Colors.white.withValues(
+                            alpha: 0.48,
+                          ),
+                          fontSize: 9,
+                        ),
+                      ),
+
+                      const SizedBox(height: 7),
+
+                      Row(
+                        children: [
+
+                          const Icon(
+                            Icons.mic_none_rounded,
+                            color: Colors.white54,
+                            size: 14,
+                          ),
+
+                          const SizedBox(width: 5),
+
+                          Text(
+                            '$seatCount Seats',
+
+                            style: TextStyle(
+                              color: Colors.white.withValues(
+                                alpha: 0.68,
+                              ),
+                              fontSize: 9,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // ------------------------------------------------------------------
+              // REFRESH
+              // ------------------------------------------------------------------
+
+              Material(
+                color: Colors.transparent,
+
+                child: InkWell(
+                  borderRadius:
+                  BorderRadius.circular(22),
+
+                  onTap: () {
+                    // Room refresh will be connected
+                    // when we wire the real room
+                    // refresh logic.
+                  },
+
+                  child: const SizedBox(
+                    width: 34,
+                    height: 34,
+
+                    child: Center(
+                      child: Icon(
+                        Icons.refresh_rounded,
+                        color: Colors.white70,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+
+          // ======================================================================
+          // ROOM STATS
+          // ======================================================================
+
+          Row(
+            children: [
+
+              Expanded(
+                child: _buildRoomStat(
+                  icon:
+                  Icons.people_outline_rounded,
+                  value: '1',
+                  label: 'Online',
+                ),
+              ),
+
+              Expanded(
+                child: _buildRoomStat(
+                  icon:
+                  Icons.mic_none_rounded,
+                  value: '0',
+                  label: 'On Mic',
+                ),
+              ),
+
+              Expanded(
+                child: _buildRoomStat(
+                  icon:
+                  Icons.star_border_rounded,
+                  value: '0',
+                  label: 'Score',
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
+// ============================================================================
+// ROOM STAT
+// ============================================================================
 
-  Widget _buildStat(
-      IconData icon,
-      String value,
-      String label,
-      ) {
+  Widget _buildRoomStat({
+    required IconData icon,
+    required String value,
+    required String label,
+  }) {
     return Row(
-      mainAxisAlignment:
-      MainAxisAlignment.center,
-
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-
         Icon(
           icon,
-          color: Colors.white38,
-          size: 16,
+          color: Colors.white.withValues(
+            alpha: 0.45,
+          ),
+          size: 14,
         ),
 
         const SizedBox(width: 5),
 
         Column(
-          crossAxisAlignment:
-          CrossAxisAlignment.start,
-
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             Text(
               value,
-
-              style: GoogleFonts.poppins(
+              style: const TextStyle(
                 color: Colors.white,
-                fontSize: 10.5,
-                fontWeight:
-                FontWeight.w600,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
               ),
             ),
 
+            const SizedBox(height: 1),
+
             Text(
               label,
-
-              style: GoogleFonts.poppins(
-                color: Colors.white30,
+              style: TextStyle(
+                color: Colors.white.withValues(
+                  alpha: 0.38,
+                ),
                 fontSize: 7,
               ),
             ),
@@ -511,14 +478,12 @@ class _RoomProfileScreenState
       ],
     );
   }
-
-
   // ==========================================================================
   // TABS
   // ==========================================================================
 
   Widget _buildTabs() {
-    const tabs = [
+    const labels = [
       'Profile',
       'Member',
       'Activity',
@@ -527,20 +492,13 @@ class _RoomProfileScreenState
     return Row(
       children: [
 
-        for (int i = 0;
-        i < tabs.length;
-        i++)
-
+        for (int i = 0; i < labels.length; i++)
           Expanded(
             child: GestureDetector(
               behavior:
               HitTestBehavior.opaque,
 
               onTap: () {
-                if (_selectedTab == i) {
-                  return;
-                }
-
                 setState(() {
                   _selectedTab = i;
                 });
@@ -549,32 +507,30 @@ class _RoomProfileScreenState
               child: Padding(
                 padding:
                 const EdgeInsets.symmetric(
-                  vertical: 5,
+                  vertical: 9,
                 ),
 
                 child: Column(
                   children: [
 
                     Text(
-                      tabs[i],
+                      labels[i],
 
-                      style:
-                      GoogleFonts.poppins(
-                        color:
-                        _selectedTab == i
+                      style: TextStyle(
+                        color: i == _selectedTab
                             ? Colors.white
-                            : Colors.white38,
+                            : Colors.white54,
 
-                        fontSize: 11.5,
+                        fontSize: 11,
 
                         fontWeight:
-                        _selectedTab == i
+                        i == _selectedTab
                             ? FontWeight.w600
                             : FontWeight.w400,
                       ),
                     ),
 
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 7),
 
                     AnimatedContainer(
                       duration:
@@ -583,19 +539,22 @@ class _RoomProfileScreenState
                       ),
 
                       width:
-                      _selectedTab == i
+                      i == _selectedTab
                           ? 22
                           : 0,
 
-                      height: 3,
+                      height: 2,
 
                       decoration:
                       BoxDecoration(
-                        color: _accent,
+                        color:
+                        const Color(
+                          0xFFB94CFF,
+                        ),
 
                         borderRadius:
                         BorderRadius.circular(
-                          20,
+                          4,
                         ),
                       ),
                     ),
@@ -628,104 +587,491 @@ class _RoomProfileScreenState
     }
   }
 
-
-  // ==========================================================================
-  // PROFILE TAB
-  // ==========================================================================
+  // ============================================================================
+// PROFILE TAB
+// ============================================================================
 
   Widget _buildProfileTab() {
-    final room = widget.room;
-    final owner = room.owner;
-
     return Column(
-      key: const ValueKey(
-        'profile_tab',
-      ),
+      key: const ValueKey('profile'),
 
       crossAxisAlignment:
       CrossAxisAlignment.start,
 
       children: [
 
-        // --------------------------------------------------------------
-        // OWNER
-        // --------------------------------------------------------------
-
-        if (owner != null)
-          _buildOwnerCard(owner),
-
-        const SizedBox(height: 14),
-
-        // --------------------------------------------------------------
+        // ========================================================================
         // ANNOUNCEMENT
-        // --------------------------------------------------------------
+        // ========================================================================
 
-        _buildSectionTitle(
+        _buildProfileSectionTitle(
           'Announcement',
         ),
 
-        const SizedBox(height: 7),
+        const SizedBox(height: 8),
 
-        Text(
-          room.announcement.trim().isNotEmpty
-              ? room.announcement
-              : 'Welcome to join my party!',
+        Container(
+          width: double.infinity,
 
-          style: GoogleFonts.poppins(
-            color: Colors.white60,
-            fontSize: 10.5,
-            height: 1.45,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 13,
+          ),
+
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(
+              alpha: 0.055,
+            ),
+
+            borderRadius:
+            BorderRadius.circular(14),
+
+            border: Border.all(
+              color: Colors.white.withValues(
+                alpha: 0.045,
+              ),
+            ),
+          ),
+
+          child: Row(
+            crossAxisAlignment:
+            CrossAxisAlignment.start,
+
+            children: [
+
+              Container(
+                width: 30,
+                height: 30,
+
+                decoration: BoxDecoration(
+                  color: const Color(0xFF18D4C3)
+                      .withValues(
+                    alpha: 0.14,
+                  ),
+
+                  shape: BoxShape.circle,
+                ),
+
+                child: const Icon(
+                  Icons.campaign_outlined,
+                  color: Color(0xFF18D4C3),
+                  size: 16,
+                ),
+              ),
+
+              const SizedBox(width: 10),
+
+              Expanded(
+                child: Text(
+                  widget.room.announcement
+                      .trim()
+                      .isNotEmpty
+                      ? widget.room.announcement.trim()
+                      : 'Welcome to join my party!',
+
+                  maxLines: 4,
+
+                  overflow:
+                  TextOverflow.ellipsis,
+
+                  style: TextStyle(
+                    color: Colors.white.withValues(
+                      alpha: 0.70,
+                    ),
+                    fontSize: 11,
+                    height: 1.45,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
 
-        const SizedBox(height: 18),
+        const SizedBox(height: 22),
 
-        // --------------------------------------------------------------
+        // ========================================================================
         // COUNTRY
-        // --------------------------------------------------------------
+        // ========================================================================
 
-        _buildCountryCard(),
+        _buildProfileSectionTitle(
+          'Country',
+        ),
 
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
 
-        // --------------------------------------------------------------
+        Container(
+          width: double.infinity,
+
+          padding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 11,
+          ),
+
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(
+              alpha: 0.055,
+            ),
+
+            borderRadius:
+            BorderRadius.circular(14),
+          ),
+
+          child: Row(
+            children: [
+
+              const Text(
+                _temporaryFlag,
+                style: TextStyle(
+                  fontSize: 22,
+                ),
+              ),
+
+              const SizedBox(width: 9),
+
+              Text(
+                _temporaryCountry,
+
+                style: TextStyle(
+                  color: Colors.white.withValues(
+                    alpha: 0.75,
+                  ),
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 22),
+
+        // ========================================================================
         // LEVEL
-        // --------------------------------------------------------------
+        // ========================================================================
 
-        _buildLevelCard(),
+        _buildProfileSectionTitle(
+          'Level',
+        ),
 
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
 
-        // --------------------------------------------------------------
-        // MIC
-        // --------------------------------------------------------------
+        Container(
+          width: double.infinity,
 
-        _buildMicCard(),
+          padding: const EdgeInsets.fromLTRB(
+            14,
+            13,
+            14,
+            12,
+          ),
+
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(
+              alpha: 0.055,
+            ),
+
+            borderRadius:
+            BorderRadius.circular(14),
+          ),
+
+          child: Column(
+            children: [
+
+              // ------------------------------------------------------------------
+              // LEVEL HEADER
+              // ------------------------------------------------------------------
+
+              Row(
+                children: [
+
+                  Container(
+                    width: 42,
+                    height: 42,
+
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF18D4C3)
+                          .withValues(
+                        alpha: 0.14,
+                      ),
+
+                      borderRadius:
+                      BorderRadius.circular(12),
+                    ),
+
+                    child: Center(
+                      child: Text(
+                        '$_temporaryLevel',
+
+                        style: const TextStyle(
+                          color: Color(0xFF18D4C3),
+                          fontSize: 17,
+                          fontWeight:
+                          FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 10),
+
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment:
+                      CrossAxisAlignment.start,
+
+                      children: [
+
+                        Text(
+                          'Level $_temporaryLevel',
+
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight:
+                            FontWeight.w600,
+                          ),
+                        ),
+
+                        const SizedBox(height: 2),
+
+                        Text(
+                          'Room experience level',
+
+                          style: TextStyle(
+                            color: Colors.white
+                                .withValues(
+                              alpha: 0.38,
+                            ),
+                            fontSize: 8,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Text(
+                    'Rules',
+
+                    style: TextStyle(
+                      color: Colors.white.withValues(
+                        alpha: 0.55,
+                      ),
+                      fontSize: 9,
+                    ),
+                  ),
+
+                  const SizedBox(width: 2),
+
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    color: Colors.white38,
+                    size: 17,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 13),
+
+              // ------------------------------------------------------------------
+              // PROGRESS
+              // ------------------------------------------------------------------
+
+              _buildLevelProgress(),
+
+              const SizedBox(height: 7),
+
+              Row(
+                children: [
+
+                  Text(
+                    '$_temporaryLevelProgress / '
+                        '$_temporaryLevelTarget',
+
+                    style: TextStyle(
+                      color: Colors.white.withValues(
+                        alpha: 0.42,
+                      ),
+                      fontSize: 8,
+                    ),
+                  ),
+
+                  const Spacer(),
+
+                  Text(
+                    'To upgrade',
+
+                    style: TextStyle(
+                      color: Colors.white.withValues(
+                        alpha: 0.35,
+                      ),
+                      fontSize: 8,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
 
 
-  // ==========================================================================
-  // OWNER
-  // ==========================================================================
+// ============================================================================
+// PROFILE SECTION TITLE
+// ============================================================================
 
-  Widget _buildOwnerCard(RoomUser owner) {
+  Widget _buildProfileSectionTitle(
+      String title,
+      ) {
+    return Text(
+      title,
+
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+
+
+// ============================================================================
+// LEVEL PROGRESS
+// ============================================================================
+
+  Widget _buildLevelProgress() {
+    final progress =
+    (_temporaryLevelProgress /
+        _temporaryLevelTarget)
+        .clamp(0.0, 1.0);
+
+    return ClipRRect(
+      borderRadius:
+      BorderRadius.circular(20),
+
+      child: LinearProgressIndicator(
+        value: progress,
+
+        minHeight: 7,
+
+        backgroundColor:
+        Colors.white.withValues(
+          alpha: 0.16,
+        ),
+
+        valueColor:
+        const AlwaysStoppedAnimation<Color>(
+          Color(0xFF18D4C3),
+        ),
+      ),
+    );
+  }
+
+
+// ============================================================================
+// MEMBER TAB
+// ============================================================================
+
+  Widget _buildMemberTab() {
+    final members = widget.room.members;
+
+    return Column(
+      key: const ValueKey('member'),
+
+      crossAxisAlignment:
+      CrossAxisAlignment.start,
+
+      children: [
+
+        Row(
+          children: [
+
+            _buildProfileSectionTitle(
+              'Members',
+            ),
+
+            const Spacer(),
+
+            Text(
+              '${members.length}',
+
+              style: TextStyle(
+                color: Colors.white.withValues(
+                  alpha: 0.42,
+                ),
+                fontSize: 10,
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 10),
+
+        if (members.isEmpty)
+
+          _buildEmptyTabState(
+            icon:
+            Icons.people_outline_rounded,
+            text:
+            'No members in this room.',
+          )
+
+        else
+
+          Column(
+            children: [
+
+              for (final member in members)
+                Padding(
+                  padding:
+                  const EdgeInsets.only(
+                    bottom: 7,
+                  ),
+
+                  child: _buildMemberTile(
+                    member,
+                  ),
+                ),
+            ],
+          ),
+      ],
+    );
+  }
+
+
+// ============================================================================
+// MEMBER TILE
+// ============================================================================
+
+  Widget _buildMemberTile(
+      RoomUser member,
+      ) {
+    final name =
+    member.name.trim().isEmpty
+        ? 'User'
+        : member.name.trim();
+
     return Container(
       width: double.infinity,
 
-      padding: const EdgeInsets.all(11),
+      padding:
+      const EdgeInsets.symmetric(
+        horizontal: 11,
+        vertical: 9,
+      ),
 
       decoration: BoxDecoration(
-        color: Colors.white
-            .withValues(alpha: .045),
+        color: Colors.white.withValues(
+          alpha: 0.055,
+        ),
 
         borderRadius:
-        BorderRadius.circular(16),
+        BorderRadius.circular(14),
 
         border: Border.all(
-          color: Colors.white
-              .withValues(alpha: .06),
+          color: Colors.white.withValues(
+            alpha: 0.035,
+          ),
         ),
       ),
 
@@ -733,9 +1079,9 @@ class _RoomProfileScreenState
         children: [
 
           _buildAvatar(
-            avatar: owner.avatar,
-            name: owner.name,
-            size: 44,
+            name: name,
+            size: 40,
+            radius: 11,
           ),
 
           const SizedBox(width: 10),
@@ -747,374 +1093,15 @@ class _RoomProfileScreenState
 
               children: [
 
-                Row(
-                  children: [
-
-                    Text(
-                      'Room Owner',
-
-                      style:
-                      GoogleFonts.poppins(
-                        color:
-                        Colors.white38,
-                        fontSize: 8,
-                      ),
-                    ),
-
-                    const SizedBox(width: 5),
-
-                    const Icon(
-                      Icons
-                          .workspace_premium_rounded,
-                      color: _yellow,
-                      size: 12,
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 2),
-
                 Text(
-                  owner.name,
+                  name,
 
                   maxLines: 1,
 
                   overflow:
                   TextOverflow.ellipsis,
 
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 11.5,
-                    fontWeight:
-                    FontWeight.w600,
-                  ),
-                ),
-
-                if (owner.junayaId != null &&
-                    owner.junayaId!
-                        .trim()
-                        .isNotEmpty)
-
-                  Text(
-                    'ID ${owner.junayaId}',
-
-                    style:
-                    GoogleFonts.poppins(
-                      color:
-                      Colors.white30,
-                      fontSize: 7.5,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-
-          if (owner.vipLevel > 0)
-            _buildVipBadge(
-              owner.vipLevel,
-            ),
-        ],
-      ),
-    );
-  }
-
-
-  // ==========================================================================
-  // COUNTRY
-  // ==========================================================================
-
-  Widget _buildCountryCard() {
-    // Temporary fake data.
-    // VoiceRoom currently has no country field.
-
-    const country = 'Pakistan';
-    const flag = '🇵🇰';
-
-    return _buildInfoCard(
-      child: Row(
-        children: [
-
-          Container(
-            width: 40,
-            height: 40,
-
-            alignment:
-            Alignment.center,
-
-            decoration: BoxDecoration(
-              color: Colors.white
-                  .withValues(alpha: .055),
-              shape: BoxShape.circle,
-            ),
-
-            child: const Text(
-              flag,
-              style: TextStyle(
-                fontSize: 20,
-              ),
-            ),
-          ),
-
-          const SizedBox(width: 11),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
-
-              children: [
-
-                _smallLabel(
-                  'Country',
-                ),
-
-                const SizedBox(height: 2),
-
-                Text(
-                  country,
-
-                  style:
-                  GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 11.5,
-                    fontWeight:
-                    FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          _temporaryBadge(),
-        ],
-      ),
-    );
-  }
-
-
-  // ==========================================================================
-  // LEVEL
-  // ==========================================================================
-
-  Widget _buildLevelCard() {
-    // Temporary fake data.
-    // VoiceRoom currently has no level fields.
-
-    const int level = 2;
-    const double progress = .30;
-
-    final percentage =
-    (progress * 100).round();
-
-    return Container(
-      width: double.infinity,
-
-      padding: const EdgeInsets.all(14),
-
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-
-          colors: [
-            const Color(0xFF59268D)
-                .withValues(alpha: .72),
-
-            const Color(0xFF32155C)
-                .withValues(alpha: .72),
-          ],
-        ),
-
-        borderRadius:
-        BorderRadius.circular(18),
-
-        border: Border.all(
-          color: _accent
-              .withValues(alpha: .13),
-        ),
-      ),
-
-      child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
-
-        children: [
-
-          Row(
-            children: [
-
-              Container(
-                width: 42,
-                height: 42,
-
-                alignment:
-                Alignment.center,
-
-                decoration: BoxDecoration(
-                  color: _accent
-                      .withValues(alpha: .14),
-
-                  shape: BoxShape.circle,
-
-                  border: Border.all(
-                    color: _accent
-                        .withValues(alpha: .18),
-                  ),
-                ),
-
-                child: Text(
-                  '$level',
-
-                  style:
-                  GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight:
-                    FontWeight.w700,
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 11),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
-
-                  children: [
-
-                    _smallLabel(
-                      'Room Level',
-                    ),
-
-                    const SizedBox(height: 2),
-
-                    Text(
-                      'LV $level',
-
-                      style:
-                      GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight:
-                        FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              Text(
-                '$percentage%',
-
-                style:
-                GoogleFonts.poppins(
-                  color: _cyan,
-                  fontSize: 11,
-                  fontWeight:
-                  FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 15),
-
-          ClipRRect(
-            borderRadius:
-            BorderRadius.circular(20),
-
-            child: LinearProgressIndicator(
-              minHeight: 8,
-
-              value: progress,
-
-              backgroundColor:
-              Colors.white
-                  .withValues(alpha: .10),
-
-              valueColor:
-              const AlwaysStoppedAnimation<
-                  Color>(
-                _cyan,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 7),
-
-          Row(
-            children: [
-
-              _smallLabel(
-                'Progress',
-              ),
-
-              const Spacer(),
-
-              Text(
-                '$percentage / 100',
-
-                style:
-                GoogleFonts.poppins(
-                  color: Colors.white38,
-                  fontSize: 8,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-
-  // ==========================================================================
-  // MIC CARD
-  // ==========================================================================
-
-  Widget _buildMicCard() {
-    final room = widget.room;
-
-    return _buildInfoCard(
-      child: Row(
-        children: [
-
-          Container(
-            width: 40,
-            height: 40,
-
-            alignment:
-            Alignment.center,
-
-            decoration: BoxDecoration(
-              color: _accent
-                  .withValues(alpha: .14),
-              shape: BoxShape.circle,
-            ),
-
-            child: const Icon(
-              Icons.mic_rounded,
-              color: Colors.white70,
-              size: 20,
-            ),
-          ),
-
-          const SizedBox(width: 11),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
-
-              children: [
-
-                Text(
-                  'Mic Seats',
-
-                  style:
-                  GoogleFonts.poppins(
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 11,
                     fontWeight:
@@ -1125,11 +1112,14 @@ class _RoomProfileScreenState
                 const SizedBox(height: 2),
 
                 Text(
-                  '${room.seatCount} mic seats configured',
+                  member.isHost
+                      ? 'Room Owner'
+                      : 'Member',
 
-                  style:
-                  GoogleFonts.poppins(
-                    color: Colors.white38,
+                  style: TextStyle(
+                    color: Colors.white.withValues(
+                      alpha: 0.38,
+                    ),
                     fontSize: 8,
                   ),
                 ),
@@ -1137,259 +1127,11 @@ class _RoomProfileScreenState
             ),
           ),
 
-          Text(
-            '${room.seatCount}/25',
-
-            style:
-            GoogleFonts.poppins(
-              color: _yellow,
-              fontSize: 10,
-              fontWeight:
-              FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-
-  // ==========================================================================
-  // MEMBER TAB
-  // ==========================================================================
-
-  Widget _buildMemberTab() {
-    final members = widget.room.members;
-
-    return Column(
-      key: const ValueKey(
-        'member_tab',
-      ),
-
-      crossAxisAlignment:
-      CrossAxisAlignment.start,
-
-      children: [
-
-        Row(
-          children: [
-
-            _buildSectionTitle(
-              'Members',
-            ),
-
-            const SizedBox(width: 6),
-
-            Text(
-              '${members.length}',
-
-              style:
-              GoogleFonts.poppins(
-                color: Colors.white38,
-                fontSize: 9,
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 10),
-
-        if (members.isEmpty)
-
-          _buildEmptyState(
-            icon:
-            Icons.people_outline_rounded,
-
-            title:
-            'No members',
-
-            subtitle:
-            'There are no members in this room yet.',
-          )
-
-        else
-
-          ListView.separated(
-            shrinkWrap: true,
-
-            physics:
-            const NeverScrollableScrollPhysics(),
-
-            itemCount:
-            members.length,
-
-            separatorBuilder:
-                (_, __) =>
-            const SizedBox(height: 7),
-
-            itemBuilder:
-                (context, index) {
-
-              final member =
-              members[index];
-
-              return _buildMemberTile(
-                member,
-              );
-            },
-          ),
-      ],
-    );
-  }
-
-
-  // ==========================================================================
-  // MEMBER TILE
-  // ==========================================================================
-
-  Widget _buildMemberTile(
-      RoomUser member,
-      ) {
-    final isOwner =
-        member.id ==
-            widget.room.ownerId ||
-            member.isHost;
-
-    return Container(
-      width: double.infinity,
-
-      padding:
-      const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 9,
-      ),
-
-      decoration: BoxDecoration(
-        color: Colors.white
-            .withValues(alpha: .045),
-
-        borderRadius:
-        BorderRadius.circular(15),
-
-        border: Border.all(
-          color: Colors.white
-              .withValues(alpha: .055),
-        ),
-      ),
-
-      child: Row(
-        children: [
-
-          _buildAvatar(
-            avatar: member.avatar,
-            name: member.name,
-            size: 40,
-          ),
-
-          const SizedBox(width: 10),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
-
-              children: [
-
-                Row(
-                  children: [
-
-                    Flexible(
-                      child: Text(
-                        member.name,
-
-                        maxLines: 1,
-
-                        overflow:
-                        TextOverflow.ellipsis,
-
-                        style:
-                        GoogleFonts.poppins(
-                          color:
-                          Colors.white,
-                          fontSize: 11,
-                          fontWeight:
-                          FontWeight.w600,
-                        ),
-                      ),
-                    ),
-
-                    if (isOwner) ...[
-                      const SizedBox(width: 5),
-
-                      _buildRoleBadge(
-                        'Owner',
-                      ),
-                    ]
-                    else if (member.isAdmin) ...[
-                      const SizedBox(width: 5),
-
-                      _buildRoleBadge(
-                        'Admin',
-                      ),
-                    ],
-                  ],
-                ),
-
-                const SizedBox(height: 2),
-
-                Row(
-                  children: [
-
-                    if (member.junayaId != null &&
-                        member.junayaId!
-                            .trim()
-                            .isNotEmpty)
-
-                      Flexible(
-                        child: Text(
-                          'ID ${member.junayaId}',
-
-                          maxLines: 1,
-
-                          overflow:
-                          TextOverflow.ellipsis,
-
-                          style:
-                          GoogleFonts.poppins(
-                            color:
-                            Colors.white38,
-                            fontSize: 8,
-                          ),
-                        ),
-                      ),
-
-                    if (member.vipLevel > 0) ...[
-                      const SizedBox(width: 6),
-
-                      Text(
-                        'VIP ${member.vipLevel}',
-
-                        style:
-                        GoogleFonts.poppins(
-                          color: _yellow,
-                          fontSize: 8,
-                          fontWeight:
-                          FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          if (member.isSpeaking)
+          if (member.isHost)
             const Icon(
-              Icons.graphic_eq_rounded,
-              color: _cyan,
+              Icons.workspace_premium_rounded,
+              color: Color(0xFFFFD34D),
               size: 18,
-            )
-          else if (member.isMuted)
-            const Icon(
-              Icons.mic_off_rounded,
-              color: Colors.white30,
-              size: 17,
             ),
         ],
       ),
@@ -1397,35 +1139,29 @@ class _RoomProfileScreenState
   }
 
 
-  // ==========================================================================
-  // ACTIVITY TAB
-  // ==========================================================================
+// ============================================================================
+// ACTIVITY TAB
+// ============================================================================
 
   Widget _buildActivityTab() {
     return Column(
-      key: const ValueKey(
-        'activity_tab',
-      ),
+      key: const ValueKey('activity'),
 
       crossAxisAlignment:
       CrossAxisAlignment.start,
 
       children: [
 
-        _buildSectionTitle(
+        _buildProfileSectionTitle(
           'Activity',
         ),
 
         const SizedBox(height: 10),
 
-        _buildEmptyState(
+        _buildEmptyTabState(
           icon:
           Icons.history_rounded,
-
-          title:
-          'No activity yet',
-
-          subtitle:
+          text:
           'Room activity will appear here.',
         ),
       ],
@@ -1433,35 +1169,29 @@ class _RoomProfileScreenState
   }
 
 
-  // ==========================================================================
-  // EMPTY STATE
-  // ==========================================================================
+// ============================================================================
+// EMPTY STATE
+// ============================================================================
 
-  Widget _buildEmptyState({
+  Widget _buildEmptyTabState({
     required IconData icon,
-    required String title,
-    required String subtitle,
+    required String text,
   }) {
     return Container(
       width: double.infinity,
 
-      padding:
-      const EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
+        vertical: 30,
         horizontal: 20,
-        vertical: 25,
       ),
 
       decoration: BoxDecoration(
-        color: Colors.white
-            .withValues(alpha: .035),
+        color: Colors.white.withValues(
+          alpha: 0.045,
+        ),
 
         borderRadius:
-        BorderRadius.circular(16),
-
-        border: Border.all(
-          color: Colors.white
-              .withValues(alpha: .05),
-        ),
+        BorderRadius.circular(14),
       ),
 
       child: Column(
@@ -1469,36 +1199,24 @@ class _RoomProfileScreenState
 
           Icon(
             icon,
-            color: Colors.white24,
+            color: Colors.white.withValues(
+              alpha: 0.25,
+            ),
             size: 30,
           ),
 
           const SizedBox(height: 8),
 
           Text(
-            title,
+            text,
 
-            style:
-            GoogleFonts.poppins(
-              color: Colors.white60,
+            textAlign: TextAlign.center,
+
+            style: TextStyle(
+              color: Colors.white.withValues(
+                alpha: 0.38,
+              ),
               fontSize: 10,
-              fontWeight:
-              FontWeight.w600,
-            ),
-          ),
-
-          const SizedBox(height: 3),
-
-          Text(
-            subtitle,
-
-            textAlign:
-            TextAlign.center,
-
-            style:
-            GoogleFonts.poppins(
-              color: Colors.white30,
-              fontSize: 8.5,
             ),
           ),
         ],
@@ -1507,26 +1225,86 @@ class _RoomProfileScreenState
   }
 
 
+
   // ==========================================================================
-  // BOTTOM ACTIONS
+  // MEMBER TAB
   // ==========================================================================
+
+  // ==========================================================================
+  // ACTIVITY TAB
+  // ==========================================================================
+
+
+  // ==========================================================================
+  // AVATAR
+  // ==========================================================================
+
+  Widget _buildAvatar({
+    required String name,
+    required double size,
+    required double radius,
+  }) {
+    final firstLetter =
+    name.trim().isEmpty
+        ? '?'
+        : name.trim()[0].toUpperCase();
+
+    return Container(
+      width: size,
+      height: size,
+
+      decoration: BoxDecoration(
+        color: const Color(0xFF4E217A),
+
+        borderRadius:
+        BorderRadius.circular(radius),
+
+        border: Border.all(
+          color: Colors.white.withValues(
+            alpha: 0.12,
+          ),
+        ),
+      ),
+
+      child: Center(
+        child: Text(
+          firstLetter,
+
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: size * 0.32,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ============================================================================
+// BOTTOM ACTION BAR
+// ============================================================================
 
   Widget _buildBottomActions() {
     return Container(
+      width: double.infinity,
+
       padding: const EdgeInsets.fromLTRB(
-        16,
+        18,
         10,
-        16,
+        18,
         14,
       ),
 
       decoration: BoxDecoration(
-        color: _background,
+        color: const Color(0xFF241044).withValues(
+          alpha: 0.96,
+        ),
 
         border: Border(
           top: BorderSide(
-            color: Colors.white
-                .withValues(alpha: .06),
+            color: Colors.white.withValues(
+              alpha: 0.06,
+            ),
           ),
         ),
       ),
@@ -1534,32 +1312,37 @@ class _RoomProfileScreenState
       child: Row(
         children: [
 
+          // ======================================================================
+          // TOP
+          // ======================================================================
+
           Expanded(
             child: _buildBottomButton(
-              icon:
-              Icons.rocket_launch_rounded,
-
-              title: 'Top',
-
-              color:
-              const Color(0xFFFF626D),
-
-              onTap: widget.onTop,
+              icon: Icons.rocket_launch_rounded,
+              label: 'Top',
+              backgroundColor:
+              const Color(0xFFFF5E6C),
+              onTap: () {
+                // Connect to real Top functionality later.
+              },
             ),
           ),
 
           const SizedBox(width: 12),
 
+          // ======================================================================
+          // SETTING
+          // ======================================================================
+
           Expanded(
             child: _buildBottomButton(
-              icon:
-              Icons.settings_rounded,
-
-              title: 'Setting',
-
-              color: _cyan,
-
-              onTap: widget.onSettings,
+              icon: Icons.settings_rounded,
+              label: 'Setting',
+              backgroundColor:
+              const Color(0xFF18D4C3),
+              onTap: () {
+                // Connect to real room settings later.
+              },
             ),
           ),
         ],
@@ -1568,15 +1351,15 @@ class _RoomProfileScreenState
   }
 
 
-  // ==========================================================================
-  // BOTTOM BUTTON
-  // ==========================================================================
+// ============================================================================
+// BOTTOM ACTION BUTTON
+// ============================================================================
 
   Widget _buildBottomButton({
     required IconData icon,
-    required String title,
-    required Color color,
-    VoidCallback? onTap,
+    required String label,
+    required Color backgroundColor,
+    required VoidCallback onTap,
   }) {
     return Material(
       color: Colors.transparent,
@@ -1591,10 +1374,25 @@ class _RoomProfileScreenState
           height: 50,
 
           decoration: BoxDecoration(
-            color: color,
+            color: backgroundColor,
 
             borderRadius:
             BorderRadius.circular(28),
+
+            boxShadow: [
+              BoxShadow(
+                color: backgroundColor.withValues(
+                  alpha: 0.18,
+                ),
+
+                blurRadius: 12,
+
+                offset: const Offset(
+                  0,
+                  4,
+                ),
+              ),
+            ],
           ),
 
           child: Row(
@@ -1606,18 +1404,17 @@ class _RoomProfileScreenState
               Icon(
                 icon,
                 color: Colors.white,
-                size: 21,
+                size: 19,
               ),
 
               const SizedBox(width: 7),
 
               Text(
-                title,
+                label,
 
-                style:
-                GoogleFonts.poppins(
+                style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight:
                   FontWeight.w600,
                 ),
@@ -1629,342 +1426,4 @@ class _RoomProfileScreenState
     );
   }
 
-
-  // ==========================================================================
-  // INFO CARD
-  // ==========================================================================
-
-  Widget _buildInfoCard({
-    required Widget child,
-  }) {
-    return Container(
-      width: double.infinity,
-
-      padding: const EdgeInsets.all(13),
-
-      decoration: BoxDecoration(
-        color: Colors.white
-            .withValues(alpha: .045),
-
-        borderRadius:
-        BorderRadius.circular(16),
-
-        border: Border.all(
-          color: Colors.white
-              .withValues(alpha: .06),
-        ),
-      ),
-
-      child: child,
-    );
-  }
-
-
-  // ==========================================================================
-  // SECTION TITLE
-  // ==========================================================================
-
-  Widget _buildSectionTitle(
-      String title,
-      ) {
-    return Text(
-      title,
-
-      style: GoogleFonts.poppins(
-        color: Colors.white,
-        fontSize: 12,
-        fontWeight:
-        FontWeight.w600,
-      ),
-    );
-  }
-
-
-  // ==========================================================================
-  // SMALL LABEL
-  // ==========================================================================
-
-  Widget _smallLabel(
-      String text,
-      ) {
-    return Text(
-      text,
-
-      style: GoogleFonts.poppins(
-        color: Colors.white38,
-        fontSize: 8,
-      ),
-    );
-  }
-
-
-  // ==========================================================================
-  // TEMP BADGE
-  // ==========================================================================
-
-  Widget _temporaryBadge() {
-    return Container(
-      padding:
-      const EdgeInsets.symmetric(
-        horizontal: 7,
-        vertical: 4,
-      ),
-
-      decoration: BoxDecoration(
-        color: Colors.white
-            .withValues(alpha: .05),
-
-        borderRadius:
-        BorderRadius.circular(7),
-      ),
-
-      child: Text(
-        'TEMP',
-
-        style: GoogleFonts.poppins(
-          color: Colors.white30,
-          fontSize: 6.5,
-          fontWeight:
-          FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
-
-  // ==========================================================================
-  // VIP BADGE
-  // ==========================================================================
-
-  Widget _buildVipBadge(
-      int level,
-      ) {
-    return Container(
-      padding:
-      const EdgeInsets.symmetric(
-        horizontal: 7,
-        vertical: 4,
-      ),
-
-      decoration: BoxDecoration(
-        color: _yellow
-            .withValues(alpha: .10),
-
-        borderRadius:
-        BorderRadius.circular(8),
-
-        border: Border.all(
-          color: _yellow
-              .withValues(alpha: .20),
-        ),
-      ),
-
-      child: Text(
-        'VIP $level',
-
-        style: GoogleFonts.poppins(
-          color: _yellow,
-          fontSize: 7.5,
-          fontWeight:
-          FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
-
-  // ==========================================================================
-  // ROLE BADGE
-  // ==========================================================================
-
-  Widget _buildRoleBadge(
-      String text,
-      ) {
-    return Container(
-      padding:
-      const EdgeInsets.symmetric(
-        horizontal: 5,
-        vertical: 2,
-      ),
-
-      decoration: BoxDecoration(
-        color: _yellow
-            .withValues(alpha: .12),
-
-        borderRadius:
-        BorderRadius.circular(5),
-      ),
-
-      child: Text(
-        text,
-
-        style: GoogleFonts.poppins(
-          color: _yellow,
-          fontSize: 7,
-          fontWeight:
-          FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
-
-  // ==========================================================================
-  // ROOM AVATAR
-  // ==========================================================================
-
-  Widget _buildRoomAvatar(
-      VoiceRoom room, {
-        double size = 70,
-      }) {
-    final owner = room.owner;
-
-    return _buildAvatar(
-      avatar: owner?.avatar,
-      name: owner?.name ?? room.name,
-      size: size,
-      radius: 16,
-    );
-  }
-
-
-  // ==========================================================================
-  // AVATAR
-  // ==========================================================================
-
-  Widget _buildAvatar({
-    required String? avatar,
-    required String name,
-    required double size,
-    double? radius,
-  }) {
-    final source =
-        avatar?.trim() ?? '';
-
-    final borderRadius =
-        radius ?? size / 2;
-
-    Widget fallback() {
-      return Container(
-        width: size,
-        height: size,
-
-        alignment:
-        Alignment.center,
-
-        decoration: BoxDecoration(
-          color:
-          const Color(0xFF6B2878),
-
-          borderRadius:
-          BorderRadius.circular(
-            borderRadius,
-          ),
-        ),
-
-        child: Text(
-          _avatarLetter(name),
-
-          style:
-          GoogleFonts.poppins(
-            color: Colors.white,
-            fontSize: size * .32,
-            fontWeight:
-            FontWeight.w700,
-          ),
-        ),
-      );
-    }
-
-    if (source.isEmpty) {
-      return fallback();
-    }
-
-    final isNetwork =
-        source.startsWith('http://') ||
-            source.startsWith('https://');
-
-    final image = isNetwork
-        ? Image.network(
-      source,
-      width: size,
-      height: size,
-      fit: BoxFit.cover,
-
-      errorBuilder:
-          (_, __, ___) =>
-          fallback(),
-    )
-        : Image.asset(
-      source,
-      width: size,
-      height: size,
-      fit: BoxFit.cover,
-
-      errorBuilder:
-          (_, __, ___) =>
-          fallback(),
-    );
-
-    return ClipRRect(
-      borderRadius:
-      BorderRadius.circular(
-        borderRadius,
-      ),
-
-      child: image,
-    );
-  }
-
-
-  // ==========================================================================
-  // AVATAR LETTER
-  // ==========================================================================
-
-  String _avatarLetter(
-      String name,
-      ) {
-    final value =
-    name.trim();
-
-    if (value.isEmpty) {
-      return '?';
-    }
-
-    return value.characters
-        .first
-        .toUpperCase();
-  }
-
-
-  // ==========================================================================
-  // HEADER BUTTON
-  // ==========================================================================
-
-  Widget _headerButton({
-    required IconData icon,
-    VoidCallback? onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-
-      child: InkWell(
-        onTap: onTap,
-
-        borderRadius:
-        BorderRadius.circular(20),
-
-        child: Padding(
-          padding:
-          const EdgeInsets.all(7),
-
-          child: Icon(
-            icon,
-            color: Colors.white70,
-            size: 21,
-          ),
-        ),
-      ),
-    );
-  }
 }

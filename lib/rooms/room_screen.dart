@@ -1248,27 +1248,30 @@ class _RoomScreenState extends State<RoomScreen>
   VoiceRoom get _room => _roomController.room!;
 
   Future<void> _openRoomProfile() async {
-    await _restoreSystemUi();
+    if (!mounted) {
+      return;
+    }
 
-    if (!mounted) return;
-
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => RoomProfileScreen(
-          room: _room,
-
-          selectedWallpaper:
-          _selectedWallpaper,
-
-          onWallpaperChanged: (wallpaper) {
-            _selectRoomWallpaper(
-              wallpaper,
-            );
-          },
-        ),
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: false,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(
+        alpha: 0.42,
       ),
+      builder: (sheetContext) {
+        return FractionallySizedBox(
+          heightFactor: 0.90,
+          child: RoomProfileScreen(
+            room: _room,
+          ),
+        );
+      },
     );
+    // --------------------------------------------------------------------------
+    // RESTORE ROOM IMMERSIVE MODE
+    // --------------------------------------------------------------------------
 
     if (mounted && !_roomExitHandled) {
       _enterImmersiveRoomMode();
