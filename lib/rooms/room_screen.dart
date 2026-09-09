@@ -1256,13 +1256,7 @@ class _RoomScreenState extends State<RoomScreen>
       context,
       MaterialPageRoute(
         builder: (_) => RoomProfileScreen(
-          roomId: _room.id,
-
-          currentMicCount:
-          _room.seatCount,
-
-          socketService:
-          _socketService,
+          room: _room,
 
           selectedWallpaper:
           _selectedWallpaper,

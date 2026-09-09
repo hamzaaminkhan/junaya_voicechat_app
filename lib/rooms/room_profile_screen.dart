@@ -1,515 +1,621 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:junaya_voicechat_app/rooms/room_socket_service.dart';
-import 'package:junaya_voicechat_app/rooms/models/room_wallpaper_model.dart';
-import 'room_settings_screen.dart';
+import 'package:junaya_voicechat_app/rooms/models/voice_room_model.dart';
 
 class RoomProfileScreen extends StatefulWidget {
-  final String roomId;
-  final int currentMicCount;
-  final RoomSocketService socketService;
-  final RoomWallpaper? selectedWallpaper;
-  final ValueChanged<RoomWallpaper>? onWallpaperChanged;
+  // ================================================================
+  // ROOM
+  // ================================================================
+
+  final VoiceRoom room;
+
+  // ================================================================
+  // WALLPAPER
+  // ================================================================
+
+  final dynamic selectedWallpaper;
+
+  final ValueChanged<dynamic>? onWallpaperChanged;
+
+  // ================================================================
+  // ACTIONS
+  // ================================================================
+
+  final VoidCallback? onRefresh;
+
+  final VoidCallback? onTop;
+
+  final VoidCallback? onSettings;
 
   const RoomProfileScreen({
     super.key,
-    required this.roomId,
-    required this.currentMicCount,
-    required this.socketService,
+    required this.room,
     this.selectedWallpaper,
     this.onWallpaperChanged,
+    this.onRefresh,
+    this.onTop,
+    this.onSettings,
   });
 
   @override
-  State<RoomProfileScreen> createState() => _RoomProfileScreenState();
+  State<RoomProfileScreen> createState() =>
+      _RoomProfileScreenState();
 }
 
-class _RoomProfileScreenState extends State<RoomProfileScreen> {
-  static const Color _background = Color(0xFF16003E);
 
-  static const Color _purple = Color(0xFF9C48F5);
+// ============================================================================
+// STATE
+// ============================================================================
 
-  static const Color _cardTop = Color(0xFF6E35AE);
+class _RoomProfileScreenState
+    extends State<RoomProfileScreen> {
 
-  static const Color _cardMiddle = Color(0xFF4A2185);
-
-  static const Color _cardBottom = Color(0xFF201057);
-
-  late int _micCount;
+  // ================================================================
+  // TABS
+  // ================================================================
 
   int _selectedTab = 0;
 
-  @override
-  void initState() {
-    super.initState();
+  // ================================================================
+  // COLORS
+  // ================================================================
 
-    _micCount = _normalizeMicCount(
-      widget.currentMicCount,
-    );
-  }
+  static const Color _background =
+  Color(0xFF16052F);
 
-  int _normalizeMicCount(int count) {
-    if (count < 1) {
-      return 1;
-    }
+  static const Color _accent =
+  Color(0xFFB55CFF);
 
-    if (count > 25) {
-      return 25;
-    }
+  static const Color _cyan =
+  Color(0xFF18D4C3);
 
-    return count;
-  }
+  static const Color _yellow =
+  Color(0xFFFFD45C);
 
-  // ------------------------------------------------------------
+
+  // ==========================================================================
   // BUILD
-  // ------------------------------------------------------------
+  // ==========================================================================
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _background,
-      body: SafeArea(
+    return Material(
+      color: Colors.transparent,
+
+      child: Container(
+        width: double.infinity,
+
+        constraints: BoxConstraints(
+          maxHeight:
+          MediaQuery.of(context).size.height * .90,
+        ),
+
+        decoration: const BoxDecoration(
+          color: _background,
+
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(28),
+          ),
+        ),
+
         child: Column(
           children: [
+
+            // ==========================================================
+            // HANDLE
+            // ==========================================================
+
+            const SizedBox(height: 10),
+
+            Container(
+              width: 42,
+              height: 4,
+
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius:
+                BorderRadius.circular(20),
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // ==========================================================
+            // HEADER
+            // ==========================================================
+
             _buildHeader(),
+
+            // ==========================================================
+            // CONTENT
+            // ==========================================================
 
             Expanded(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics:
+                const BouncingScrollPhysics(),
+
                 padding: const EdgeInsets.fromLTRB(
-                  18,
-                  10,
-                  18,
-                  24,
+                  16,
+                  0,
+                  16,
+                  20,
                 ),
-                child: _buildProfileCard(),
+
+                child: Column(
+                  crossAxisAlignment:
+                  CrossAxisAlignment.stretch,
+
+                  children: [
+
+                    _buildRoomHeaderCard(),
+
+                    const SizedBox(height: 18),
+
+                    _buildTabs(),
+
+                    const SizedBox(height: 18),
+
+                    AnimatedSwitcher(
+                      duration:
+                      const Duration(
+                        milliseconds: 180,
+                      ),
+
+                      child:
+                      _buildSelectedTab(),
+                    ),
+                  ],
+                ),
               ),
             ),
+
+            // ==========================================================
+            // BOTTOM ACTIONS
+            // ==========================================================
+
+            _buildBottomActions(),
           ],
         ),
       ),
     );
   }
 
-  // ------------------------------------------------------------
+
+  // ==========================================================================
   // HEADER
-  // ------------------------------------------------------------
+  // ==========================================================================
 
   Widget _buildHeader() {
+    final room = widget.room;
+    final owner = room.owner;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-        22,
-        16,
+        18,
+        2,
+        14,
         12,
-        4,
       ),
+
       child: Row(
         children: [
-          GestureDetector(
-            onTap: () {
-              Navigator.pop(context);
-            },
-            child: Container(
-              width: 63,
-              height: 63,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(13),
-                border: Border.all(
-                  color: Colors.white.withValues(
-                    alpha: .12,
-                  ),
-                ),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(13),
-                child: Image.asset(
-                  'assets/users/profile.png',
-                  width: 63,
-                  height: 63,
-                  fit: BoxFit.cover,
-                  errorBuilder: (
-                      context,
-                      error,
-                      stackTrace,
-                      ) {
-                    return Container(
-                      color: const Color(0xFF39205F),
-                      child: const Icon(
-                        Icons.person,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
+
+          // --------------------------------------------------------------
+          // OWNER AVATAR
+          // --------------------------------------------------------------
+
+          _buildAvatar(
+            avatar: owner?.avatar,
+            name: owner?.name ?? room.name,
+            size: 40,
           ),
 
-          const SizedBox(width: 13),
+          const SizedBox(width: 11),
+
+          // --------------------------------------------------------------
+          // TITLE
+          // --------------------------------------------------------------
 
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
+
               children: [
+
                 Text(
                   'Room Profile',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+
                   style: GoogleFonts.poppins(
                     color: Colors.white,
-                    fontSize: 19,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    fontWeight:
+                    FontWeight.w700,
                   ),
                 ),
 
-                const SizedBox(height: 3),
+                const SizedBox(height: 1),
 
-                Row(
+                Text(
+                  'Room ID: ${room.id}',
+
+                  maxLines: 1,
+
+                  overflow:
+                  TextOverflow.ellipsis,
+
+                  style: GoogleFonts.poppins(
+                    color: Colors.white38,
+                    fontSize: 8.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // --------------------------------------------------------------
+          // REFRESH
+          // --------------------------------------------------------------
+
+          _headerButton(
+            icon: Icons.refresh_rounded,
+            onTap: widget.onRefresh,
+          ),
+
+          const SizedBox(width: 2),
+
+          // --------------------------------------------------------------
+          // CLOSE
+          // --------------------------------------------------------------
+
+          _headerButton(
+            icon:
+            Icons.keyboard_arrow_down_rounded,
+
+            onTap: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  // ==========================================================================
+  // ROOM HEADER CARD
+  // ==========================================================================
+
+  Widget _buildRoomHeaderCard() {
+    final room = widget.room;
+
+    return Container(
+      width: double.infinity,
+
+      padding: const EdgeInsets.all(15),
+
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+
+          colors: [
+            Color(0xFF6935A8),
+            Color(0xFF452079),
+          ],
+        ),
+
+        borderRadius:
+        BorderRadius.circular(20),
+
+        border: Border.all(
+          color: Colors.white
+              .withValues(alpha: .07),
+        ),
+      ),
+
+      child: Column(
+        children: [
+
+          // ==============================================================
+          // ROOM INFO
+          // ==============================================================
+
+          Row(
+            children: [
+
+              _buildRoomAvatar(
+                room,
+                size: 72,
+              ),
+
+              const SizedBox(width: 13),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
+
                   children: [
+
                     Text(
-                      'Room ID: ${widget.roomId}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      room.name,
+
+                      maxLines: 2,
+
+                      overflow:
+                      TextOverflow.ellipsis,
+
                       style: GoogleFonts.poppins(
-                        color: Colors.white.withValues(
-                          alpha: .42,
-                        ),
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight:
+                        FontWeight.w700,
                       ),
                     ),
 
-                    const SizedBox(width: 8),
+                    const SizedBox(height: 4),
 
-                    Container(
-                      width: 7,
-                      height: 7,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color(0xFF64F5B5),
+                    Text(
+                      'Room ID: ${room.id}',
+
+                      maxLines: 1,
+
+                      overflow:
+                      TextOverflow.ellipsis,
+
+                      style: GoogleFonts.poppins(
+                        color: Colors.white54,
+                        fontSize: 9,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    Row(
+                      children: [
+
+                        const Icon(
+                          Icons.mic_rounded,
+                          color: _yellow,
+                          size: 14,
+                        ),
+
+                        const SizedBox(width: 4),
+
+                        Text(
+                          '${room.seatCount} Seats',
+
+                          style:
+                          GoogleFonts.poppins(
+                            color:
+                            Colors.white70,
+                            fontSize: 9.5,
+                            fontWeight:
+                            FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              _headerButton(
+                icon:
+                Icons.refresh_rounded,
+                onTap: widget.onRefresh,
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 15),
+
+          // ==============================================================
+          // ROOM STATS
+          // ==============================================================
+
+          _buildRoomStats(),
+        ],
+      ),
+    );
+  }
+
+
+  // ==========================================================================
+  // ROOM STATS
+  // ==========================================================================
+
+  Widget _buildRoomStats() {
+    final room = widget.room;
+
+    return Row(
+      children: [
+
+        Expanded(
+          child: _buildStat(
+            Icons.people_alt_outlined,
+            '${room.onlineUsers}',
+            'Online',
+          ),
+        ),
+
+        Expanded(
+          child: _buildStat(
+            Icons.mic_none_rounded,
+            '${room.occupiedSeatCount}',
+            'On Mic',
+          ),
+        ),
+
+        Expanded(
+          child: _buildStat(
+            Icons.emoji_events_outlined,
+            '${room.roomRank}',
+            'Rank',
+          ),
+        ),
+      ],
+    );
+  }
+
+
+  Widget _buildStat(
+      IconData icon,
+      String value,
+      String label,
+      ) {
+    return Row(
+      mainAxisAlignment:
+      MainAxisAlignment.center,
+
+      children: [
+
+        Icon(
+          icon,
+          color: Colors.white38,
+          size: 16,
+        ),
+
+        const SizedBox(width: 5),
+
+        Column(
+          crossAxisAlignment:
+          CrossAxisAlignment.start,
+
+          children: [
+
+            Text(
+              value,
+
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 10.5,
+                fontWeight:
+                FontWeight.w600,
+              ),
+            ),
+
+            Text(
+              label,
+
+              style: GoogleFonts.poppins(
+                color: Colors.white30,
+                fontSize: 7,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+
+  // ==========================================================================
+  // TABS
+  // ==========================================================================
+
+  Widget _buildTabs() {
+    const tabs = [
+      'Profile',
+      'Member',
+      'Activity',
+    ];
+
+    return Row(
+      children: [
+
+        for (int i = 0;
+        i < tabs.length;
+        i++)
+
+          Expanded(
+            child: GestureDetector(
+              behavior:
+              HitTestBehavior.opaque,
+
+              onTap: () {
+                if (_selectedTab == i) {
+                  return;
+                }
+
+                setState(() {
+                  _selectedTab = i;
+                });
+              },
+
+              child: Padding(
+                padding:
+                const EdgeInsets.symmetric(
+                  vertical: 5,
+                ),
+
+                child: Column(
+                  children: [
+
+                    Text(
+                      tabs[i],
+
+                      style:
+                      GoogleFonts.poppins(
+                        color:
+                        _selectedTab == i
+                            ? Colors.white
+                            : Colors.white38,
+
+                        fontSize: 11.5,
+
+                        fontWeight:
+                        _selectedTab == i
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                      ),
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    AnimatedContainer(
+                      duration:
+                      const Duration(
+                        milliseconds: 180,
+                      ),
+
+                      width:
+                      _selectedTab == i
+                          ? 22
+                          : 0,
+
+                      height: 3,
+
+                      decoration:
+                      BoxDecoration(
+                        color: _accent,
+
+                        borderRadius:
+                        BorderRadius.circular(
+                          20,
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-
-          IconButton(
-            onPressed: () {
-              setState(() {});
-            },
-            icon: Icon(
-              Icons.refresh_rounded,
-              color: Colors.white.withValues(
-                alpha: .38,
-              ),
-              size: 29,
-            ),
-          ),
-
-          IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: Colors.white.withValues(
-                alpha: .38,
-              ),
-              size: 31,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ------------------------------------------------------------
-  // MAIN CARD
-  // ------------------------------------------------------------
-
-  Widget _buildProfileCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(
-        21,
-        22,
-        21,
-        24,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: Colors.white.withValues(
-            alpha: .20,
-          ),
-        ),
-        gradient: const LinearGradient(
-          colors: [
-            _cardTop,
-            _cardMiddle,
-            _cardBottom,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(
-              alpha: .25,
-            ),
-            blurRadius: 20,
-            offset: const Offset(
-              0,
-              7,
-            ),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -100,
-            top: 170,
-            child: Container(
-              width: 290,
-              height: 290,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: const Color(0xFF8A50D7).withValues(
-                    alpha: .12,
-                  ),
-                  width: 40,
-                ),
               ),
             ),
           ),
-
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildRoomIdentity(),
-
-              const SizedBox(height: 28),
-
-              _buildTabs(),
-
-              const SizedBox(height: 28),
-
-              AnimatedSwitcher(
-                duration: const Duration(
-                  milliseconds: 180,
-                ),
-                child: _buildSelectedTab(),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ------------------------------------------------------------
-  // ROOM IDENTITY
-  // ------------------------------------------------------------
-
-  Widget _buildRoomIdentity() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          width: 105,
-          height: 105,
-          padding: const EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(19),
-            gradient: const LinearGradient(
-              colors: [
-                Color(0xFFFFC54B),
-                Color(0xFF9D4CFF),
-              ],
-            ),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(17),
-            child: Image.asset(
-              'assets/users/profile.png',
-              width: 105,
-              height: 105,
-              fit: BoxFit.cover,
-              errorBuilder: (
-                  context,
-                  error,
-                  stackTrace,
-                  ) {
-                return Container(
-                  color: const Color(0xFF36195D),
-                  child: const Icon(
-                    Icons.meeting_room_rounded,
-                    color: Colors.white,
-                    size: 52,
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-
-        const SizedBox(width: 18),
-
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Junaya Voice Room',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-
-              const SizedBox(height: 7),
-
-              Text(
-                'Room ID: ${widget.roomId}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                  color: const Color(0xFFD7BAFF),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-
-              const SizedBox(height: 7),
-
-              Row(
-                children: [
-                  const Icon(
-                    Icons.mic_rounded,
-                    color: Color(0xFFFFC857),
-                    size: 17,
-                  ),
-
-                  const SizedBox(width: 5),
-
-                  Text(
-                    '$_micCount Seats',
-                    style: GoogleFonts.poppins(
-                      color: const Color(0xFFE7D7FF),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(width: 4),
-
-        IconButton(
-          onPressed: () {
-            setState(() {});
-          },
-          padding: EdgeInsets.zero,
-          icon: const Icon(
-            Icons.refresh_rounded,
-            color: Colors.white,
-            size: 28,
-          ),
-        ),
       ],
     );
   }
 
-  // ------------------------------------------------------------
-  // TABS
-  // ------------------------------------------------------------
 
-  Widget _buildTabs() {
-    return Row(
-      children: [
-        Expanded(
-          child: _profileTab(
-            title: 'Profile',
-            index: 0,
-          ),
-        ),
-
-        Expanded(
-          child: _profileTab(
-            title: 'Member',
-            index: 1,
-          ),
-        ),
-
-        Expanded(
-          child: _profileTab(
-            title: 'Activity',
-            index: 2,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _profileTab({
-    required String title,
-    required int index,
-  }) {
-    final active = _selectedTab == index;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedTab = index;
-        });
-      },
-      child: Column(
-        children: [
-          Text(
-            title,
-            style: GoogleFonts.poppins(
-              color: active
-                  ? Colors.white
-                  : const Color(0xFFE0C9FF),
-              fontSize: 17,
-              fontWeight: active
-                  ? FontWeight.w700
-                  : FontWeight.w400,
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          AnimatedContainer(
-            duration: const Duration(
-              milliseconds: 180,
-            ),
-            width: active ? 26 : 0,
-            height: 4,
-            decoration: BoxDecoration(
-              color: _purple,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // ==========================================================================
+  // SELECTED TAB
+  // ==========================================================================
 
   Widget _buildSelectedTab() {
     switch (_selectedTab) {
+
       case 1:
         return _buildMemberTab();
 
@@ -522,683 +628,524 @@ class _RoomProfileScreenState extends State<RoomProfileScreen> {
     }
   }
 
-  // ------------------------------------------------------------
+
+  // ==========================================================================
   // PROFILE TAB
-  // ------------------------------------------------------------
+  // ==========================================================================
 
   Widget _buildProfileTab() {
+    final room = widget.room;
+    final owner = room.owner;
+
     return Column(
-      key: const ValueKey('profile'),
-      crossAxisAlignment: CrossAxisAlignment.start,
+      key: const ValueKey(
+        'profile_tab',
+      ),
+
+      crossAxisAlignment:
+      CrossAxisAlignment.start,
+
       children: [
-        _sectionTitle(
+
+        // --------------------------------------------------------------
+        // OWNER
+        // --------------------------------------------------------------
+
+        if (owner != null)
+          _buildOwnerCard(owner),
+
+        const SizedBox(height: 14),
+
+        // --------------------------------------------------------------
+        // ANNOUNCEMENT
+        // --------------------------------------------------------------
+
+        _buildSectionTitle(
           'Announcement',
         ),
 
-        const SizedBox(height: 10),
+        const SizedBox(height: 7),
 
         Text(
-          'Welcome to join my party!',
+          room.announcement.trim().isNotEmpty
+              ? room.announcement
+              : 'Welcome to join my party!',
+
           style: GoogleFonts.poppins(
-            color: const Color(0xFFE6D6FF),
-            fontSize: 15.5,
+            color: Colors.white60,
+            fontSize: 10.5,
             height: 1.45,
           ),
         ),
 
-        const SizedBox(height: 32),
+        const SizedBox(height: 18),
 
-        _sectionTitle(
-          'Country',
-        ),
+        // --------------------------------------------------------------
+        // COUNTRY
+        // --------------------------------------------------------------
+
+        _buildCountryCard(),
 
         const SizedBox(height: 12),
 
-        _buildCountry(),
+        // --------------------------------------------------------------
+        // LEVEL
+        // --------------------------------------------------------------
 
-        const SizedBox(height: 32),
+        _buildLevelCard(),
 
-        _sectionTitle(
-          'Level',
-        ),
+        const SizedBox(height: 12),
 
-        const SizedBox(height: 14),
+        // --------------------------------------------------------------
+        // MIC
+        // --------------------------------------------------------------
 
-        _buildLevel(),
-
-        const SizedBox(height: 36),
-
-        _buildRoomSettingsInfo(),
-
-        const SizedBox(height: 30),
-
-        _buildBottomActions(),
+        _buildMicCard(),
       ],
     );
   }
 
-  Widget _sectionTitle(String title) {
-    return Text(
-      title,
-      style: GoogleFonts.poppins(
-        color: Colors.white,
-        fontSize: 18,
-        fontWeight: FontWeight.w700,
-      ),
-    );
-  }
 
-  // ------------------------------------------------------------
-  // COUNTRY
-  // ------------------------------------------------------------
+  // ==========================================================================
+  // OWNER
+  // ==========================================================================
 
-  Widget _buildCountry() {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 8,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: Colors.white.withValues(
-            alpha: .18,
-          ),
-        ),
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xFF5E2AA5),
-            Color(0xFF3B176D),
-          ],
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildPakistanFlag(),
-
-          const SizedBox(width: 12),
-
-          Text(
-            'Pakistan',
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPakistanFlag() {
-    return Container(
-      width: 42,
-      height: 28,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(
-              alpha: .25,
-            ),
-            blurRadius: 5,
-            offset: const Offset(
-              0,
-              2,
-            ),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(5),
-        child: Stack(
-          children: [
-            Container(
-              color: const Color(0xFF01411C),
-            ),
-
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                width: 10,
-                color: Colors.white,
-              ),
-            ),
-
-            Positioned(
-              left: 19,
-              top: 6,
-              child: Container(
-                width: 13,
-                height: 13,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                child: Transform.translate(
-                  offset: const Offset(
-                    4,
-                    -2,
-                  ),
-                  child: Container(
-                    width: 13,
-                    height: 13,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF01411C),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            const Positioned(
-              left: 29,
-              top: 7,
-              child: Icon(
-                Icons.star,
-                size: 7,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ------------------------------------------------------------
-  // LEVEL
-  // ------------------------------------------------------------
-
-  Widget _buildLevel() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: 'LV',
-                    style: GoogleFonts.poppins(
-                      color: const Color(0xFFB55CFA),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                  TextSpan(
-                    text: ' 1',
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const Spacer(),
-
-            GestureDetector(
-              onTap: _showRoomRules,
-              child: Row(
-                children: [
-                  Text(
-                    'Rules',
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 15,
-                    ),
-                  ),
-
-                  const SizedBox(width: 6),
-
-                  const Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    color: Colors.white,
-                    size: 16,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 12),
-
-        ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: LinearProgressIndicator(
-            value: 0,
-            minHeight: 13,
-            color: _purple,
-            backgroundColor: const Color(0xFFD5B6FF),
-          ),
-        ),
-
-        const SizedBox(height: 9),
-
-        Text(
-          'To upgrade: 0/100',
-          style: GoogleFonts.poppins(
-            color: const Color(0xFFDCC7F8),
-            fontSize: 14,
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ------------------------------------------------------------
-  // ROOM SETTINGS INFO
-  // ------------------------------------------------------------
-
-  Widget _buildRoomSettingsInfo() {
+  Widget _buildOwnerCard(RoomUser owner) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 15,
-        vertical: 14,
-      ),
+
+      padding: const EdgeInsets.all(11),
+
       decoration: BoxDecoration(
-        color: Colors.white.withValues(
-          alpha: .055,
-        ),
-        borderRadius: BorderRadius.circular(17),
+        color: Colors.white
+            .withValues(alpha: .045),
+
+        borderRadius:
+        BorderRadius.circular(16),
+
         border: Border.all(
-          color: Colors.white.withValues(
-            alpha: .10,
-          ),
+          color: Colors.white
+              .withValues(alpha: .06),
         ),
       ),
+
       child: Row(
         children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: _purple.withValues(
-                alpha: .14,
-              ),
-            ),
-            child: const Icon(
-              Icons.mic_rounded,
-              color: Color(0xFFD8B5FF),
-              size: 21,
-            ),
+
+          _buildAvatar(
+            avatar: owner.avatar,
+            name: owner.name,
+            size: 44,
           ),
 
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
 
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
+
               children: [
+
+                Row(
+                  children: [
+
+                    Text(
+                      'Room Owner',
+
+                      style:
+                      GoogleFonts.poppins(
+                        color:
+                        Colors.white38,
+                        fontSize: 8,
+                      ),
+                    ),
+
+                    const SizedBox(width: 5),
+
+                    const Icon(
+                      Icons
+                          .workspace_premium_rounded,
+                      color: _yellow,
+                      size: 12,
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 2),
+
                 Text(
-                  'Mic Seats',
+                  owner.name,
+
+                  maxLines: 1,
+
+                  overflow:
+                  TextOverflow.ellipsis,
+
                   style: GoogleFonts.poppins(
                     color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 11.5,
+                    fontWeight:
+                    FontWeight.w600,
                   ),
                 ),
 
-                const SizedBox(height: 3),
+                if (owner.junayaId != null &&
+                    owner.junayaId!
+                        .trim()
+                        .isNotEmpty)
 
-                Text(
-                  '$_micCount of 25 seats configured',
-                  style: GoogleFonts.poppins(
-                    color: Colors.white54,
-                    fontSize: 10.5,
+                  Text(
+                    'ID ${owner.junayaId}',
+
+                    style:
+                    GoogleFonts.poppins(
+                      color:
+                      Colors.white30,
+                      fontSize: 7.5,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
 
-          Text(
-            '$_micCount/25',
-            style: GoogleFonts.poppins(
-              color: const Color(0xFFFFD76A),
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
+          if (owner.vipLevel > 0)
+            _buildVipBadge(
+              owner.vipLevel,
             ),
-          ),
         ],
       ),
     );
   }
 
-  // ------------------------------------------------------------
-  // BOTTOM ACTIONS
-  // ------------------------------------------------------------
 
-  Widget _buildBottomActions() {
-    return Row(
-      children: [
-        Expanded(
-          child: _bigButton(
-            icon: Icons.rocket_launch_outlined,
-            label: 'Top',
-            colors: const [
-              Color(0xFF983DEC),
-              Color(0xFF9C44E7),
-            ],
-            onTap: _showTopUsers,
-          ),
-        ),
+  // ==========================================================================
+  // COUNTRY
+  // ==========================================================================
 
-        const SizedBox(width: 18),
+  Widget _buildCountryCard() {
+    // Temporary fake data.
+    // VoiceRoom currently has no country field.
 
-        Expanded(
-          child: _bigButton(
-            icon: Icons.settings_rounded,
-            label: 'Setting',
-            colors: const [
-              Color(0xFF8B62DD),
-              Color(0xFF9E74E3),
-            ],
-            onTap: _openRoomSettings,
-          ),
-        ),
-      ],
-    );
-  }
+    const country = 'Pakistan';
+    const flag = '🇵🇰';
 
-  Widget _bigButton({
-    required IconData icon,
-    required String label,
-    required List<Color> colors,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 62,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: colors,
-          ),
-          borderRadius: BorderRadius.circular(32),
-          boxShadow: [
-            BoxShadow(
-              color: colors.first.withValues(
-                alpha: .18,
-              ),
-              blurRadius: 12,
-              offset: const Offset(
-                0,
-                4,
-              ),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: Colors.white,
-              size: 27,
-            ),
-
-            const SizedBox(width: 9),
-
-            Text(
-              label,
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ------------------------------------------------------------
-  // MEMBER TAB
-  // ------------------------------------------------------------
-
-  Widget _buildMemberTab() {
-    return Column(
-      key: const ValueKey('member'),
-      children: [
-        _emptyTab(
-          'Room members will appear here.',
-        ),
-      ],
-    );
-  }
-
-  // ------------------------------------------------------------
-  // ACTIVITY TAB
-  // ------------------------------------------------------------
-
-  Widget _buildActivityTab() {
-    return Column(
-      key: const ValueKey('activity'),
-      children: [
-        _emptyTab(
-          'Room activity will appear here.',
-        ),
-      ],
-    );
-  }
-
-  Widget _emptyTab(String text) {
-    return SizedBox(
-      height: 250,
-      child: Center(
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(
-            color: Colors.white54,
-            fontSize: 13,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ------------------------------------------------------------
-  // ROOM SETTINGS
-  // ------------------------------------------------------------
-
-  Future<void> _openRoomSettings() async {
-    final result = await Navigator.push<int>(
-      context,
-      MaterialPageRoute(
-        builder: (_) {
-          return RoomSettingsScreen(
-            roomId: widget.roomId,
-
-            currentMicCount: _micCount,
-
-            socketService: widget.socketService,
-
-            onMicCountChanged: (count) {
-              if (!mounted) {
-                return;
-              }
-
-              setState(() {
-                _micCount = _normalizeMicCount(
-                  count,
-                );
-              });
-            },
-
-            selectedWallpaper:
-            widget.selectedWallpaper,
-
-            onWallpaperChanged: (wallpaper) {
-              widget.onWallpaperChanged?.call(
-                wallpaper,
-              );
-            },
-          );
-        },
-      ),
-    );
-
-    if (!mounted) {
-      return;
-    }
-
-    if (result != null) {
-      setState(() {
-        _micCount = _normalizeMicCount(
-          result,
-        );
-      });
-
-      // Return the new count to RoomScreen.
-      Navigator.pop(
-        context,
-        _micCount,
-      );
-    }
-  }
-
-  // ------------------------------------------------------------
-  // TOP USERS
-  // ------------------------------------------------------------
-
-  void _showTopUsers() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) {
-        return SafeArea(
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(
-              18,
-              14,
-              18,
-              22,
-            ),
-            decoration: const BoxDecoration(
-              color: Color(0xFF160633),
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(26),
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _sheetHandle(),
-
-                const SizedBox(height: 16),
-
-                Text(
-                  'Top Users',
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-
-                const SizedBox(height: 18),
-
-                _rankingRow(
-                  level: '1',
-                  title: 'Golden Circle',
-                  icon: '👑',
-                ),
-
-                _rankingRow(
-                  level: '2',
-                  title: 'Metal Circle',
-                  icon: '♛',
-                ),
-
-                _rankingRow(
-                  level: '3',
-                  title: 'Silver Circle',
-                  icon: '♔',
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _rankingRow({
-    required String level,
-    required String title,
-    required String icon,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(
-        bottom: 9,
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 13,
-        vertical: 11,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(
-          alpha: .045,
-        ),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: Colors.white.withValues(
-            alpha: .07,
-          ),
-        ),
-      ),
+    return _buildInfoCard(
       child: Row(
         children: [
+
           Container(
-            width: 34,
-            height: 34,
-            decoration: const BoxDecoration(
+            width: 40,
+            height: 40,
+
+            alignment:
+            Alignment.center,
+
+            decoration: BoxDecoration(
+              color: Colors.white
+                  .withValues(alpha: .055),
               shape: BoxShape.circle,
-              color: Color(0xFF41206D),
             ),
-            alignment: Alignment.center,
-            child: Text(
-              level,
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
+
+            child: const Text(
+              flag,
+              style: TextStyle(
+                fontSize: 20,
               ),
             ),
           ),
 
           const SizedBox(width: 11),
 
-          Text(
-            icon,
-            style: const TextStyle(
-              fontSize: 23,
+          Expanded(
+            child: Column(
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
+
+              children: [
+
+                _smallLabel(
+                  'Country',
+                ),
+
+                const SizedBox(height: 2),
+
+                Text(
+                  country,
+
+                  style:
+                  GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 11.5,
+                    fontWeight:
+                    FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
 
-          const SizedBox(width: 9),
+          _temporaryBadge(),
+        ],
+      ),
+    );
+  }
+
+
+  // ==========================================================================
+  // LEVEL
+  // ==========================================================================
+
+  Widget _buildLevelCard() {
+    // Temporary fake data.
+    // VoiceRoom currently has no level fields.
+
+    const int level = 2;
+    const double progress = .30;
+
+    final percentage =
+    (progress * 100).round();
+
+    return Container(
+      width: double.infinity,
+
+      padding: const EdgeInsets.all(14),
+
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+
+          colors: [
+            const Color(0xFF59268D)
+                .withValues(alpha: .72),
+
+            const Color(0xFF32155C)
+                .withValues(alpha: .72),
+          ],
+        ),
+
+        borderRadius:
+        BorderRadius.circular(18),
+
+        border: Border.all(
+          color: _accent
+              .withValues(alpha: .13),
+        ),
+      ),
+
+      child: Column(
+        crossAxisAlignment:
+        CrossAxisAlignment.start,
+
+        children: [
+
+          Row(
+            children: [
+
+              Container(
+                width: 42,
+                height: 42,
+
+                alignment:
+                Alignment.center,
+
+                decoration: BoxDecoration(
+                  color: _accent
+                      .withValues(alpha: .14),
+
+                  shape: BoxShape.circle,
+
+                  border: Border.all(
+                    color: _accent
+                        .withValues(alpha: .18),
+                  ),
+                ),
+
+                child: Text(
+                  '$level',
+
+                  style:
+                  GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight:
+                    FontWeight.w700,
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 11),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
+
+                  children: [
+
+                    _smallLabel(
+                      'Room Level',
+                    ),
+
+                    const SizedBox(height: 2),
+
+                    Text(
+                      'LV $level',
+
+                      style:
+                      GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight:
+                        FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              Text(
+                '$percentage%',
+
+                style:
+                GoogleFonts.poppins(
+                  color: _cyan,
+                  fontSize: 11,
+                  fontWeight:
+                  FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 15),
+
+          ClipRRect(
+            borderRadius:
+            BorderRadius.circular(20),
+
+            child: LinearProgressIndicator(
+              minHeight: 8,
+
+              value: progress,
+
+              backgroundColor:
+              Colors.white
+                  .withValues(alpha: .10),
+
+              valueColor:
+              const AlwaysStoppedAnimation<
+                  Color>(
+                _cyan,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 7),
+
+          Row(
+            children: [
+
+              _smallLabel(
+                'Progress',
+              ),
+
+              const Spacer(),
+
+              Text(
+                '$percentage / 100',
+
+                style:
+                GoogleFonts.poppins(
+                  color: Colors.white38,
+                  fontSize: 8,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  // ==========================================================================
+  // MIC CARD
+  // ==========================================================================
+
+  Widget _buildMicCard() {
+    final room = widget.room;
+
+    return _buildInfoCard(
+      child: Row(
+        children: [
+
+          Container(
+            width: 40,
+            height: 40,
+
+            alignment:
+            Alignment.center,
+
+            decoration: BoxDecoration(
+              color: _accent
+                  .withValues(alpha: .14),
+              shape: BoxShape.circle,
+            ),
+
+            child: const Icon(
+              Icons.mic_rounded,
+              color: Colors.white70,
+              size: 20,
+            ),
+          ),
+
+          const SizedBox(width: 11),
 
           Expanded(
-            child: Text(
-              title,
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-              ),
+            child: Column(
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
+
+              children: [
+
+                Text(
+                  'Mic Seats',
+
+                  style:
+                  GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight:
+                    FontWeight.w600,
+                  ),
+                ),
+
+                const SizedBox(height: 2),
+
+                Text(
+                  '${room.seatCount} mic seats configured',
+
+                  style:
+                  GoogleFonts.poppins(
+                    color: Colors.white38,
+                    fontSize: 8,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Text(
+            '${room.seatCount}/25',
+
+            style:
+            GoogleFonts.poppins(
+              color: _yellow,
+              fontSize: 10,
+              fontWeight:
+              FontWeight.w700,
             ),
           ),
         ],
@@ -1206,99 +1153,413 @@ class _RoomProfileScreenState extends State<RoomProfileScreen> {
     );
   }
 
-  // ------------------------------------------------------------
-  // RULES
-  // ------------------------------------------------------------
 
-  void _showRoomRules() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) {
-        return SafeArea(
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(
-              20,
-              14,
-              20,
-              22,
+  // ==========================================================================
+  // MEMBER TAB
+  // ==========================================================================
+
+  Widget _buildMemberTab() {
+    final members = widget.room.members;
+
+    return Column(
+      key: const ValueKey(
+        'member_tab',
+      ),
+
+      crossAxisAlignment:
+      CrossAxisAlignment.start,
+
+      children: [
+
+        Row(
+          children: [
+
+            _buildSectionTitle(
+              'Members',
             ),
-            decoration: const BoxDecoration(
-              color: Color(0xFF160633),
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(26),
+
+            const SizedBox(width: 6),
+
+            Text(
+              '${members.length}',
+
+              style:
+              GoogleFonts.poppins(
+                color: Colors.white38,
+                fontSize: 9,
               ),
             ),
+          ],
+        ),
+
+        const SizedBox(height: 10),
+
+        if (members.isEmpty)
+
+          _buildEmptyState(
+            icon:
+            Icons.people_outline_rounded,
+
+            title:
+            'No members',
+
+            subtitle:
+            'There are no members in this room yet.',
+          )
+
+        else
+
+          ListView.separated(
+            shrinkWrap: true,
+
+            physics:
+            const NeverScrollableScrollPhysics(),
+
+            itemCount:
+            members.length,
+
+            separatorBuilder:
+                (_, __) =>
+            const SizedBox(height: 7),
+
+            itemBuilder:
+                (context, index) {
+
+              final member =
+              members[index];
+
+              return _buildMemberTile(
+                member,
+              );
+            },
+          ),
+      ],
+    );
+  }
+
+
+  // ==========================================================================
+  // MEMBER TILE
+  // ==========================================================================
+
+  Widget _buildMemberTile(
+      RoomUser member,
+      ) {
+    final isOwner =
+        member.id ==
+            widget.room.ownerId ||
+            member.isHost;
+
+    return Container(
+      width: double.infinity,
+
+      padding:
+      const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 9,
+      ),
+
+      decoration: BoxDecoration(
+        color: Colors.white
+            .withValues(alpha: .045),
+
+        borderRadius:
+        BorderRadius.circular(15),
+
+        border: Border.all(
+          color: Colors.white
+              .withValues(alpha: .055),
+        ),
+      ),
+
+      child: Row(
+        children: [
+
+          _buildAvatar(
+            avatar: member.avatar,
+            name: member.name,
+            size: 40,
+          ),
+
+          const SizedBox(width: 10),
+
+          Expanded(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
+
               children: [
-                _sheetHandle(),
 
-                const SizedBox(height: 17),
+                Row(
+                  children: [
 
-                Text(
-                  'Room Rules',
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                  ),
+                    Flexible(
+                      child: Text(
+                        member.name,
+
+                        maxLines: 1,
+
+                        overflow:
+                        TextOverflow.ellipsis,
+
+                        style:
+                        GoogleFonts.poppins(
+                          color:
+                          Colors.white,
+                          fontSize: 11,
+                          fontWeight:
+                          FontWeight.w600,
+                        ),
+                      ),
+                    ),
+
+                    if (isOwner) ...[
+                      const SizedBox(width: 5),
+
+                      _buildRoleBadge(
+                        'Owner',
+                      ),
+                    ]
+                    else if (member.isAdmin) ...[
+                      const SizedBox(width: 5),
+
+                      _buildRoleBadge(
+                        'Admin',
+                      ),
+                    ],
+                  ],
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 2),
 
-                _ruleItem(
-                  Icons.mic_none_rounded,
-                  'Respect everyone in the room.',
-                ),
+                Row(
+                  children: [
 
-                _ruleItem(
-                  Icons.block_rounded,
-                  'No abusive or offensive behavior.',
-                ),
+                    if (member.junayaId != null &&
+                        member.junayaId!
+                            .trim()
+                            .isNotEmpty)
 
-                _ruleItem(
-                  Icons.people_outline_rounded,
-                  'Follow the room owner instructions.',
-                ),
+                      Flexible(
+                        child: Text(
+                          'ID ${member.junayaId}',
 
-                _ruleItem(
-                  Icons.favorite_border_rounded,
-                  'Keep the room friendly.',
+                          maxLines: 1,
+
+                          overflow:
+                          TextOverflow.ellipsis,
+
+                          style:
+                          GoogleFonts.poppins(
+                            color:
+                            Colors.white38,
+                            fontSize: 8,
+                          ),
+                        ),
+                      ),
+
+                    if (member.vipLevel > 0) ...[
+                      const SizedBox(width: 6),
+
+                      Text(
+                        'VIP ${member.vipLevel}',
+
+                        style:
+                        GoogleFonts.poppins(
+                          color: _yellow,
+                          fontSize: 8,
+                          fontWeight:
+                          FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
           ),
-        );
-      },
+
+          if (member.isSpeaking)
+            const Icon(
+              Icons.graphic_eq_rounded,
+              color: _cyan,
+              size: 18,
+            )
+          else if (member.isMuted)
+            const Icon(
+              Icons.mic_off_rounded,
+              color: Colors.white30,
+              size: 17,
+            ),
+        ],
+      ),
     );
   }
 
-  Widget _ruleItem(
-      IconData icon,
-      String text,
-      ) {
-    return Padding(
-      padding: const EdgeInsets.only(
-        bottom: 12,
+
+  // ==========================================================================
+  // ACTIVITY TAB
+  // ==========================================================================
+
+  Widget _buildActivityTab() {
+    return Column(
+      key: const ValueKey(
+        'activity_tab',
       ),
-      child: Row(
+
+      crossAxisAlignment:
+      CrossAxisAlignment.start,
+
+      children: [
+
+        _buildSectionTitle(
+          'Activity',
+        ),
+
+        const SizedBox(height: 10),
+
+        _buildEmptyState(
+          icon:
+          Icons.history_rounded,
+
+          title:
+          'No activity yet',
+
+          subtitle:
+          'Room activity will appear here.',
+        ),
+      ],
+    );
+  }
+
+
+  // ==========================================================================
+  // EMPTY STATE
+  // ==========================================================================
+
+  Widget _buildEmptyState({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return Container(
+      width: double.infinity,
+
+      padding:
+      const EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: 25,
+      ),
+
+      decoration: BoxDecoration(
+        color: Colors.white
+            .withValues(alpha: .035),
+
+        borderRadius:
+        BorderRadius.circular(16),
+
+        border: Border.all(
+          color: Colors.white
+              .withValues(alpha: .05),
+        ),
+      ),
+
+      child: Column(
         children: [
+
           Icon(
             icon,
-            color: const Color(0xFFD4A6FF),
-            size: 20,
+            color: Colors.white24,
+            size: 30,
+          ),
+
+          const SizedBox(height: 8),
+
+          Text(
+            title,
+
+            style:
+            GoogleFonts.poppins(
+              color: Colors.white60,
+              fontSize: 10,
+              fontWeight:
+              FontWeight.w600,
+            ),
+          ),
+
+          const SizedBox(height: 3),
+
+          Text(
+            subtitle,
+
+            textAlign:
+            TextAlign.center,
+
+            style:
+            GoogleFonts.poppins(
+              color: Colors.white30,
+              fontSize: 8.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  // ==========================================================================
+  // BOTTOM ACTIONS
+  // ==========================================================================
+
+  Widget _buildBottomActions() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        16,
+        10,
+        16,
+        14,
+      ),
+
+      decoration: BoxDecoration(
+        color: _background,
+
+        border: Border(
+          top: BorderSide(
+            color: Colors.white
+                .withValues(alpha: .06),
+          ),
+        ),
+      ),
+
+      child: Row(
+        children: [
+
+          Expanded(
+            child: _buildBottomButton(
+              icon:
+              Icons.rocket_launch_rounded,
+
+              title: 'Top',
+
+              color:
+              const Color(0xFFFF626D),
+
+              onTap: widget.onTop,
+            ),
           ),
 
           const SizedBox(width: 12),
 
           Expanded(
-            child: Text(
-              text,
-              style: GoogleFonts.poppins(
-                color: Colors.white70,
-                fontSize: 12,
-              ),
+            child: _buildBottomButton(
+              icon:
+              Icons.settings_rounded,
+
+              title: 'Setting',
+
+              color: _cyan,
+
+              onTap: widget.onSettings,
             ),
           ),
         ],
@@ -1306,17 +1567,403 @@ class _RoomProfileScreenState extends State<RoomProfileScreen> {
     );
   }
 
-  // ------------------------------------------------------------
-  // SHEET HANDLE
-  // ------------------------------------------------------------
 
-  Widget _sheetHandle() {
+  // ==========================================================================
+  // BOTTOM BUTTON
+  // ==========================================================================
+
+  Widget _buildBottomButton({
+    required IconData icon,
+    required String title,
+    required Color color,
+    VoidCallback? onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+
+      child: InkWell(
+        onTap: onTap,
+
+        borderRadius:
+        BorderRadius.circular(28),
+
+        child: Container(
+          height: 50,
+
+          decoration: BoxDecoration(
+            color: color,
+
+            borderRadius:
+            BorderRadius.circular(28),
+          ),
+
+          child: Row(
+            mainAxisAlignment:
+            MainAxisAlignment.center,
+
+            children: [
+
+              Icon(
+                icon,
+                color: Colors.white,
+                size: 21,
+              ),
+
+              const SizedBox(width: 7),
+
+              Text(
+                title,
+
+                style:
+                GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight:
+                  FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
+  // ==========================================================================
+  // INFO CARD
+  // ==========================================================================
+
+  Widget _buildInfoCard({
+    required Widget child,
+  }) {
     return Container(
-      width: 42,
-      height: 4,
+      width: double.infinity,
+
+      padding: const EdgeInsets.all(13),
+
       decoration: BoxDecoration(
-        color: Colors.white24,
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white
+            .withValues(alpha: .045),
+
+        borderRadius:
+        BorderRadius.circular(16),
+
+        border: Border.all(
+          color: Colors.white
+              .withValues(alpha: .06),
+        ),
+      ),
+
+      child: child,
+    );
+  }
+
+
+  // ==========================================================================
+  // SECTION TITLE
+  // ==========================================================================
+
+  Widget _buildSectionTitle(
+      String title,
+      ) {
+    return Text(
+      title,
+
+      style: GoogleFonts.poppins(
+        color: Colors.white,
+        fontSize: 12,
+        fontWeight:
+        FontWeight.w600,
+      ),
+    );
+  }
+
+
+  // ==========================================================================
+  // SMALL LABEL
+  // ==========================================================================
+
+  Widget _smallLabel(
+      String text,
+      ) {
+    return Text(
+      text,
+
+      style: GoogleFonts.poppins(
+        color: Colors.white38,
+        fontSize: 8,
+      ),
+    );
+  }
+
+
+  // ==========================================================================
+  // TEMP BADGE
+  // ==========================================================================
+
+  Widget _temporaryBadge() {
+    return Container(
+      padding:
+      const EdgeInsets.symmetric(
+        horizontal: 7,
+        vertical: 4,
+      ),
+
+      decoration: BoxDecoration(
+        color: Colors.white
+            .withValues(alpha: .05),
+
+        borderRadius:
+        BorderRadius.circular(7),
+      ),
+
+      child: Text(
+        'TEMP',
+
+        style: GoogleFonts.poppins(
+          color: Colors.white30,
+          fontSize: 6.5,
+          fontWeight:
+          FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+
+  // ==========================================================================
+  // VIP BADGE
+  // ==========================================================================
+
+  Widget _buildVipBadge(
+      int level,
+      ) {
+    return Container(
+      padding:
+      const EdgeInsets.symmetric(
+        horizontal: 7,
+        vertical: 4,
+      ),
+
+      decoration: BoxDecoration(
+        color: _yellow
+            .withValues(alpha: .10),
+
+        borderRadius:
+        BorderRadius.circular(8),
+
+        border: Border.all(
+          color: _yellow
+              .withValues(alpha: .20),
+        ),
+      ),
+
+      child: Text(
+        'VIP $level',
+
+        style: GoogleFonts.poppins(
+          color: _yellow,
+          fontSize: 7.5,
+          fontWeight:
+          FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+
+  // ==========================================================================
+  // ROLE BADGE
+  // ==========================================================================
+
+  Widget _buildRoleBadge(
+      String text,
+      ) {
+    return Container(
+      padding:
+      const EdgeInsets.symmetric(
+        horizontal: 5,
+        vertical: 2,
+      ),
+
+      decoration: BoxDecoration(
+        color: _yellow
+            .withValues(alpha: .12),
+
+        borderRadius:
+        BorderRadius.circular(5),
+      ),
+
+      child: Text(
+        text,
+
+        style: GoogleFonts.poppins(
+          color: _yellow,
+          fontSize: 7,
+          fontWeight:
+          FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+
+  // ==========================================================================
+  // ROOM AVATAR
+  // ==========================================================================
+
+  Widget _buildRoomAvatar(
+      VoiceRoom room, {
+        double size = 70,
+      }) {
+    final owner = room.owner;
+
+    return _buildAvatar(
+      avatar: owner?.avatar,
+      name: owner?.name ?? room.name,
+      size: size,
+      radius: 16,
+    );
+  }
+
+
+  // ==========================================================================
+  // AVATAR
+  // ==========================================================================
+
+  Widget _buildAvatar({
+    required String? avatar,
+    required String name,
+    required double size,
+    double? radius,
+  }) {
+    final source =
+        avatar?.trim() ?? '';
+
+    final borderRadius =
+        radius ?? size / 2;
+
+    Widget fallback() {
+      return Container(
+        width: size,
+        height: size,
+
+        alignment:
+        Alignment.center,
+
+        decoration: BoxDecoration(
+          color:
+          const Color(0xFF6B2878),
+
+          borderRadius:
+          BorderRadius.circular(
+            borderRadius,
+          ),
+        ),
+
+        child: Text(
+          _avatarLetter(name),
+
+          style:
+          GoogleFonts.poppins(
+            color: Colors.white,
+            fontSize: size * .32,
+            fontWeight:
+            FontWeight.w700,
+          ),
+        ),
+      );
+    }
+
+    if (source.isEmpty) {
+      return fallback();
+    }
+
+    final isNetwork =
+        source.startsWith('http://') ||
+            source.startsWith('https://');
+
+    final image = isNetwork
+        ? Image.network(
+      source,
+      width: size,
+      height: size,
+      fit: BoxFit.cover,
+
+      errorBuilder:
+          (_, __, ___) =>
+          fallback(),
+    )
+        : Image.asset(
+      source,
+      width: size,
+      height: size,
+      fit: BoxFit.cover,
+
+      errorBuilder:
+          (_, __, ___) =>
+          fallback(),
+    );
+
+    return ClipRRect(
+      borderRadius:
+      BorderRadius.circular(
+        borderRadius,
+      ),
+
+      child: image,
+    );
+  }
+
+
+  // ==========================================================================
+  // AVATAR LETTER
+  // ==========================================================================
+
+  String _avatarLetter(
+      String name,
+      ) {
+    final value =
+    name.trim();
+
+    if (value.isEmpty) {
+      return '?';
+    }
+
+    return value.characters
+        .first
+        .toUpperCase();
+  }
+
+
+  // ==========================================================================
+  // HEADER BUTTON
+  // ==========================================================================
+
+  Widget _headerButton({
+    required IconData icon,
+    VoidCallback? onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+
+      child: InkWell(
+        onTap: onTap,
+
+        borderRadius:
+        BorderRadius.circular(20),
+
+        child: Padding(
+          padding:
+          const EdgeInsets.all(7),
+
+          child: Icon(
+            icon,
+            color: Colors.white70,
+            size: 21,
+          ),
+        ),
       ),
     );
   }
