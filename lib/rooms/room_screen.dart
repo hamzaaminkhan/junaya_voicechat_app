@@ -1248,34 +1248,216 @@ class _RoomScreenState extends State<RoomScreen>
   VoiceRoom get _room => _roomController.room!;
 
   Future<void> _openRoomProfile() async {
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
 
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: false,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(
-        alpha: 0.42,
-      ),
+      barrierColor: Colors.black.withValues(alpha: .42),
       builder: (sheetContext) {
+
         return FractionallySizedBox(
           heightFactor: 0.90,
+
           child: RoomProfileScreen(
+
             room: _room,
+
+
+            // TOP BUTTON
+            onTop: () {
+
+              Navigator.pop(sheetContext);
+
+              _showTopUsersSheet();
+
+            },
+
+
+            // SETTINGS BUTTON
+            onSetting: () async {
+
+              Navigator.pop(sheetContext);
+
+
+              await Navigator.push(
+                context,
+
+                MaterialPageRoute(
+
+                  builder: (_) {
+
+                    return RoomSettingsScreen(
+
+                      roomId: _room.id,
+
+
+                      currentMicCount:
+                      _room.seatCount,
+
+
+                      socketService:
+                      _socketService,
+
+
+                      onMicCountChanged:
+                          (count) {
+
+                        _updateSeatCount(count);
+
+                      },
+
+
+                      selectedWallpaper:
+                      _selectedWallpaper,
+
+
+                      onWallpaperChanged:
+                          (wallpaper) {
+
+                        _selectRoomWallpaper(
+                          wallpaper,
+                        );
+
+                      },
+
+                    );
+
+                  },
+
+                ),
+
+              );
+
+            },
+
           ),
+
         );
+
       },
+
     );
-    // --------------------------------------------------------------------------
-    // RESTORE ROOM IMMERSIVE MODE
-    // --------------------------------------------------------------------------
+
 
     if (mounted && !_roomExitHandled) {
       _enterImmersiveRoomMode();
     }
+  }
+
+  void _showTopUsersSheet() {
+
+    showModalBottomSheet(
+      context: context,
+
+      backgroundColor:
+      Colors.transparent,
+
+
+      builder: (_) {
+
+        return Container(
+
+          padding:
+          const EdgeInsets.all(20),
+
+
+          decoration:
+          const BoxDecoration(
+
+            color:
+            Color(0xFF160633),
+
+            borderRadius:
+            BorderRadius.vertical(
+              top: Radius.circular(26),
+            ),
+
+          ),
+
+
+          child:
+          Column(
+
+            mainAxisSize:
+            MainAxisSize.min,
+
+
+            children: [
+
+              Container(
+                width:42,
+                height:4,
+
+                decoration:
+                BoxDecoration(
+
+                  color:
+                  Colors.white24,
+
+                  borderRadius:
+                  BorderRadius.circular(20),
+
+                ),
+              ),
+
+
+              const SizedBox(height:20),
+
+
+              Text(
+
+                "Room Top",
+
+                style:
+                GoogleFonts.poppins(
+
+                  color:
+                  Colors.white,
+
+                  fontSize:
+                  18,
+
+                  fontWeight:
+                  FontWeight.w700,
+
+                ),
+
+              ),
+
+
+              const SizedBox(height:20),
+
+
+              const Text(
+
+                "Top contributors will appear here",
+
+                style:
+                TextStyle(
+
+                  color:
+                  Colors.white54,
+
+                ),
+
+              ),
+
+
+              const SizedBox(height:30),
+
+            ],
+
+          ),
+
+        );
+
+      },
+
+    );
+
   }
 
   void _showMessage(String message) {
