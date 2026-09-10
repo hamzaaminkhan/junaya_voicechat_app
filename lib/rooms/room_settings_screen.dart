@@ -674,31 +674,184 @@ class _RoomSettingsScreenState
   // ------------------------------------------------------------
 
   Widget _buildThemeTile() {
+
     return _tile(
-      icon: Icons.palette_rounded,
-      title: 'Theme',
+
+      icon:
+      Icons.palette_rounded,
+
+
+      title:
+      'Theme',
+
+
+      value:
+      widget.room?.theme ?? 'Default',
+
+
       onTap: () {
-        _message(
-          'Theme selector coming soon.',
+
+        _pickNumber(
+
+          title:
+          'Theme',
+
+
+          values:
+          const [
+            1,
+            2,
+            3,
+          ],
+
+
+          selected:
+          1,
+
+
+          onSelected:
+              (value) {
+
+
+            String theme;
+
+
+            switch(value){
+
+              case 2:
+                theme = "dark";
+                break;
+
+
+              case 3:
+                theme = "gold";
+                break;
+
+
+              default:
+                theme = "default";
+
+            }
+
+
+            widget.socketService.updateRoomSetting(
+
+              roomId:
+              widget.roomId,
+
+
+              key:
+              "theme",
+
+
+              value:
+              theme,
+
+            );
+
+
+          },
+
         );
+
       },
+
     );
+
   }
 
   // ------------------------------------------------------------
   // ROOM FRAME
   // ------------------------------------------------------------
 
-  Widget _buildRoomFrameTile() {
+  Widget _buildRoomFrameTile(){
+
     return _tile(
-      icon: Icons.crop_square_rounded,
-      title: 'Room Frame',
-      onTap: () {
-        _message(
-          'Room frame selector coming soon.',
+
+      icon:
+      Icons.crop_square_rounded,
+
+
+      title:
+      'Room Frame',
+
+
+      value:
+      widget.room?.roomFrame ?? "Default",
+
+
+      onTap: (){
+
+
+        _pickNumber(
+
+          title:
+          "Room Frame",
+
+
+          values:
+          const [
+            1,
+            2,
+            3,
+          ],
+
+
+          selected:
+          1,
+
+
+          onSelected:
+              (value){
+
+
+            String frame;
+
+
+            switch(value){
+
+              case 2:
+                frame = "vip";
+                break;
+
+
+              case 3:
+                frame = "gold";
+                break;
+
+
+              default:
+                frame = "default";
+
+            }
+
+
+
+            widget.socketService.updateRoomSetting(
+
+              roomId:
+              widget.roomId,
+
+
+              key:
+              "roomFrame",
+
+
+              value:
+              frame,
+
+            );
+
+
+          },
+
         );
+
+
       },
+
     );
+
   }
 
   // ------------------------------------------------------------
@@ -714,10 +867,34 @@ class _RoomSettingsScreenState
           title: 'Password',
           initialValue: '',
           obscure: true,
-          onSaved: (_) {
-            _message(
-              'Password updated.',
+          onSaved: (value) {
+
+            final hasPassword =
+                value.trim().isNotEmpty;
+
+
+            widget.socketService.updateRoomSetting(
+
+              roomId:
+              widget.roomId,
+
+
+              key:
+              "hasPassword",
+
+
+              value:
+              hasPassword,
+
             );
+
+
+            _message(
+              hasPassword
+                  ? 'Password enabled.'
+                  : 'Password removed.',
+            );
+
           },
         );
       },
@@ -1328,7 +1505,4 @@ class _RoomSettingsScreenState
         ),
       );
   }
-
-
-
 }
