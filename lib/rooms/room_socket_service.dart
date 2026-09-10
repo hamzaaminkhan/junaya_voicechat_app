@@ -433,6 +433,38 @@ class RoomSocketService {
     );
   }
 
+  void updateRoomSetting({
+
+    required String roomId,
+
+    required String key,
+
+    required dynamic value,
+
+    void Function(bool ok, String? error)? onResult,
+
+  }) {
+
+    _emitWithResult(
+
+      'room:update_setting',
+
+      {
+
+        'roomId': roomId,
+
+        'key': key,
+
+        'value': value,
+
+      },
+
+      onResult,
+
+    );
+
+  }
+
 
 
   void dispose() {

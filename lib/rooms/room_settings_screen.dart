@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:junaya_voicechat_app/rooms/models/voice_room_model.dart';
 
 import 'package:junaya_voicechat_app/rooms/room_socket_service.dart';
 import 'package:junaya_voicechat_app/rooms/widgets/room_wallpaper_picker.dart';
@@ -13,6 +14,8 @@ class RoomSettingsScreen extends StatefulWidget {
   /// Current number of mic seats in the room.
   final int currentMicCount;
 
+  final VoiceRoom? room;
+
   final RoomSocketService socketService;
 
   /// Called immediately when the user selects a new mic count.
@@ -24,13 +27,23 @@ class RoomSettingsScreen extends StatefulWidget {
   onWallpaperChanged;
 
   const RoomSettingsScreen({
+
     super.key,
+
     required this.roomId,
+
     required this.currentMicCount,
+
     required this.socketService,
+
+    this.room,
+
     this.onMicCountChanged,
+
     this.selectedWallpaper,
+
     this.onWallpaperChanged,
+
   });
 
   @override
@@ -73,13 +86,13 @@ class _RoomSettingsScreenState
   String announcement =
       'Welcome to join my party!';
 
-  int diceCount = 1;
+  late int diceCount;
 
-  bool sendEmojis = false;
+  late bool sendEmojis;
 
-  bool adminsOpenGames = false;
+  late bool adminsOpenGames;
 
-  bool followersTakeMic = true;
+  late bool followersTakeMic;
 
   // ------------------------------------------------------------
   // WALLPAPER
@@ -98,6 +111,36 @@ class _RoomSettingsScreenState
     micCount = _normalizeSeatCount(
       widget.currentMicCount,
     );
+
+    if (widget.room != null) {
+
+      roomName =
+          widget.room!.name;
+
+
+      announcement =
+          widget.room!.announcement;
+
+      diceCount =
+          widget.room!.diceCount;
+
+
+      sendEmojis =
+          widget.room!.emojiEnabled;
+
+
+      adminsOpenGames =
+          widget.room!.adminsCanOpenGames;
+
+
+      followersTakeMic =
+          widget.room!.followersCanTakeMic;
+
+
+      _selectedWallpaperId =
+          widget.room!.wallpaperId ?? 'mralex';
+
+    }
 
     _selectedWallpaperId =
         widget.selectedWallpaper?.id ??
@@ -179,6 +222,12 @@ class _RoomSettingsScreenState
 
               widget.onWallpaperChanged?.call(
                 wallpaper,
+              );
+
+              widget.socketService.updateRoomSetting(
+                roomId: widget.roomId,
+                key: "wallpaperId",
+                value: wallpaper.id,
               );
 
               Navigator.of(context).pop();
@@ -515,11 +564,20 @@ class _RoomSettingsScreenState
         _editText(
           title: 'Room Name',
           initialValue: roomName,
-          onSaved: (value) {
-            setState(() {
-              roomName = value;
-            });
-          },
+            onSaved: (value) {
+
+              setState(() {
+                roomName = value;
+              });
+
+
+              widget.socketService.updateRoomSetting(
+                roomId: widget.roomId,
+                key: "name",
+                value: value,
+              );
+
+            }
         );
       },
     );
@@ -539,11 +597,20 @@ class _RoomSettingsScreenState
         _editText(
           title: 'Announcement',
           initialValue: announcement,
-          onSaved: (value) {
-            setState(() {
-              announcement = value;
-            });
-          },
+            onSaved: (value) {
+
+              setState(() {
+                announcement = value;
+              });
+
+
+              widget.socketService.updateRoomSetting(
+                roomId: widget.roomId,
+                key: "announcement",
+                value: value,
+              );
+
+            }
         );
       },
     );
@@ -682,6 +749,13 @@ class _RoomSettingsScreenState
             setState(() {
               diceCount = value;
             });
+
+
+            widget.socketService.updateRoomSetting(
+              roomId: widget.roomId,
+              key: "diceCount",
+              value: value,
+            );
           },
         );
       },
@@ -732,9 +806,18 @@ class _RoomSettingsScreenState
       'Send emojis to the chatting area',
       value: sendEmojis,
       onChanged: (value) {
+
         setState(() {
           sendEmojis = value;
         });
+
+
+        widget.socketService.updateRoomSetting(
+          roomId: widget.roomId,
+          key: "emojiEnabled",
+          value: value,
+        );
+
       },
     );
   }
@@ -749,6 +832,13 @@ class _RoomSettingsScreenState
       onChanged: (value) {
         setState(() {
           adminsOpenGames = value;
+
+
+          widget.socketService.updateRoomSetting(
+            roomId: widget.roomId,
+            key: "adminsCanOpenGames",
+            value: value,
+          );
         });
       },
     );
@@ -763,6 +853,13 @@ class _RoomSettingsScreenState
       onChanged: (value) {
         setState(() {
           followersTakeMic = value;
+
+
+          widget.socketService.updateRoomSetting(
+            roomId: widget.roomId,
+            key: "followersCanTakeMic",
+            value: value,
+          );
         });
       },
     );

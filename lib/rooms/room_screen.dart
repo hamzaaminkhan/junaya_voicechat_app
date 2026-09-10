@@ -1293,10 +1293,11 @@ class _RoomScreenState extends State<RoomScreen>
 
                       roomId: _room.id,
 
-
                       currentMicCount:
                       _room.seatCount,
 
+                      room:
+                      _room,
 
                       socketService:
                       _socketService,
@@ -2996,10 +2997,14 @@ class _RoomScreenState extends State<RoomScreen>
                         MaterialPageRoute(
                           builder: (_) {
                             return RoomSettingsScreen(
+
                               roomId: _room.id,
 
                               currentMicCount:
                               _room.seatCount,
+
+                              room:
+                              _room,
 
                               socketService:
                               _socketService,

@@ -23,6 +23,8 @@ class RoomUser {
   final bool isMuted;
   final bool isSpeaking;
 
+
+
   const RoomUser({
     required this.id,
     required this.name,
@@ -279,6 +281,20 @@ class VoiceRoom {
   /// Backend synchronization can be added later.
   final String? wallpaperId;
 
+  final int diceCount;
+
+  final bool emojiEnabled;
+
+  final bool adminsCanOpenGames;
+
+  final bool followersCanTakeMic;
+
+  final bool hasPassword;
+
+  final String? theme;
+
+  final String? roomFrame;
+
 
   const VoiceRoom({
     required this.id,
@@ -295,6 +311,21 @@ class VoiceRoom {
     this.members = const [],
 
     this.wallpaperId,
+
+    this.diceCount = 1,
+
+    this.emojiEnabled = false,
+
+    this.adminsCanOpenGames = false,
+
+    this.followersCanTakeMic = true,
+
+    this.hasPassword = false,
+
+    this.theme,
+
+    this.roomFrame,
+
   });
 
 
@@ -422,6 +453,21 @@ class VoiceRoom {
     List<RoomSeat>? seats,
     List<RoomUser>? members,
     String? wallpaperId,
+
+    int? diceCount,
+
+    bool? emojiEnabled,
+
+    bool? adminsCanOpenGames,
+
+    bool? followersCanTakeMic,
+
+    bool? hasPassword,
+
+    String? theme,
+
+    String? roomFrame,
+
   }) {
     return VoiceRoom(
       id: id ?? this.id,
@@ -450,6 +496,28 @@ class VoiceRoom {
 
       wallpaperId:
       wallpaperId ?? this.wallpaperId,
+
+      diceCount:
+      diceCount ?? this.diceCount,
+
+      emojiEnabled:
+      emojiEnabled ?? this.emojiEnabled,
+
+      adminsCanOpenGames:
+      adminsCanOpenGames ?? this.adminsCanOpenGames,
+
+      followersCanTakeMic:
+      followersCanTakeMic ?? this.followersCanTakeMic,
+
+      hasPassword:
+      hasPassword ?? this.hasPassword,
+
+      theme:
+      theme ?? this.theme,
+
+      roomFrame:
+      roomFrame ?? this.roomFrame,
+
     );
   }
 
@@ -461,6 +529,7 @@ class VoiceRoom {
   factory VoiceRoom.fromJson(
       Map<String, dynamic> json,
       ) {
+
     final rawSeats = json['seats'];
 
 
@@ -557,6 +626,32 @@ class VoiceRoom {
 
       wallpaperId:
       json['wallpaperId']?.toString(),
+
+
+      diceCount:
+      _parseInt(
+        json['diceCount'],
+        fallback: 1,
+      ),
+
+      emojiEnabled:
+      json['emojiEnabled'] == true,
+
+      adminsCanOpenGames:
+      json['adminsCanOpenGames'] == true,
+
+      followersCanTakeMic:
+      json['followersCanTakeMic'] != false,
+
+      hasPassword:
+      json['hasPassword'] == true,
+
+      theme:
+      json['theme']?.toString(),
+
+      roomFrame:
+      json['roomFrame']?.toString(),
+
     );
   }
 
