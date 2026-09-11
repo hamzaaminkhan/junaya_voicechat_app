@@ -11,14 +11,12 @@ import 'package:junaya_voicechat_app/rooms/models/room_wallpaper_model.dart';
 class RoomSettingsScreen extends StatefulWidget {
   final String roomId;
 
-  /// Current number of mic seats in the room.
   final int currentMicCount;
 
   final VoiceRoom? room;
 
   final RoomSocketService socketService;
 
-  /// Called immediately when the user selects a new mic count.
   final ValueChanged<int>? onMicCountChanged;
 
   final RoomWallpaper? selectedWallpaper;
