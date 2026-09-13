@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:junaya_voicechat_app/profile/edit_profile_details_screen.dart';
 import 'package:junaya_voicechat_app/profile/sections/vip_purchase_screen.dart';
-
+import 'package:junaya_voicechat_app/widgets/framed_avatar.dart';
 import 'package:junaya_voicechat_app/routes/app_routes.dart';
 
 import 'package:junaya_voicechat_app/services/backend_auth_service.dart';
@@ -261,18 +261,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
-                padding: const EdgeInsets.all(2.5),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.purpleAccent, width: 2.5),
-                ),
-                child: CircleAvatar(
-                  radius: avatarRadius,
-                  backgroundColor: const Color(0xFF21152E),
-                  backgroundImage: _avatarProvider(),
-                ),
+
+              FramedAvatar(
+                avatarUrl: 'assets/users/profile.png',
+
+                frameAsset:
+                'assets/store/frames/test_golden_frame.json',
+
+                frameIsLottie: true,
+
+                // Keep the original avatar size.
+                size: avatarRadius * 2,
+
+                // The Lottie artwork needs to be larger.
+                frameScale: 1.46,
               ),
+
+
               SizedBox(width: veryNarrow ? 10 : 13),
               Expanded(
                 child: Column(

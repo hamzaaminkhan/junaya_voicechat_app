@@ -17,7 +17,7 @@ import '../screens/auth/phone_verification_screen.dart';
 import '../screens/auth/signup_screen.dart';
 import '../screens/chat/chat_list_screen.dart';
 import '../screens/friends/friends_screen.dart';
-import '../screens/gifts/gifts_screen.dart';
+import 'package:junaya_voicechat_app/profile/sections/store_screen.dart';
 
 import '../screens/home/wallet_screen.dart';
 import '../screens/main/main_screen.dart';
@@ -78,7 +78,7 @@ class AppRoutes {
     main: (_) => _protected(const MainScreen()),
 
     wallet: (_) => _protected(const WalletScreen()),
-    store: (_) => _protected(const GiftsScreen()),
+    store: (_) => _protected(const StoreScreen()),
     inviteFriends: (_) => _protected(const FriendsScreen()),
     joinAgency: (_) => _protected(const JoinAgencyScreen()),
     level: (_) => _protected(const LevelScreen()),

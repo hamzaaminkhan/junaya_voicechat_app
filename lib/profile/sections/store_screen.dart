@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:junaya_voicechat_app/widgets/space_background.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lottie/lottie.dart';
 
-import '../../widgets/space_background.dart';
 
 class StoreItem {
 
-
   final String name;
 
-  final String image;
+  final String asset;
+
+  final bool isLottie;
 
   final int price;
 
@@ -16,26 +19,21 @@ class StoreItem {
 
   final String category;
 
-
-
   const StoreItem({
 
     required this.name,
 
-    required this.image,
+    required this.asset,
+
+    required this.isLottie,
 
     required this.price,
 
     required this.duration,
 
     required this.category,
-
   });
-
-
 }
-
-
 
 class StoreScreen extends StatefulWidget {
 
@@ -43,18 +41,13 @@ class StoreScreen extends StatefulWidget {
     super.key,
   });
 
-
   @override
   State<StoreScreen> createState() =>
       _StoreScreenState();
 
 }
 
-
-
-
 class _StoreScreenState extends State<StoreScreen> {
-
 
   int selectedTab = 1;
 
@@ -73,37 +66,31 @@ class _StoreScreenState extends State<StoreScreen> {
   final List<StoreItem> items = [
 
 
-    // ======================================================
-    // ENTRANCE
-    // ======================================================
+
+// ======================================================
+// ENTRANCE
+// ======================================================
 
 
     StoreItem(
-
-      name: 'Golden Entrance',
-
-      image:
-      'assets/store/entrance_1.png',
-
-      price:
-      50000,
-
-      duration:
-      7,
-
-      category:
-      'Entrance',
-
+      name: 'Test Golden Frame',
+      asset: 'assets/store/frames/test_golden_frame.json',
+      isLottie: true,
+      price: 15000,
+      duration: 7,
+      category: 'Frame',
     ),
 
-
-
     StoreItem(
 
-      name: 'Royal Entry',
+      name:
+      'Royal Entry',
 
-      image:
-      'assets/store/entrance_2.png',
+      asset:
+      'assets/store/entrance/entrance_2.json',
+
+      isLottie:
+      true,
 
       price:
       120000,
@@ -119,17 +106,22 @@ class _StoreScreenState extends State<StoreScreen> {
 
 
 
-    // ======================================================
-    // FRAME
-    // ======================================================
+
+// ======================================================
+// FRAMES
+// ======================================================
 
 
     StoreItem(
 
-      name: 'Frame',
+      name:
+      'Frame',
 
-      image:
-      'assets/store/frame_1.png',
+      asset:
+      'assets/store/frames/frame_1.json',
+
+      isLottie:
+      true,
 
       price:
       15000,
@@ -146,10 +138,14 @@ class _StoreScreenState extends State<StoreScreen> {
 
     StoreItem(
 
-      name: 'Rich Man',
+      name:
+      'Rich Man',
 
-      image:
-      'assets/store/frame_2.png',
+      asset:
+      'assets/store/frames/frame_2.json',
+
+      isLottie:
+      true,
 
       price:
       250000,
@@ -166,10 +162,14 @@ class _StoreScreenState extends State<StoreScreen> {
 
     StoreItem(
 
-      name: 'Blue Shield',
+      name:
+      'Blue Shield',
 
-      image:
-      'assets/store/frame_3.png',
+      asset:
+      'assets/store/frames/frame_3.json',
+
+      isLottie:
+      true,
 
       price:
       300000,
@@ -186,10 +186,14 @@ class _StoreScreenState extends State<StoreScreen> {
 
     StoreItem(
 
-      name: 'Golden Frame',
+      name:
+      'Golden Frame',
 
-      image:
-      'assets/store/frame_4.png',
+      asset:
+      'assets/store/frames/frame_4.json',
+
+      isLottie:
+      true,
 
       price:
       98000,
@@ -205,17 +209,22 @@ class _StoreScreenState extends State<StoreScreen> {
 
 
 
-    // ======================================================
-    // BUBBLE CHAT
-    // ======================================================
+
+// ======================================================
+// BUBBLE CHAT
+// ======================================================
 
 
     StoreItem(
 
-      name: 'Love Bubble',
+      name:
+      'Love Bubble',
 
-      image:
-      'assets/store/bubble_1.png',
+      asset:
+      'assets/store/bubbles/bubble_1.png',
+
+      isLottie:
+      false,
 
       price:
       30000,
@@ -232,10 +241,14 @@ class _StoreScreenState extends State<StoreScreen> {
 
     StoreItem(
 
-      name: 'VIP Bubble',
+      name:
+      'VIP Bubble',
 
-      image:
-      'assets/store/bubble_2.png',
+      asset:
+      'assets/store/bubbles/bubble_2.png',
+
+      isLottie:
+      false,
 
       price:
       90000,
@@ -251,17 +264,22 @@ class _StoreScreenState extends State<StoreScreen> {
 
 
 
-    // ======================================================
-    // THEME
-    // ======================================================
+
+// ======================================================
+// THEMES
+// ======================================================
 
 
     StoreItem(
 
-      name: 'Galaxy Theme',
+      name:
+      'Galaxy Theme',
 
-      image:
-      'assets/store/theme_1.png',
+      asset:
+      'assets/store/themes/theme_1.png',
+
+      isLottie:
+      false,
 
       price:
       80000,
@@ -278,10 +296,14 @@ class _StoreScreenState extends State<StoreScreen> {
 
     StoreItem(
 
-      name: 'Royal Theme',
+      name:
+      'Royal Theme',
 
-      image:
-      'assets/store/theme_2.png',
+      asset:
+      'assets/store/themes/theme_2.png',
+
+      isLottie:
+      false,
 
       price:
       150000,
@@ -383,35 +405,30 @@ class _StoreScreenState extends State<StoreScreen> {
 
   Widget _buildHeader() {
 
-
     return SizedBox(
 
-      height: 55,
-
+      height: 85,
 
       child: Row(
 
         children: [
 
 
+          // BACK BUTTON
 
           IconButton(
-
             onPressed: () {
-
               Navigator.pop(context);
-
             },
-
-
-            icon: const Icon(
-
-              Icons.arrow_back_ios_new,
-
-              color: Colors.white,
-
+            icon: SvgPicture.asset(
+              'assets/icons/store_back.svg',
+              width: 30,
+              height: 30,
+              colorFilter: const ColorFilter.mode(
+                Colors.white,
+                BlendMode.srcIn,
+              ),
             ),
-
           ),
 
 
@@ -429,44 +446,102 @@ class _StoreScreenState extends State<StoreScreen> {
 
 
 
-                const Icon(
+                Container(
 
-                  Icons.workspace_premium,
+                  width: 45,
+
+                  height: 1,
 
                   color:
-                  Color(0xffffd447),
-
-                  size: 28,
+                  const Color(0xffffd447),
 
                 ),
+
+
+
+                const SizedBox(
+                  width: 12,
+                ),
+
+
+
+
+
+                Column(
+
+                  mainAxisAlignment:
+                  MainAxisAlignment.center,
+
+
+                  children: [
+
+
+
+                    SvgPicture.asset(
+                      'assets/icons/store_crown.svg',
+                      width: 28,
+                      height: 28,
+                      colorFilter: const ColorFilter.mode(
+                        Color(0xffffd447),
+                        BlendMode.srcIn,
+                      ),
+                    ),
+
+
+
+
+
+                    Text(
+
+                      'Store',
+
+                      style:
+
+                      GoogleFonts.poppins(
+
+                        color:
+                        Colors.white,
+
+
+                        fontSize:
+                        22,
+
+
+                        fontWeight:
+                        FontWeight.w600,
+
+                      ),
+
+                    ),
+
+
+
+                  ],
+
+                ),
+
 
 
 
 
                 const SizedBox(
-                  width: 8,
+                  width: 12,
                 ),
 
 
 
 
-                Text(
+                Container(
 
-                  'Store',
+                  width: 45,
 
-                  style:
-                  GoogleFonts.poppins(
+                  height: 1,
 
-                    color: Colors.white,
-
-                    fontSize: 28,
-
-                    fontWeight:
-                    FontWeight.w600,
-
-                  ),
+                  color:
+                  const Color(0xffffd447),
 
                 ),
+
 
 
               ],
@@ -480,25 +555,17 @@ class _StoreScreenState extends State<StoreScreen> {
 
 
           IconButton(
-
             onPressed: () {},
-
-
-            icon: const Icon(
-
-              Icons.checkroom_outlined,
-
-              color:
-              Color(0xffffd447),
-
-              size: 30,
-
+            icon: SvgPicture.asset(
+              'assets/icons/store_shirt.svg',
+              width: 34,
+              height: 34,
+              colorFilter: const ColorFilter.mode(
+                Color(0xffffd447),
+                BlendMode.srcIn,
+              ),
             ),
-
           ),
-
-
-
         ],
 
       ),
@@ -533,7 +600,7 @@ class _StoreScreenState extends State<StoreScreen> {
 
         padding:
         const EdgeInsets.symmetric(
-          horizontal: 28,
+          horizontal: 20,
         ),
 
 
@@ -600,11 +667,7 @@ class _StoreScreenState extends State<StoreScreen> {
               BoxDecoration(
 
                 color: active
-
-                    ? const Color(
-                  0xff7B1FE8,
-                )
-
+                    ? const Color(0xff8B2BFF)
                     : Colors.transparent,
 
 
@@ -704,7 +767,12 @@ class _StoreScreenState extends State<StoreScreen> {
     return GridView.builder(
 
       padding:
-      const EdgeInsets.all(16),
+      const EdgeInsets.only(
+        left: 22,
+        right: 22,
+        top: 18,
+        bottom: 30,
+      ),
 
 
       itemCount:
@@ -720,7 +788,7 @@ class _StoreScreenState extends State<StoreScreen> {
 
         mainAxisSpacing: 16,
 
-        childAspectRatio: .68,
+        childAspectRatio: .64,
 
       ),
 
@@ -748,38 +816,26 @@ class _StoreScreenState extends State<StoreScreen> {
       StoreItem item,
       ) {
 
-
     return Container(
 
-      padding:
-      const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(14),
 
+      decoration: BoxDecoration(
 
-      decoration:
-      BoxDecoration(
-
-        color:
-        const Color(0xFF2A1248)
+        color: const Color(0xff101633)
             .withValues(
-          alpha: .85,
+          alpha: .60,
         ),
-
 
         borderRadius:
         BorderRadius.circular(18),
 
-
-        border:
-        Border.all(
-
-          color:
-          Colors.white12,
-
+        border: Border.all(
+          color: const Color(0xff7650B8),
+          width: 1.2,
         ),
 
-
       ),
-
 
 
       child: Column(
@@ -791,366 +847,186 @@ class _StoreScreenState extends State<StoreScreen> {
         children: [
 
 
-
-          // ======================================================
-          // IMAGE AREA
-          // ======================================================
-
+          // ============================
+          // IMAGE + DAYS
+          // ============================
 
           Expanded(
 
-            child: Container(
+            child: Stack(
 
-              width:
-              double.infinity,
-
-
-              decoration:
-              BoxDecoration(
+              children: [
 
 
-                borderRadius:
-                BorderRadius.circular(14),
+                Center(
 
+                  child: item.isLottie
 
+                      ? Lottie.asset(
 
-                color:
-                Colors.black
-                    .withValues(
-                  alpha: .15,
+                    item.asset,
+
+                    fit: BoxFit.contain,
+
+                    repeat: true,
+
+                  )
+
+                      : Image.asset(
+
+                    item.asset,
+
+                    fit: BoxFit.contain,
+
+                  ),
+
                 ),
 
 
-              ),
+
+                Positioned(
+
+                  top: 2,
+
+                  right: 2,
 
 
+                  child: Row(
 
-              child:
-              Stack(
+                    children: [
 
-                children: [
-
-
-
-                  Center(
-
-                    child:
-                    Image.asset(
-
-                      item.image,
-
-
-                      fit:
-                      BoxFit.contain,
-
-
-                    ),
-
-                  ),
-
-
-
-
-                  Positioned(
-
-                    top:
-                    8,
-
-
-                    right:
-                    8,
-
-
-                    child:
-                    Container(
-
-                      padding:
-                      const EdgeInsets.symmetric(
-
-                        horizontal:
-                        8,
-
-                        vertical:
-                        4,
-
+                      const Icon(
+                        Icons.access_time,
+                        color: Colors.white70,
+                        size: 13,
                       ),
 
 
-
-                      decoration:
-                      BoxDecoration(
-
-                        color:
-                        Colors.black54,
+                      const SizedBox(
+                        width: 3,
+                      ),
 
 
-                        borderRadius:
-                        BorderRadius.circular(
-                          12,
+                      Text(
+
+                        '${item.duration} Days',
+
+                        style:
+                        GoogleFonts.poppins(
+
+                          color: Colors.white,
+
+                          fontSize: 11,
+
                         ),
-
                       ),
-
-
-
-                      child:
-                      Row(
-
-                        children: [
-
-
-                          const Icon(
-
-                            Icons.access_time,
-
-                            size:
-                            12,
-
-                            color:
-                            Colors.white70,
-
-                          ),
-
-
-
-                          const SizedBox(
-                            width: 3,
-                          ),
-
-
-
-                          Text(
-
-                            '${item.duration} Days',
-
-
-                            style:
-                            const TextStyle(
-
-                              color:
-                              Colors.white,
-
-                              fontSize:
-                              10,
-
-                            ),
-
-                          ),
-
-
-                        ],
-
-                      ),
-
-                    ),
-
+                    ],
                   ),
-
-
-
-                ],
-
-              ),
-
+                ),
+              ],
             ),
-
           ),
-
-
-
-
 
           const SizedBox(
             height: 10,
           ),
 
-
-
-
-          // ======================================================
-          // ITEM NAME
-          // ======================================================
-
-
+          // ============================
+          // NAME
+          // ============================
           Text(
 
             item.name,
 
-
-            maxLines:
-            1,
-
+            maxLines: 1,
 
             overflow:
             TextOverflow.ellipsis,
 
-
             style:
             GoogleFonts.poppins(
 
-              color:
-              Colors.white,
+              color: Colors.white,
 
-
-              fontSize:
-              14,
-
+              fontSize: 16,
 
               fontWeight:
               FontWeight.w600,
-
-
             ),
-
           ),
-
-
-
 
           const SizedBox(
             height: 8,
           ),
 
-
-
-
-          // ======================================================
+          // ============================
           // PRICE + BUY
-          // ======================================================
-
-
+          // ============================
           Row(
 
+            mainAxisAlignment:
+            MainAxisAlignment.spaceBetween,
+
             children: [
+              Row(
+                children: [
+                  const Icon(
 
+                    Icons.monetization_on,
 
+                    color:
+                    Color(0xffffd447),
 
-              Container(
+                    size: 18,
 
-                padding:
-                const EdgeInsets.symmetric(
-
-                  horizontal:
-                  8,
-
-                  vertical:
-                  5,
-
-                ),
-
-
-
-                decoration:
-                BoxDecoration(
-
-                  color:
-                  const Color(
-                    0xFFFFD447,
-                  ).withValues(
-                    alpha: .18,
                   ),
-
-
-
-                  borderRadius:
-                  BorderRadius.circular(
-                    14,
+                  const SizedBox(
+                    width: 5,
                   ),
+                  Text(
 
-                ),
-
-
-
-                child:
-                Row(
-
-                  children: [
+                    '${item.price}',
 
 
-                    const Icon(
-
-                      Icons.monetization_on,
+                    style:
+                    GoogleFonts.poppins(
 
                       color:
-                      Color(
-                        0xFFFFD447,
+                      const Color(
+                        0xffffd447,
                       ),
 
-                      size:
-                      15,
+                      fontSize: 13,
 
+                      fontWeight:
+                      FontWeight.w600,
                     ),
-
-
-
-                    const SizedBox(
-                      width: 4,
-                    ),
-
-
-
-                    Text(
-
-                      '${item.price}',
-
-
-                      style:
-                      GoogleFonts.poppins(
-
-                        color:
-                        const Color(
-                          0xFFFFD447,
-                        ),
-
-
-                        fontSize:
-                        11,
-
-
-                        fontWeight:
-                        FontWeight.w600,
-
-
-                      ),
-
-                    ),
-
-
-
-                  ],
-
-                ),
-
+                  ),
+                ],
               ),
-
-
-
-
-              const Spacer(),
-
-
-
-
               SizedBox(
 
-                height:
-                32,
+                height: 32,
 
 
                 child:
-                ElevatedButton(
+                OutlinedButton(
 
                   onPressed: () {},
 
 
                   style:
-                  ElevatedButton.styleFrom(
+                  OutlinedButton.styleFrom(
 
-                    backgroundColor:
-                    const Color(
-                      0xFF8B2BFF,
+                    side:
+                    const BorderSide(
+
+                      color:
+                      Color(
+                        0xffffd447,
+                      ),
+
                     ),
-
 
 
                     shape:
@@ -1166,12 +1042,12 @@ class _StoreScreenState extends State<StoreScreen> {
 
                     padding:
                     const EdgeInsets.symmetric(
+
                       horizontal: 18,
+
                     ),
 
-
                   ),
-
 
 
                   child:
@@ -1186,42 +1062,18 @@ class _StoreScreenState extends State<StoreScreen> {
                       color:
                       Colors.white,
 
-
-                      fontSize:
-                      12,
-
+                      fontSize: 12,
 
                       fontWeight:
                       FontWeight.w600,
-
-
                     ),
-
                   ),
-
-
                 ),
-
               ),
-
-
-
             ],
-
           ),
-
-
-
         ],
-
-
       ),
-
-
     );
-
   }
-
-
-
 }
