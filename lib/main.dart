@@ -24,6 +24,7 @@ Future<void> main() async {
   // BACKEND API INITIALIZATION
   // ==========================================
 
+
   ApiClient.instance.initialize();
 
   // ==========================================
