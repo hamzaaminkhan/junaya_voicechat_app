@@ -24,7 +24,6 @@ Future<void> main() async {
   // BACKEND API INITIALIZATION
   // ==========================================
 
-
   ApiClient.instance.initialize();
 
   // ==========================================
@@ -61,7 +60,6 @@ class JunayaApp extends StatelessWidget {
 
       routes: AppRoutes.routes,
 
-
       builder: (context, child) {
 
         return SpaceBackground(
@@ -71,10 +69,7 @@ class JunayaApp extends StatelessWidget {
               const SizedBox.shrink(),
 
         );
-
       },
-
     );
-
   }
 }
