@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:junaya_voicechat_app/widgets/space_background.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svga/flutter_svga.dart';
 import 'package:lottie/lottie.dart';
 
 
 class StoreItem {
-
   final String name;
 
   final String asset;
 
-  final bool isLottie;
+  final String assetType;
 
   final int price;
 
@@ -20,17 +20,11 @@ class StoreItem {
   final String category;
 
   const StoreItem({
-
     required this.name,
-
     required this.asset,
-
-    required this.isLottie,
-
+    required this.assetType,
     required this.price,
-
     required this.duration,
-
     required this.category,
   });
 }
@@ -71,41 +65,23 @@ class _StoreScreenState extends State<StoreScreen> {
 // ENTRANCE
 // ======================================================
 
-
     StoreItem(
       name: 'Test Golden Frame',
-      asset: 'assets/store/frames/test_golden_frame.json',
-      isLottie: true,
+      asset: 'assets/store/frames/gold_frame.svga',
+      assetType: 'SVGA',
       price: 15000,
       duration: 7,
       category: 'Frame',
     ),
 
     StoreItem(
-
-      name:
-      'Royal Entry',
-
-      asset:
-      'assets/store/entrance/entrance_2.json',
-
-      isLottie:
-      true,
-
-      price:
-      120000,
-
-      duration:
-      7,
-
-      category:
-      'Entrance',
-
+      name: 'Royal Entry',
+      asset: 'assets/store/entrance/entrance_2.json',
+      assetType: 'Lottie',
+      price: 120000,
+      duration: 7,
+      category: 'Entrance',
     ),
-
-
-
-
 
 // ======================================================
 // FRAMES
@@ -113,209 +89,92 @@ class _StoreScreenState extends State<StoreScreen> {
 
 
     StoreItem(
-
-      name:
-      'Frame',
-
-      asset:
-      'assets/store/frames/frame_1.json',
-
-      isLottie:
-      true,
-
-      price:
-      15000,
-
-      duration:
-      7,
-
-      category:
-      'Frame',
-
+      name: 'Frame',
+      asset: 'assets/store/frames/frame_1.svga',
+      assetType: 'SVGA',
+      price: 15000,
+      duration: 7,
+      category: 'Frame',
     ),
 
 
 
     StoreItem(
-
-      name:
-      'Rich Man',
-
-      asset:
-      'assets/store/frames/frame_2.json',
-
-      isLottie:
-      true,
-
-      price:
-      250000,
-
-      duration:
-      7,
-
-      category:
-      'Frame',
-
+      name: 'Rich Man',
+      asset: 'assets/store/frames/frame_2.svga',
+      assetType: 'SVGA',
+      price: 250000,
+      duration: 7,
+      category: 'Frame',
     ),
 
 
 
     StoreItem(
-
-      name:
-      'Blue Shield',
-
-      asset:
-      'assets/store/frames/frame_3.json',
-
-      isLottie:
-      true,
-
-      price:
-      300000,
-
-      duration:
-      7,
-
-      category:
-      'Frame',
-
+      name: 'Blue Shield',
+      asset: 'assets/store/frames/frame_3.svga',
+      assetType: 'SVGA',
+      price: 300000,
+      duration: 7,
+      category: 'Frame',
     ),
 
 
 
     StoreItem(
-
-      name:
-      'Golden Frame',
-
-      asset:
-      'assets/store/frames/frame_4.json',
-
-      isLottie:
-      true,
-
-      price:
-      98000,
-
-      duration:
-      7,
-
-      category:
-      'Frame',
-
+      name: 'Golden Frame',
+      asset: 'assets/store/frames/frame_4.svga',
+      assetType: 'SVGA',
+      price: 98000,
+      duration: 7,
+      category: 'Frame',
     ),
-
-
-
 
 
 // ======================================================
 // BUBBLE CHAT
 // ======================================================
 
+  StoreItem(
+  name: 'Love Bubble',
+  asset: 'assets/store/bubbles/bubble_1.png',
+  assetType: 'PNG',
+  price: 30000,
+  duration: 7,
+  category: 'Bubble Chat',
+  ),
 
-    StoreItem(
-
-      name:
-      'Love Bubble',
-
-      asset:
-      'assets/store/bubbles/bubble_1.png',
-
-      isLottie:
-      false,
-
-      price:
-      30000,
-
-      duration:
-      7,
-
-      category:
-      'Bubble Chat',
-
-    ),
-
-
-
-    StoreItem(
-
-      name:
-      'VIP Bubble',
-
-      asset:
-      'assets/store/bubbles/bubble_2.png',
-
-      isLottie:
-      false,
-
-      price:
-      90000,
-
-      duration:
-      7,
-
-      category:
-      'Bubble Chat',
-
-    ),
-
-
-
+  StoreItem(
+  name: 'VIP Bubble',
+  asset: 'assets/store/bubbles/bubble_2.png',
+  assetType: 'PNG',
+  price: 90000,
+  duration: 7,
+  category: 'Bubble Chat',
+  ),
 
 
 // ======================================================
 // THEMES
 // ======================================================
 
+  StoreItem(
+  name: 'Galaxy Theme',
+  asset: 'assets/store/themes/theme_1.png',
+  assetType: 'PNG',
+  price: 80000,
+  duration: 30,
+  category: 'Theme',
+  ),
 
-    StoreItem(
-
-      name:
-      'Galaxy Theme',
-
-      asset:
-      'assets/store/themes/theme_1.png',
-
-      isLottie:
-      false,
-
-      price:
-      80000,
-
-      duration:
-      30,
-
-      category:
-      'Theme',
-
-    ),
-
-
-
-    StoreItem(
-
-      name:
-      'Royal Theme',
-
-      asset:
-      'assets/store/themes/theme_2.png',
-
-      isLottie:
-      false,
-
-      price:
-      150000,
-
-      duration:
-      30,
-
-      category:
-      'Theme',
-
-    ),
-
+  StoreItem(
+  name: 'Royal Theme',
+  asset: 'assets/store/themes/theme_2.png',
+  assetType: 'PNG',
+  price: 150000,
+  duration: 30,
+  category: 'Theme',
+  )
 
   ];
 
@@ -860,27 +719,11 @@ class _StoreScreenState extends State<StoreScreen> {
 
                 Center(
 
-                  child: item.isLottie
-
-                      ? Lottie.asset(
-
-                    item.asset,
-
-                    fit: BoxFit.contain,
-
-                    repeat: true,
-
-                  )
-
-                      : Image.asset(
-
-                    item.asset,
-
-                    fit: BoxFit.contain,
-
-                  ),
+                  child: _buildAsset(item),
 
                 ),
+
+
 
 
 
@@ -1076,4 +919,45 @@ class _StoreScreenState extends State<StoreScreen> {
       ),
     );
   }
+
+  Widget _buildAsset(StoreItem item) {
+    switch (item.assetType.toUpperCase()) {
+      case 'SVGA':
+        return SVGAEasyPlayer(
+          assetsName: item.asset,
+          fit: BoxFit.contain,
+        );
+
+      case 'LOTTIE':
+        return Lottie.asset(
+          item.asset,
+          fit: BoxFit.contain,
+          repeat: true,
+        );
+
+      case 'SVG':
+        return SvgPicture.asset(
+          item.asset,
+          fit: BoxFit.contain,
+        );
+
+      case 'PNG':
+      case 'JPG':
+      case 'JPEG':
+        return Image.asset(
+          item.asset,
+          fit: BoxFit.contain,
+        );
+
+      default:
+        return const Center(
+          child: Icon(
+            Icons.broken_image_outlined,
+            color: Colors.white54,
+            size: 40,
+          ),
+        );
+    }
+  }
+
 }

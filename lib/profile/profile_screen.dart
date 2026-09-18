@@ -266,14 +266,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 avatarUrl: 'assets/users/profile.png',
 
                 frameAsset:
-                'assets/store/frames/test_golden_frame.json',
+                'assets/store/frames/gold_frame.svga',
 
-                frameIsLottie: true,
+                frameIsLottie: false,
 
-                // Keep the original avatar size.
                 size: avatarRadius * 2,
 
-                // The Lottie artwork needs to be larger.
                 frameScale: 1.46,
               ),
 

@@ -1,16 +1,13 @@
 class StoreItem {
 
-
   final String name;
 
-  /// PNG, JPG, GIF, or Lottie JSON path
+  /// Local asset path or network URL.
   final String asset;
 
-
-  /// true = Lottie JSON
-  /// false = normal image
-  final bool isLottie;
-
+  /// Asset type:
+  /// SVGA, Lottie, SVG, PNG, JPG, JPEG
+  final String assetType;
 
   final int price;
 
@@ -19,14 +16,13 @@ class StoreItem {
   final String category;
 
 
-
   const StoreItem({
 
     required this.name,
 
     required this.asset,
 
-    required this.isLottie,
+    required this.assetType,
 
     required this.price,
 
@@ -35,6 +31,5 @@ class StoreItem {
     required this.category,
 
   });
-
 
 }

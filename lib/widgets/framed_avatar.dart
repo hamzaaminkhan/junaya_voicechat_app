@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lottie/lottie.dart';
+import 'package:flutter_svga/flutter_svga.dart';
 
 class FramedAvatar extends StatelessWidget {
   final String? avatarUrl;
@@ -112,6 +113,21 @@ class FramedAvatar extends StatelessWidget {
   Widget _buildFrame(double frameSize) {
     final String path = frameAsset!.toLowerCase();
 
+    // ========================================================
+    // SVGA
+    // ========================================================
+
+    if (path.endsWith('.svga')) {
+      return SVGAEasyPlayer(
+        assetsName: frameAsset!,
+        fit: BoxFit.contain,
+      );
+    }
+
+    // ========================================================
+    // LOTTIE
+    // ========================================================
+
     if (frameIsLottie || path.endsWith('.json')) {
       return Lottie.asset(
         frameAsset!,
@@ -122,6 +138,10 @@ class FramedAvatar extends StatelessWidget {
       );
     }
 
+    // ========================================================
+    // SVG
+    // ========================================================
+
     if (path.endsWith('.svg')) {
       return SvgPicture.asset(
         frameAsset!,
@@ -130,6 +150,10 @@ class FramedAvatar extends StatelessWidget {
         fit: BoxFit.contain,
       );
     }
+
+    // ========================================================
+    // NORMAL IMAGE
+    // ========================================================
 
     return Image.asset(
       frameAsset!,
