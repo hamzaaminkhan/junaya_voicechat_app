@@ -213,23 +213,57 @@ class _RoomSettingsScreenState
             _selectedWallpaperId,
 
             onWallpaperSelected: (wallpaper) {
-              setState(() {
-                _selectedWallpaperId =
-                    wallpaper.id;
-              });
-
-              widget.onWallpaperChanged?.call(
-                wallpaper,
-              );
 
               widget.socketService.updateRoomSetting(
-                roomId: widget.roomId,
-                key: "wallpaperId",
-                value: wallpaper.id,
+
+                roomId:
+                widget.roomId,
+
+                key:
+                'wallpaperId',
+
+                value:
+                wallpaper.id,
+
+                onResult: (ok, error) {
+
+                  if (!mounted) {
+                    return;
+                  }
+
+                  if (!ok) {
+
+                    _message(
+                      error ??
+                          'Unable to update wallpaper.',
+                    );
+
+                    return;
+                  }
+
+
+                  setState(() {
+
+                    _selectedWallpaperId =
+                        wallpaper.id;
+
+                  });
+
+
+                  widget.onWallpaperChanged?.call(
+                    wallpaper,
+                  );
+
+
+                  Navigator.of(context).pop();
+
+                },
+
               );
 
-              Navigator.of(context).pop();
             },
+
+
           ),
         );
       },
@@ -564,15 +598,42 @@ class _RoomSettingsScreenState
           initialValue: roomName,
             onSaved: (value) {
 
-              setState(() {
-                roomName = value;
-              });
-
-
               widget.socketService.updateRoomSetting(
-                roomId: widget.roomId,
-                key: "name",
-                value: value,
+
+                roomId:
+                widget.roomId,
+
+                key:
+                'name',
+
+                value:
+                value,
+
+                onResult: (ok, error) {
+
+                  if (!mounted) {
+                    return;
+                  }
+
+                  if (!ok) {
+
+                    _message(
+                      error ??
+                          'Unable to update room name.',
+                    );
+
+                    return;
+                  }
+
+                  setState(() {
+
+                    roomName =
+                        value;
+
+                  });
+
+                },
+
               );
 
             }
@@ -597,15 +658,42 @@ class _RoomSettingsScreenState
           initialValue: announcement,
             onSaved: (value) {
 
-              setState(() {
-                announcement = value;
-              });
-
-
               widget.socketService.updateRoomSetting(
-                roomId: widget.roomId,
-                key: "announcement",
-                value: value,
+
+                roomId:
+                widget.roomId,
+
+                key:
+                'announcement',
+
+                value:
+                value,
+
+                onResult: (ok, error) {
+
+                  if (!mounted) {
+                    return;
+                  }
+
+                  if (!ok) {
+
+                    _message(
+                      error ??
+                          'Unable to update announcement.',
+                    );
+
+                    return;
+                  }
+
+                  setState(() {
+
+                    announcement =
+                        value;
+
+                  });
+
+                },
+
               );
 
             }
@@ -737,25 +825,33 @@ class _RoomSettingsScreenState
               roomId:
               widget.roomId,
 
-
               key:
-              "theme",
-
+              'theme',
 
               value:
               theme,
 
+              onResult: (ok, error) {
+
+                if (!mounted) {
+                  return;
+                }
+
+                if (!ok) {
+
+                  _message(
+                    error ??
+                        'Unable to update theme.',
+                  );
+
+                  return;
+                }
+              },
             );
-
-
           },
-
         );
-
       },
-
     );
-
   }
 
   // ------------------------------------------------------------
@@ -830,26 +926,33 @@ class _RoomSettingsScreenState
               roomId:
               widget.roomId,
 
-
               key:
-              "roomFrame",
-
+              'roomFrame',
 
               value:
               frame,
 
+              onResult: (ok, error) {
+
+                if (!mounted) {
+                  return;
+                }
+
+                if (!ok) {
+
+                  _message(
+                    error ??
+                        'Unable to update room frame.',
+                  );
+
+                  return;
+                }
+              },
             );
-
-
           },
-
         );
-
-
       },
-
     );
-
   }
 
   // ------------------------------------------------------------
@@ -870,27 +973,41 @@ class _RoomSettingsScreenState
             final hasPassword =
                 value.trim().isNotEmpty;
 
-
             widget.socketService.updateRoomSetting(
 
               roomId:
               widget.roomId,
 
-
               key:
-              "hasPassword",
-
+              'hasPassword',
 
               value:
               hasPassword,
 
-            );
+              onResult: (ok, error) {
 
+                if (!mounted) {
+                  return;
+                }
 
-            _message(
-              hasPassword
-                  ? 'Password enabled.'
-                  : 'Password removed.',
+                if (!ok) {
+
+                  _message(
+                    error ??
+                        'Unable to update password.',
+                  );
+
+                  return;
+                }
+
+                _message(
+                  hasPassword
+                      ? 'Password enabled.'
+                      : 'Password removed.',
+                );
+
+              },
+
             );
 
           },
@@ -921,21 +1038,52 @@ class _RoomSettingsScreenState
           ],
           selected: diceCount,
           onSelected: (value) {
-            setState(() {
-              diceCount = value;
-            });
-
 
             widget.socketService.updateRoomSetting(
-              roomId: widget.roomId,
-              key: "diceCount",
-              value: value,
+
+              roomId:
+              widget.roomId,
+
+              key:
+              'diceCount',
+
+              value:
+              value,
+
+              onResult: (ok, error) {
+
+                if (!mounted) {
+                  return;
+                }
+
+                if (!ok) {
+
+                  _message(
+                    error ??
+                        'Unable to update dice count.',
+                  );
+
+                  return;
+                }
+
+                setState(() {
+
+                  diceCount =
+                      value;
+
+                });
+
+              },
+
             );
+
           },
         );
       },
     );
   }
+
+
 
   // ------------------------------------------------------------
   // GUEST TEXT
@@ -945,13 +1093,12 @@ class _RoomSettingsScreenState
     return _tile(
       icon: Icons.text_fields_rounded,
       title: 'Guest send text level',
-      onTap: () {
-        _message(
-          'Guest text level selector coming soon.',
-        );
-      },
+      value: widget.room?.guestTextLevel ?? 'NORMAL',
+      onTap: _showGuestTextLevelPicker,
     );
   }
+
+
 
   // ------------------------------------------------------------
   // BLOCKED LIST
@@ -982,15 +1129,42 @@ class _RoomSettingsScreenState
       value: sendEmojis,
       onChanged: (value) {
 
-        setState(() {
-          sendEmojis = value;
-        });
-
-
         widget.socketService.updateRoomSetting(
-          roomId: widget.roomId,
-          key: "emojiEnabled",
-          value: value,
+
+          roomId:
+          widget.roomId,
+
+          key:
+          'emojiEnabled',
+
+          value:
+          value,
+
+          onResult: (ok, error) {
+
+            if (!mounted) {
+              return;
+            }
+
+            if (!ok) {
+
+              _message(
+                error ??
+                    'Unable to update emoji setting.',
+              );
+
+              return;
+            }
+
+            setState(() {
+
+              sendEmojis =
+                  value;
+
+            });
+
+          },
+
         );
 
       },
@@ -1005,16 +1179,45 @@ class _RoomSettingsScreenState
       'Only room admins can open games',
       value: adminsOpenGames,
       onChanged: (value) {
-        setState(() {
-          adminsOpenGames = value;
 
+        widget.socketService.updateRoomSetting(
 
-          widget.socketService.updateRoomSetting(
-            roomId: widget.roomId,
-            key: "adminsCanOpenGames",
-            value: value,
-          );
-        });
+          roomId:
+          widget.roomId,
+
+          key:
+          'adminsCanOpenGames',
+
+          value:
+          value,
+
+          onResult: (ok, error) {
+
+            if (!mounted) {
+              return;
+            }
+
+            if (!ok) {
+
+              _message(
+                error ??
+                    'Unable to update game setting.',
+              );
+
+              return;
+            }
+
+            setState(() {
+
+              adminsOpenGames =
+                  value;
+
+            });
+
+          },
+
+        );
+
       },
     );
   }
@@ -1026,16 +1229,45 @@ class _RoomSettingsScreenState
       'Only room followers can take mic',
       value: followersTakeMic,
       onChanged: (value) {
-        setState(() {
-          followersTakeMic = value;
 
+        widget.socketService.updateRoomSetting(
 
-          widget.socketService.updateRoomSetting(
-            roomId: widget.roomId,
-            key: "followersCanTakeMic",
-            value: value,
-          );
-        });
+          roomId:
+          widget.roomId,
+
+          key:
+          'followersCanTakeMic',
+
+          value:
+          value,
+
+          onResult: (ok, error) {
+
+            if (!mounted) {
+              return;
+            }
+
+            if (!ok) {
+
+              _message(
+                error ??
+                    'Unable to update follower mic setting.',
+              );
+
+              return;
+            }
+
+            setState(() {
+
+              followersTakeMic =
+                  value;
+
+            });
+
+          },
+
+        );
+
       },
     );
   }
@@ -1473,6 +1705,80 @@ class _RoomSettingsScreenState
     if (result != null) {
       onSelected(result);
     }
+  }
+
+
+  Future<void> _showGuestTextLevelPicker() async {
+    const levels = [
+      'NONE',
+      'LOW',
+      'NORMAL',
+      'HIGH',
+    ];
+
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: const Color(0xFF210444),
+      builder: (context) {
+        final current =
+            widget.room?.guestTextLevel ?? 'NORMAL';
+
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: levels.map((level) {
+              return ListTile(
+                title: Text(
+                  level,
+                  style: const TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+                trailing: level == current
+                    ? const Icon(
+                  Icons.check,
+                  color: Colors.white,
+                )
+                    : null,
+                onTap: () {
+                  Navigator.pop(
+                    context,
+                    level,
+                  );
+                },
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+
+    if (!mounted || selected == null) {
+      return;
+    }
+
+    widget.socketService.updateRoomSetting(
+      roomId: widget.roomId,
+      key: 'guestTextLevel',
+      value: selected,
+      onResult: (ok, error) {
+        if (!mounted) {
+          return;
+        }
+
+        if (!ok) {
+          _message(
+            error ??
+                'Unable to update guest text level.',
+          );
+          return;
+        }
+
+        _message(
+          'Guest text level updated.',
+        );
+      },
+    );
   }
 
   // ------------------------------------------------------------

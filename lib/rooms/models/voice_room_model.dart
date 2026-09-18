@@ -254,6 +254,8 @@ class VoiceRoom {
 
   final int roomRank;
 
+  final String? guestTextLevel;
+
 
   /// Number of microphone seats configured
   /// for this room.
@@ -304,6 +306,7 @@ class VoiceRoom {
     required this.onlineUsers,
     required this.roomRank,
     required this.seats,
+    this.guestTextLevel,
 
     this.seatCount =
         RoomSeatLimits.defaultCount,
@@ -449,6 +452,7 @@ class VoiceRoom {
     String? announcement,
     int? onlineUsers,
     int? roomRank,
+    String? guestTextLevel,
     int? seatCount,
     List<RoomSeat>? seats,
     List<RoomUser>? members,
@@ -484,6 +488,9 @@ class VoiceRoom {
 
       roomRank:
       roomRank ?? this.roomRank,
+
+      guestTextLevel:
+      guestTextLevel ?? this.guestTextLevel,
 
       seatCount:
       seatCount ?? this.seatCount,
@@ -617,6 +624,9 @@ class VoiceRoom {
         json['roomRank'],
       ),
 
+      guestTextLevel:
+      json['guestTextLevel']?.toString(),
+
       seatCount: normalizedSeatCount,
 
       seats: normalizedSeats,
@@ -689,6 +699,9 @@ class VoiceRoom {
           .toList(),
 
       'wallpaperId': wallpaperId,
+
+      'guestTextLevel':
+      guestTextLevel,
     };
   }
 }

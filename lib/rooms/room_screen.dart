@@ -3237,10 +3237,34 @@ class _RoomScreenState extends State<RoomScreen>
       return;
     }
 
-    _roomController.setSeatCount(count);
+    if (!_socketConnected) {
+      _showMessage(
+        'Room connection is required to change mic seats.',
+      );
+      return;
+    }
 
-    _showMessage(
-      'Room now has $count mic seats.',
+    _socketService.updateMicSeatCount(
+      roomId: widget.roomId,
+      seatCount: count,
+      onResult: (ok, error) {
+        if (!mounted) {
+          return;
+        }
+
+        if (!ok) {
+          _showMessage(
+            error ?? 'Unable to update mic seats.',
+          );
+          return;
+        }
+
+        _roomController.setSeatCount(count);
+
+        _showMessage(
+          'Room now has $count mic seats.',
+        );
+      },
     );
   }
 
